@@ -1,0 +1,33 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+*.DotSettings.user
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+
+## IDE
+.idea/
+.vscode/
+*.swp
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Build
+TestResults/
+BenchmarkDotNet.Artifacts/
+publish/
+
+## Secrets
+*.pfx
+*.key
+appsettings.*.json
+!appsettings.json
+.env

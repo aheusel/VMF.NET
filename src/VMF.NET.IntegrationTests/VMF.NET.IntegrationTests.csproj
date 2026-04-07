@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="xunit" Version="2.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.*" PrivateAssets="all" />
+    <!-- Scriban is needed by the generator at compile time -->
+    <PackageReference Include="Scriban" Version="5.*" PrivateAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VMF.NET.Runtime\VMF.NET.Runtime.csproj" />
+    <ProjectReference Include="..\VMF.NET.Json\VMF.NET.Json.csproj" />
+    <!-- Source generator as analyzer -->
+    <ProjectReference Include="..\VMF.NET.SourceGenerator\VMF.NET.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+    <!-- Core is loaded by the generator at compile time -->
+    <ProjectReference Include="..\VMF.NET.Core\VMF.NET.Core.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Feed Scriban to the compiler so the generator can load it -->
+  <Target Name="_AddScribanAnalyzer" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Include="$(PkgScriban)\lib\netstandard2.0\Scriban.dll" />
+    </ItemGroup>
+  </Target>
+
+</Project>
