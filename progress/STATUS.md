@@ -87,8 +87,33 @@
 - (nothing)
 
 ## Next Up
-- Polish & publish — finalize NuGet packaging for VMF.NET.Json, CI publish workflow
-- Real-world validation with non-trivial model
+
+### Phase 10: CI/CD Fix & NuGet Publish
+Fix broken CI/CD workflows, then publish v0.1.0 to nuget.org.
+
+**CI/CD issues identified (2026-04-07):**
+- [ ] Wrong .NET version in both workflows (`8.0.x` → `10.0.x`) — CI build currently fails
+- [ ] `publish.yml` does not run tests before publishing
+- [ ] No version derived from git tag — packages always emit `1.0.0`; fix with `/p:Version=${GITHUB_REF_NAME#v}` or `MinVer`
+- [ ] No `RepositoryUrl` in `Directory.Build.props` — NuGet page won't link to GitHub
+- [ ] Test/IntegrationTests projects not marked `<IsPackable>false</IsPackable>` — `dotnet pack` emits junk packages
+- [ ] `VMF.NET.Runtime` and `VMF.NET.Json` have no explicit `TargetFramework` — inheriting `net10.0` from `Directory.Build.props` limits consumer compatibility (consider `net6.0` or multi-targeting)
+- [ ] NuGet secret `NUGET_API_KEY` must be set in GitHub repo settings before first publish
+
+**Steps:**
+1. Fix `build.yml` and `publish.yml` (dotnet 10, test-before-publish, version from tag)
+2. Add `RepositoryUrl`, `PackageTags` to `Directory.Build.props`
+3. Mark test projects `<IsPackable>false</IsPackable>`
+4. Decide on `TargetFramework` for Runtime/Json (net6.0+ vs net10.0)
+5. Add `NUGET_API_KEY` secret to GitHub repo
+6. Push `v0.1.0` tag → verify packages appear on nuget.org
+
+### Phase 11: VMF-Tutorials C# Port
+Port `~/source/VMF-Tutorials` (Java) to C# as a standalone solution that consumes VMF.NET packages **from nuget.org** (not project references).
+
+- Serves as real-world validation with a non-trivial model
+- Must be a separate solution/repo pulling published NuGet packages
+- Port after Phase 10 is complete and packages are live on nuget.org
 
 ## Blockers
 - None
