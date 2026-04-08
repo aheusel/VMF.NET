@@ -1,4 +1,4 @@
-name: Publish NuGet
+name: Publish NuGet & Release
 
 on:
   push:
@@ -30,3 +30,19 @@ jobs:
 
     - name: Push to NuGet
       run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: Install DocFX
+      run: dotnet tool install -g docfx
+
+    - name: Build docs
+      run: docfx docfx.json
+
+    - name: Zip docs
+      run: cd _site && zip -r ../api-docs.zip .
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        prerelease: true
+        generate_release_notes: true
+        files: api-docs.zip
