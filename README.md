@@ -4,7 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/v/VMF.NET.Runtime.svg?label=NuGet)](https://www.nuget.org/packages/VMF.NET.Runtime)
 [![Docs](https://github.com/aheusel/VMF.NET/actions/workflows/docs.yml/badge.svg)](https://github.com/aheusel/VMF.NET/actions/workflows/docs.yml)
 
-VMF.NET is a lightweight modeling framework for .NET. It translates annotated C# interfaces into powerful implementations via a Roslyn Source Generator — no separate build step, no code-gen tooling, no boilerplate. It works with .NET 10 and later.
+VMF.NET is a lightweight modeling framework for .NET. It translates annotated C# interfaces into powerful implementations via a Roslyn Source Generator — no separate build step, no code-gen tooling, no boilerplate. It works with .NET 6 and later.
 
 It generates/supports:
 
@@ -31,9 +31,11 @@ A VMF.NET model consists of annotated C# interfaces. Just define the interface a
 Add the NuGet packages to your project:
 
 ```xml
-<PackageReference Include="VMF.NET.Runtime" Version="0.1.0" />
-<PackageReference Include="VMF.NET.SourceGenerator" Version="0.1.0" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+<PackageReference Include="VMF.NET.Runtime" Version="*" />
+<PackageReference Include="VMF.NET.SourceGenerator" Version="*" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 ```
+
+> Replace `*` with a specific version (e.g., `0.1.1`) for reproducible builds. See [NuGet](https://www.nuget.org/packages/VMF.NET.Runtime) for the latest version.
 
 Define your model as annotated `partial` interfaces. The interfaces must be marked with `[VmfModel]` and the namespace must end with `.VmfModel`:
 
@@ -95,7 +97,7 @@ IReadOnlyParent ro = parent.AsReadOnly();
 Add the JSON package for `System.Text.Json` support:
 
 ```xml
-<PackageReference Include="VMF.NET.Json" Version="0.1.0" />
+<PackageReference Include="VMF.NET.Json" Version="*" />
 ```
 
 ```csharp
@@ -113,7 +115,7 @@ IParent restored = JsonSerializer.Deserialize<IParent>(json, options)!;
 
 ### Requirements
 
-- .NET 10 SDK
+- .NET 6 SDK or later
 - Internet connection (NuGet packages are restored automatically)
 
 ### Command Line
