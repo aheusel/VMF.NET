@@ -5,6 +5,7 @@
 [![Docs](https://github.com/aheusel/VMF.NET/actions/workflows/docs.yml/badge.svg)](https://github.com/aheusel/VMF.NET/actions/workflows/docs.yml)
 
 VMF.NET is a lightweight modeling framework for .NET. It translates annotated C# interfaces into powerful implementations via a Roslyn Source Generator — no separate build step, no code-gen tooling, no boilerplate. It works with .NET 6 and later.
+VMF.NET is a port of the java [VMF](https://github.com/miho/VMF) framework. 
 
 It generates/supports:
 
