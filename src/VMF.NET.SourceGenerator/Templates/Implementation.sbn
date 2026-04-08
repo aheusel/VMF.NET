@@ -694,9 +694,9 @@ namespace {{ ns }}
                 if (i > 0) sb.Append(", ");
 {{~ if prop.GenericModelType != null ~}}
                 if ({{ prop.Name }}[i] is {{ prop.GenericModelType.ImplClassName }} ts_{{ prop.PropId }}) sb.Append(ts_{{ prop.PropId }}.VmfToString(visited));
-                else sb.Append({{ prop.Name }}[i]?.ToString() ?? "null");
+                else sb.Append(((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ prop.Name }}[i]?.ToString() ?? "null"));
 {{~ else ~}}
-                sb.Append({{ prop.Name }}[i] is string ? "\"" + {{ prop.Name }}[i] + "\"" : ({{ prop.Name }}[i]?.ToString() ?? "null"));
+                sb.Append({{ prop.Name }}[i] is string ? "\"" + {{ prop.Name }}[i] + "\"" : (((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ prop.Name }}[i]?.ToString() ?? "null")));
 {{~ end ~}}
             }
             sb.Append("]");
@@ -706,7 +706,7 @@ namespace {{ ns }}
 {{~ else if prop.SimpleTypeName == "String" || prop.SimpleTypeName == "string" ~}}
             sb.Append({{ field_name prop }} != null ? "\"" + {{ field_name prop }} + "\"" : "null");
 {{~ else ~}}
-            sb.Append({{ field_name prop }}{{ if (is_nullable prop) }}?{{ end }}.ToString(){{ if (is_nullable prop) }} ?? "null"{{ end }});
+            sb.Append(((object?){{ field_name prop }}) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ field_name prop }}{{ if (is_nullable prop) }}?{{ end }}.ToString(){{ if (is_nullable prop) }} ?? "null"{{ end }}));
 {{~ end ~}}
 {{~ idx = idx + 1 ~}}
 {{~ end ~}}
