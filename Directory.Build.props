@@ -10,5 +10,7 @@
     <Description>VMF.NET — Visual Modeling Framework for .NET</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/aheusel/VMF.NET</RepositoryUrl>
+    <PackageTags>vmf;modeling;code-generation;source-generator</PackageTags>
   </PropertyGroup>
 </Project>
