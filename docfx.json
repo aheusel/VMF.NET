@@ -1,0 +1,34 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "src/VMF.NET.Runtime/**.csproj",
+            "src/VMF.NET.Json/**.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "properties": {
+        "TargetFramework": "net6.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": ["api/**.yml", "api/index.md"]
+      },
+      {
+        "files": ["toc.yml", "*.md"]
+      }
+    ],
+    "dest": "_site",
+    "globalMetadataFiles": [],
+    "template": ["default", "modern"],
+    "postProcessors": [],
+    "keepFileLink": false,
+    "disableGitFeatures": false
+  }
+}

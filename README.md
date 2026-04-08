@@ -2,6 +2,7 @@
 
 [![Build & Test](https://github.com/aheusel/VMF.NET/actions/workflows/build.yml/badge.svg)](https://github.com/aheusel/VMF.NET/actions/workflows/build.yml)
 [![NuGet](https://img.shields.io/nuget/v/VMF.NET.Runtime.svg?label=NuGet)](https://www.nuget.org/packages/VMF.NET.Runtime)
+[![Docs](https://github.com/aheusel/VMF.NET/actions/workflows/docs.yml/badge.svg)](https://github.com/aheusel/VMF.NET/actions/workflows/docs.yml)
 
 VMF.NET is a lightweight modeling framework for .NET. It translates annotated C# interfaces into powerful implementations via a Roslyn Source Generator — no separate build step, no code-gen tooling, no boilerplate. It works with .NET 10 and later.
 
