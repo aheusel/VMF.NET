@@ -5,7 +5,21 @@
       "Bash(git commit -m ':*)",
       "Bash(git push:*)",
       "Bash(dotnet build:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(dotnet pack:*)",
+      "Bash(ls:*)",
+      "Bash(git tag:*)",
+      "Bash(unzip -l ./nupkgs/VMF.NET.Runtime.0.1.1.nupkg)",
+      "Bash(dotnet tool:*)",
+      "Bash(docfx:*)",
+      "Read(//mnt/c/Users/alexa/source/**)",
+      "Read(//c/Users/alexa/source/VMF-Tutorials/**)",
+      "Bash(mkdir -p /c/Users/alexa/source/VMF.NET.Tutorials)",
+      "Read(//c/Users/alexa/source/**)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet run:*)",
+      "Bash(git init:*)",
+      "Bash([ -f \"/c/Users/alexa/source/VMF.NET.Tutorials/$d/README.md\" ])"
     ]
   }
 }
