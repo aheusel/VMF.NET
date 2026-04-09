@@ -29,6 +29,8 @@ A VMF.NET model consists of annotated C# interfaces. Just define the interface a
 
 ## Using VMF.NET
 
+Checkout the [tutorial](https://github.com/aheusel/VMF.NET.Tutorials) projects.
+
 Add the NuGet packages to your project:
 
 ```xml
