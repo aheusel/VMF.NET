@@ -158,7 +158,7 @@ public class JsonSerializationTests
     [Fact]
     public void RoundTrip_ImmutableCollection()
     {
-        var shape = IShape.NewBuilder()
+        var shape = IFigure.NewBuilder()
             .WithName("Triangle")
             .WithPoints(
                 IPoint.NewBuilder().WithX(0).WithY(0).Build(),
@@ -169,7 +169,7 @@ public class JsonSerializationTests
 
         var options = CreateOptions();
         var json = JsonSerializer.Serialize<IVObject>(shape, options);
-        var deserialized = JsonSerializer.Deserialize<IShape>(json, options)!;
+        var deserialized = JsonSerializer.Deserialize<IFigure>(json, options)!;
 
         Assert.Equal("Triangle", deserialized.Name);
         Assert.Equal(3, deserialized.Points.Count);

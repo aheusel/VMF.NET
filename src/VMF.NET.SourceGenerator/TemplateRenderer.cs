@@ -114,7 +114,9 @@ public sealed class TemplateRenderer
         scriptObject.Import("int_array", new Func<IEnumerable<int>, string>(TemplateHelpers.IntArray));
         scriptObject.Import("string_array", new Func<IEnumerable<string>, string>(TemplateHelpers.StringArray));
         scriptObject.Import("is_primitive", new Func<PropertyInfo, bool>(p => p.PropType == PropType.Primitive));
-        scriptObject.Import("is_nullable", new Func<PropertyInfo, bool>(p => p.PropType != PropType.Primitive));
+        // A property gets a trailing `?` when it is a reference type (Class/Collection) OR a
+        // nullable value type (double?/int?/bool?), which is classified Primitive but nullable.
+        scriptObject.Import("is_nullable", new Func<PropertyInfo, bool>(p => p.PropType != PropType.Primitive || p.IsNullableValueType));
 
         scriptObject.Add("type", type);
         scriptObject.Add("model", model);

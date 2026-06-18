@@ -174,6 +174,7 @@ public static class ModelAnalyzer
             prop.TypeName = propSym.FullTypeName;
             prop.SimpleTypeName = propSym.SimpleTypeName;
             prop.PackageName = propSym.TypeNamespace ?? "";
+            prop.IsNullableValueType = propSym.IsNullableValueType;
             prop.IsRequired = propSym.IsRequired;
             prop.IsIgnoredForEquals = propSym.IsIgnoredForEquals;
             prop.IsIgnoredForToString = propSym.IsIgnoredForToString;

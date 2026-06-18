@@ -17,10 +17,11 @@ public partial interface IPoint
 }
 
 /// <summary>
-/// A mutable shape with a required name and points.
+/// A mutable figure with a required name and points.
+/// (Renamed from IShape to avoid colliding with the immutable IShape acceptance model.)
 /// </summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IShape
+public partial interface IFigure
 {
     [VmfRequired]
     string Name { get; set; }

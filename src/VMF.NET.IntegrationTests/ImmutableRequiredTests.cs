@@ -146,7 +146,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Required_Builder_ThrowsWhenNotSet()
     {
-        var builder = IShape.NewBuilder();
+        var builder = IFigure.NewBuilder();
         // Name is required but not set
         Assert.Throws<InvalidOperationException>(() => builder.Build());
     }
@@ -154,7 +154,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Required_Builder_SucceedsWhenSet()
     {
-        var shape = IShape.NewBuilder()
+        var shape = IFigure.NewBuilder()
             .WithName("Triangle")
             .Build();
 
@@ -167,7 +167,7 @@ public class ImmutableRequiredTests
         var p1 = IPoint.NewBuilder().WithX(0).WithY(0).Build();
         var p2 = IPoint.NewBuilder().WithX(1).WithY(0).Build();
 
-        var shape = IShape.NewBuilder()
+        var shape = IFigure.NewBuilder()
             .WithName("Line")
             .WithPoints(p1, p2)
             .Build();
@@ -179,7 +179,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Shape_IsMutable()
     {
-        var shape = IShape.NewBuilder().WithName("Test").Build();
+        var shape = IFigure.NewBuilder().WithName("Test").Build();
         Assert.IsAssignableFrom<IMutable>(shape);
 
         // Can change name

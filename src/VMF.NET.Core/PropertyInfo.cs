@@ -36,6 +36,13 @@ public sealed class PropertyInfo : IEquatable<PropertyInfo>
     /// <summary>Property type classification.</summary>
     public PropType PropType { get; set; } = PropType.Class;
 
+    /// <summary>
+    /// Whether this property is a nullable value type (double?, int?, bool?, …).
+    /// Such properties are classified as <see cref="PropType.Primitive"/> (their underlying
+    /// type is a value type) but must emit a trailing <c>?</c> and use null-aware handling.
+    /// </summary>
+    public bool IsNullableValueType { get; set; }
+
     /// <summary>Resolved model type (null for external/primitive types).</summary>
     public ModelTypeInfo? ModelType { get; set; }
 

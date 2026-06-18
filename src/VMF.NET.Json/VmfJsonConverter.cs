@@ -44,15 +44,23 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
         SerializeObject(writer, value, options);
     }
 
-    private void SerializeObject(Utf8JsonWriter writer, IVObject obj, JsonSerializerOptions options)
+    private void SerializeObject(Utf8JsonWriter writer, IVObject obj, JsonSerializerOptions options,
+        string? declaredTypeName = null)
     {
         writer.WriteStartObject();
 
         var reflect = obj.Vmf().Reflect();
         var type = reflect.Type();
 
-        // Write @vmf-type discriminator if the type is polymorphic
-        if (VmfTypeUtils.IsPolymorphic(obj))
+        // Write the @vmf-type discriminator when the value's runtime type differs from the
+        // statically declared type at this call site (a base-typed list element or property
+        // holding a subtype), or when the type is otherwise polymorphic. Without it, a
+        // VList<IBase> of subtypes would deserialize back to the base type, losing subtype state.
+        bool needsDiscriminator = VmfTypeUtils.IsPolymorphic(obj)
+            || (declaredTypeName is not null
+                && !string.Equals(type.Name, declaredTypeName, StringComparison.Ordinal));
+
+        if (needsDiscriminator)
         {
             string typeName = type.Name;
             if (_factory.TypeAliasesReverse.TryGetValue(typeName, out var alias))
@@ -82,10 +90,13 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
     {
         if (value is IVObject vmfObj)
         {
-            SerializeObject(writer, vmfObj, options);
+            // Declared (static) type of this property — used to decide if a discriminator is needed.
+            SerializeObject(writer, vmfObj, options, type.IsModelType ? type.Name : null);
         }
         else if (type.IsListType && value is IList list)
         {
+            // Declared element type of the list (e.g. IAnimal for VList<IAnimal>).
+            var declaredElementName = type.GetElementTypeName();
             writer.WriteStartArray();
             foreach (var item in list)
             {
@@ -95,7 +106,7 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
                 }
                 else if (item is IVObject childObj)
                 {
-                    SerializeObject(writer, childObj, options);
+                    SerializeObject(writer, childObj, options, declaredElementName);
                 }
                 else
                 {

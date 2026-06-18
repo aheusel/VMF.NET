@@ -33,9 +33,9 @@ namespace {{ ns }}
 {{~ end ~}}
 {{~ else if prop.IsContainer ~}}
         public {{ prop_type_name prop }}? {{ prop.Name }} => _mutable.{{ prop.Name }};
-        IVObject? {{ type.ReadOnlyInterfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }}?.AsReadOnly();
+        IVObject? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }}?.AsReadOnly();
 {{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ type.ReadOnlyInterfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject)_mutable.{{ prop.Name }}).AsReadOnly() : null;
+        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject)_mutable.{{ prop.Name }}).AsReadOnly() : null;
         public {{ prop_type_name prop }}? {{ prop.Name }} => _mutable.{{ prop.Name }};
 {{~ else ~}}
         public {{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} {{ prop.Name }} => _mutable.{{ prop.Name }};
@@ -51,6 +51,9 @@ namespace {{ ns }}
         {
             return ({{ type.ReadOnlyInterfaceName }})((IVObject)_mutable.Clone()).AsReadOnly();
         }
+{{~ for base_type in type.AllInheritedTypes ~}}
+        {{ base_type.ReadOnlyInterfaceName }} {{ base_type.ReadOnlyInterfaceName }}.Clone() => ({{ base_type.ReadOnlyInterfaceName }})Clone();
+{{~ end ~}}
 
         // --- IVObjectInternal ---
         public int GetTypeId() => ((IVObjectInternal)_mutable).GetTypeId() + 1;

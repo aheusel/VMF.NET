@@ -70,9 +70,7 @@ namespace {{ ns }}
         // Container property {{ prop.Name }} uses __vmf_container field
 {{~ else if prop.IsCollectionType ~}}
         private List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>? {{ raw_list_field_name prop }};
-{{~ if !type.IsImmutable ~}}
         private VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>? {{ field_name prop }};
-{{~ end ~}}
 {{~ else ~}}
         private {{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} {{ field_name prop }}{{ if prop.DefaultValueAsString != null && prop.DefaultValueAsString != "" }} = {{ prop.DefaultValueAsString }}{{ end }};
 {{~ end ~}}
@@ -166,12 +164,16 @@ namespace {{ ns }}
 {{~ if type.IsImmutable ~}}
 {{~ # --- IMMUTABLE PROPERTIES --- ~}}
 {{~ if prop.IsCollectionType ~}}
-        public IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}> {{ prop.Name }}
+        public VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}> {{ prop.Name }}
         {
             get
             {
-                {{ raw_list_field_name prop }} ??= new();
-                return {{ raw_list_field_name prop }}.AsReadOnly();
+                if ({{ field_name prop }} == null)
+                {
+                    {{ raw_list_field_name prop }} ??= new();
+                    {{ field_name prop }} = new VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>({{ raw_list_field_name prop }});
+                }
+                return {{ field_name prop }};
             }
         }
 
@@ -299,7 +301,7 @@ namespace {{ ns }}
             set
             {
 {{~ if (is_primitive prop) ~}}
-                if (EqualityComparer<{{ prop_type_name prop }}>.Default.Equals({{ field_name prop }}, value)) return;
+                if (EqualityComparer<{{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }}>.Default.Equals({{ field_name prop }}, value)) return;
 {{~ else ~}}
                 if (ReferenceEquals({{ field_name prop }}, value)) return;
 {{~ end ~}}
@@ -354,20 +356,14 @@ namespace {{ ns }}
 {{~ end ~}}
 
 {{~ # --- Read-only interface explicit implementations --- ~}}
-{{~ if type.IsImmutable ~}}
-{{~ # Immutable types: ReadOnly interface delegates directly (immutable IS read-only) ~}}
+{{~ # Immutable types' read-only interface is empty (it inherits the writable interface),
+   # so the public members already satisfy it — no explicit implementations are emitted.
+   # For mutable types, each member is implemented explicitly against the interface that
+   # DECLARES it (prop.Parent.ReadOnlyInterfaceName), so inherited members resolve correctly. ~}}
+{{~ if !type.IsImmutable ~}}
 {{~ for prop in all_props ~}}
 {{~ if prop.IsCollectionType ~}}
-        IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.ReadOnlyInterfaceName : (prop.GenericTypeName ?? "object") }}> {{ type.ReadOnlyInterfaceName }}.{{ prop.Name }}
-            => (IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.ReadOnlyInterfaceName : (prop.GenericTypeName ?? "object") }}>){{ prop.Name }};
-{{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ type.ReadOnlyInterfaceName }}.{{ prop.Name }} => {{ field_name prop }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject){{ field_name prop }}).AsReadOnly() : null;
-{{~ end ~}}
-{{~ end ~}}
-{{~ else ~}}
-{{~ for prop in all_props ~}}
-{{~ if prop.IsCollectionType ~}}
-        IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.ReadOnlyInterfaceName : (prop.GenericTypeName ?? "object") }}> {{ type.ReadOnlyInterfaceName }}.{{ prop.Name }}
+        IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.ReadOnlyInterfaceName : (prop.GenericTypeName ?? "object") }}> {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }}
         {
 {{~ if prop.GenericModelType != null ~}}
             get => new ReadOnlyMappedList<{{ prop.GenericModelType.TypeName }}, {{ prop.GenericModelType.ReadOnlyInterfaceName }}>({{ prop.Name }}, x => ({{ prop.GenericModelType.ReadOnlyInterfaceName }})((IVObject)x).AsReadOnly());
@@ -376,9 +372,9 @@ namespace {{ ns }}
 {{~ end ~}}
         }
 {{~ else if prop.IsContainer ~}}
-        IVObject? {{ type.ReadOnlyInterfaceName }}.{{ prop.Name }} => __vmf_container?.AsReadOnly();
+        IVObject? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => __vmf_container?.AsReadOnly();
 {{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ type.ReadOnlyInterfaceName }}.{{ prop.Name }} => {{ field_name prop }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject){{ field_name prop }}).AsReadOnly() : null;
+        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => {{ field_name prop }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject){{ field_name prop }}).AsReadOnly() : null;
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -404,6 +400,11 @@ namespace {{ ns }}
         public {{ type.TypeName }} Clone() => this;
         {{ type.ReadOnlyInterfaceName }} {{ type.TypeName }}.AsReadOnly() => this;
         public {{ type.ReadOnlyInterfaceName }} AsReadOnly() => this;
+{{~ for base_type in type.AllInheritedTypes ~}}
+        // Inherited from {{ base_type.TypeName }}
+        {{ base_type.TypeName }} {{ base_type.TypeName }}.Clone() => this;
+        {{ base_type.ReadOnlyInterfaceName }} {{ base_type.TypeName }}.AsReadOnly() => this;
+{{~ end ~}}
 
         internal {{ type.ImplClassName }} CloneInternal(Dictionary<object, object> identityMap) => this;
         internal {{ type.ImplClassName }} ShallowCloneInternal() => this;
@@ -411,6 +412,12 @@ namespace {{ ns }}
         public {{ type.TypeName }} Clone() => CloneInternal(new Dictionary<object, object>());
         {{ type.ReadOnlyInterfaceName }} {{ type.TypeName }}.AsReadOnly() => AsReadOnly();
         {{ type.ReadOnlyInterfaceName }} {{ type.ReadOnlyInterfaceName }}.Clone() => ({{ type.ReadOnlyInterfaceName }})AsReadOnly().Clone();
+{{~ for base_type in type.AllInheritedTypes ~}}
+        // Inherited from {{ base_type.TypeName }}
+        {{ base_type.TypeName }} {{ base_type.TypeName }}.Clone() => Clone();
+        {{ base_type.ReadOnlyInterfaceName }} {{ base_type.TypeName }}.AsReadOnly() => AsReadOnly();
+        {{ base_type.ReadOnlyInterfaceName }} {{ base_type.ReadOnlyInterfaceName }}.Clone() => ({{ base_type.ReadOnlyInterfaceName }})AsReadOnly().Clone();
+{{~ end ~}}
 
         public {{ type.ReadOnlyInterfaceName }} AsReadOnly()
         {
@@ -490,7 +497,7 @@ namespace {{ ns }}
                 case {{ prop.PropId }}: return __vmf_container != null;
 {{~ else if prop.IsContainer && type.IsImmutable ~}}
                 case {{ prop.PropId }}: return false;
-{{~ else if prop.PropType == 0 ~}}
+{{~ else if (is_primitive prop) && !(is_nullable prop) ~}}
                 case {{ prop.PropId }}: return !EqualityComparer<{{ prop_type_name prop }}>.Default.Equals({{ field_name prop }}, default);
 {{~ else ~}}
                 case {{ prop.PropId }}: return {{ field_name prop }} != null;

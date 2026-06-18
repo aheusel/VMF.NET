@@ -82,14 +82,29 @@ internal static class SymbolExtractor
 
     private static PropertySymbolData ExtractProperty(IPropertySymbol prop)
     {
+        // Unwrap Nullable<T> (e.g. double?/int?/bool?) so the type is named after its
+        // underlying value type rather than the bare static `Nullable` facade. A flag
+        // is carried so the templates re-append `?`. .NET's Nullable<T> has no Java analog,
+        // so it would otherwise slip through as IsValueType==true but named "Nullable".
+        var propType = prop.Type;
+        bool isNullableValueType = false;
+        if (propType is INamedTypeSymbol nullableSymbol
+            && nullableSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+            && nullableSymbol.TypeArguments.Length == 1)
+        {
+            isNullableValueType = true;
+            propType = nullableSymbol.TypeArguments[0];
+        }
+
         var data = new PropertySymbolData
         {
             Name = prop.Name,
-            FullTypeName = GetFullName(prop.Type),
-            SimpleTypeName = prop.Type.Name,
-            TypeNamespace = GetNamespace(prop.Type),
-            IsPrimitive = IsValueType(prop.Type),
-            IsCollection = IsCollectionType(prop.Type),
+            FullTypeName = GetFullName(propType),
+            SimpleTypeName = propType.Name,
+            TypeNamespace = GetNamespace(propType),
+            IsPrimitive = IsValueType(propType),
+            IsNullableValueType = isNullableValueType,
+            IsCollection = IsCollectionType(propType),
             IsRequired = HasAttribute(prop, "RequiredAttribute") || HasAttribute(prop, "VmfRequiredAttribute"),
             IsIgnoredForEquals = HasAttribute(prop, "IgnoreEqualsAttribute"),
             IsIgnoredForToString = HasAttribute(prop, "IgnoreToStringAttribute"),
@@ -100,7 +115,7 @@ internal static class SymbolExtractor
         };
 
         // Collection element type
-        if (data.IsCollection && prop.Type is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
+        if (data.IsCollection && propType is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
         {
             var elementType = namedType.TypeArguments[0];
             data.CollectionElementSimpleName = elementType.Name;

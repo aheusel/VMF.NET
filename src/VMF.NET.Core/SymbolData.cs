@@ -74,6 +74,9 @@ public sealed class PropertySymbolData
     /// <summary>Whether this is a value type (int, bool, etc.).</summary>
     public bool IsPrimitive { get; set; }
 
+    /// <summary>Whether this is a nullable value type (double?, int?, bool?, …).</summary>
+    public bool IsNullableValueType { get; set; }
+
     /// <summary>Whether this is a collection type (IList&lt;T&gt;, VList&lt;T&gt;).</summary>
     public bool IsCollection { get; set; }
 
