@@ -12,10 +12,22 @@ namespace VMF.NET.Runtime.Attributes;
 public sealed class ContainsAttribute : Attribute
 {
     /// <summary>
-    /// The name of the opposite property on the contained type.
+    /// The name of the opposite property on the contained type, or <c>null</c> for an
+    /// opposite-less containment (the contained type declares no back-reference; its parent
+    /// is tracked internally by the implementation).
     /// </summary>
-    public string Opposite { get; }
+    public string? Opposite { get; }
 
+    /// <summary>
+    /// Declares containment with no opposite (back-reference) on the contained type.
+    /// </summary>
+    public ContainsAttribute()
+    {
+    }
+
+    /// <summary>
+    /// Declares containment with an explicit opposite property on the contained type.
+    /// </summary>
     public ContainsAttribute(string opposite)
     {
         Opposite = opposite;
