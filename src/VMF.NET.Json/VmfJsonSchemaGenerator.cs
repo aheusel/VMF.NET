@@ -162,50 +162,117 @@ public sealed class VmfJsonSchemaGenerator
             schema[schemaKey] = annotation.Value;
     }
 
+    // JSON Schema (draft-07) keywords with a known value type. The 'constraint' catch-all stays
+    // open-ended — unknown keywords are still accepted (see ParseConstraintValue) — but for these
+    // we validate the value so a mistake is reported instead of silently producing an invalid
+    // schema. (Deliberately no "did you mean 'minimum'?" for unknown keywords: rejecting unknowns
+    // would forfeit the catch-all's open-ended extension point.)
+    private static readonly HashSet<string> NumericConstraints = new(StringComparer.Ordinal)
+        { "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf" };
+    private static readonly HashSet<string> IntegerConstraints = new(StringComparer.Ordinal)
+        { "minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties" };
+    private static readonly HashSet<string> BooleanConstraints = new(StringComparer.Ordinal)
+        { "uniqueItems", "readOnly", "writeOnly" };
+    private static readonly HashSet<string> JsonValuedConstraints = new(StringComparer.Ordinal)
+        { "default", "const", "enum", "examples" };
+
     private static void AddConstraints(VmfProperty prop, Dictionary<string, object> schema)
     {
-        // Supports multiple constraint annotations, each with format "key=value"
+        // Supports multiple constraint annotations, each "keyword=value"
         // e.g., [VmfAnnotation(Key = "vmf:schema:constraint", Value = "pattern=^\\d{3}$")]
         // e.g., [VmfAnnotation(Key = "vmf:schema:constraint", Value = "minimum=0")]
         foreach (var annotation in prop.Annotations())
         {
             if (annotation.Key != VmfSchemaKeys.Constraint) continue;
             var value = annotation.Value;
-            if (string.IsNullOrWhiteSpace(value) || !value.Contains('=')) continue;
 
-            // Split at first '=' so values can contain '='
-            var eqIndex = value.IndexOf('=');
-            var constraintName = value.Substring(0, eqIndex).Trim();
-            var constraintValue = value.Substring(eqIndex + 1).Trim();
+            // Split at the FIRST '=' so values may contain '=' (regex lookaheads, defaults, ...).
+            var eqIndex = value?.IndexOf('=') ?? -1;
+            if (eqIndex <= 0)
+                throw Malformed(prop, VmfSchemaKeys.Constraint, value, "expected 'keyword=value'");
 
-            if (string.IsNullOrEmpty(constraintName) || string.IsNullOrEmpty(constraintValue)) continue;
+            var keyword = value!.Substring(0, eqIndex).Trim();
+            var raw = value.Substring(eqIndex + 1).Trim();
+            if (keyword.Length == 0 || raw.Length == 0)
+                throw Malformed(prop, VmfSchemaKeys.Constraint, value, "expected 'keyword=value' with non-empty sides");
 
-            // Try to parse as number or boolean; fall back to string
-            schema[constraintName] = ParseConstraintValue(constraintValue);
+            schema[keyword] = ParseConstraintValue(prop, keyword, raw);
         }
     }
 
-    private static object ParseConstraintValue(string value)
+    private static object ParseConstraintValue(VmfProperty prop, string keyword, string raw)
     {
-        if (int.TryParse(value, out var intVal)) return intVal;
-        if (double.TryParse(value, System.Globalization.NumberStyles.Float,
-            System.Globalization.CultureInfo.InvariantCulture, out var dblVal)) return dblVal;
-        if (bool.TryParse(value, out var boolVal)) return boolVal;
-        return value;
+        if (NumericConstraints.Contains(keyword))
+        {
+            if (int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var intVal)) return intVal;
+            if (double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var dblVal)) return dblVal;
+            throw ConstraintTypeError(prop, keyword, raw, "a numeric value");
+        }
+
+        if (IntegerConstraints.Contains(keyword))
+        {
+            if (int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var intVal)) return intVal;
+            throw ConstraintTypeError(prop, keyword, raw, "an integer value");
+        }
+
+        if (BooleanConstraints.Contains(keyword))
+        {
+            if (bool.TryParse(raw, out var boolVal)) return boolVal;
+            throw ConstraintTypeError(prop, keyword, raw, "a boolean value ('true' or 'false')");
+        }
+
+        if (keyword == "pattern")
+        {
+            try { _ = new System.Text.RegularExpressions.Regex(raw); }
+            catch (ArgumentException ex) { throw ConstraintTypeError(prop, keyword, raw, "a valid regular expression", ex.Message); }
+            return raw;
+        }
+
+        // JSON-valued keywords, and any array/object value, are parsed as real JSON so that e.g.
+        // default=["a","b"] renders a JSON array — not the string "[\"a\",\"b\"]".
+        if (JsonValuedConstraints.Contains(keyword) || raw.StartsWith("[") || raw.StartsWith("{"))
+        {
+            try { return JsonSerializer.Deserialize<JsonElement>(raw); }
+            catch (JsonException ex) { throw ConstraintTypeError(prop, keyword, raw, "valid JSON", ex.Message); }
+        }
+
+        // Unknown scalar keyword: keep the open-ended catch-all with smart scalar coercion.
+        if (int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+            System.Globalization.CultureInfo.InvariantCulture, out var i)) return i;
+        if (double.TryParse(raw, System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture, out var d)) return d;
+        if (bool.TryParse(raw, out var b)) return b;
+        return raw;
     }
+
+    private static VmfSchemaAnnotationException Malformed(VmfProperty prop, string key, string? value, string expectation)
+        => new($"Property '{prop.Name}': annotation '{key}' is malformed ({expectation}) but got '{value}'.");
+
+    private static VmfSchemaAnnotationException ConstraintTypeError(
+        VmfProperty prop, string keyword, string raw, string expected, string? detail = null)
+        => new($"Property '{prop.Name}': schema constraint '{keyword}' expects {expected} but got '{raw}'."
+               + (detail is null ? "" : $" ({detail})"));
 
     private static void AddUniqueItems(VmfProperty prop, Dictionary<string, object> schema)
     {
         var annotation = prop.AnnotationByKey(VmfSchemaKeys.UniqueItems);
-        if (annotation is not null && bool.TryParse(annotation.Value, out var unique))
-            schema["uniqueItems"] = unique;
+        if (annotation is null) return;
+        if (!bool.TryParse(annotation.Value, out var unique))
+            throw Malformed(prop, VmfSchemaKeys.UniqueItems, annotation.Value, "expected a boolean ('true' or 'false')");
+        schema["uniqueItems"] = unique;
     }
 
     private static void AddPropertyOrder(VmfProperty prop, Dictionary<string, object> schema)
     {
         var annotation = prop.AnnotationByKey(VmfSchemaKeys.PropertyOrder);
-        if (annotation is not null && int.TryParse(annotation.Value, out var order))
-            schema["propertyOrder"] = order;
+        if (annotation is null) return;
+        if (!int.TryParse(annotation.Value, System.Globalization.NumberStyles.Integer,
+            System.Globalization.CultureInfo.InvariantCulture, out var order))
+            throw Malformed(prop, VmfSchemaKeys.PropertyOrder, annotation.Value, "expected an integer");
+        schema["propertyOrder"] = order;
     }
 
     private static void AddInjections(VmfProperty prop, Dictionary<string, object> schema)
@@ -215,22 +282,20 @@ public sealed class VmfJsonSchemaGenerator
         var annotation = prop.AnnotationByKey(VmfSchemaKeys.Inject);
         if (annotation is null) return;
 
+        Dictionary<string, JsonElement>? injected;
         try
         {
-            var json = "{" + annotation.Value + "}";
-            var injected = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-            if (injected is not null)
-            {
-                foreach (var (key, val) in injected)
-                {
-                    schema[key] = val;
-                }
-            }
+            injected = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>("{" + annotation.Value + "}");
         }
-        catch
+        catch (JsonException ex)
         {
-            // Ignore malformed injection JSON
+            throw new VmfSchemaAnnotationException(
+                $"Property '{prop.Name}': annotation '{VmfSchemaKeys.Inject}' is not valid JSON: '{annotation.Value}'. ({ex.Message})", ex);
         }
+
+        if (injected is null) return;
+        foreach (var (key, val) in injected)
+            schema[key] = val;
     }
 
     private static string MapValueType(string typeName) => typeName switch
