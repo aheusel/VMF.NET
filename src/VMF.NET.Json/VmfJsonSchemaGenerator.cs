@@ -132,9 +132,9 @@ public sealed class VmfJsonSchemaGenerator
     private static void AddAnnotationProperties(VmfProperty prop, Dictionary<string, object> schema)
     {
         AddDefaultIfAvailable(prop, schema);
-        AddStringAnnotation(prop, schema, "vmf:jackson:schema:description", "description");
-        AddStringAnnotation(prop, schema, "vmf:jackson:schema:format", "format");
-        AddStringAnnotation(prop, schema, "vmf:jackson:schema:title", "title");
+        AddStringAnnotation(prop, schema, VmfSchemaKeys.Description, "description");
+        AddStringAnnotation(prop, schema, VmfSchemaKeys.Format, "format");
+        AddStringAnnotation(prop, schema, VmfSchemaKeys.Title, "title");
         AddConstraints(prop, schema);
         AddUniqueItems(prop, schema);
         AddPropertyOrder(prop, schema);
@@ -165,11 +165,11 @@ public sealed class VmfJsonSchemaGenerator
     private static void AddConstraints(VmfProperty prop, Dictionary<string, object> schema)
     {
         // Supports multiple constraint annotations, each with format "key=value"
-        // e.g., [VmfAnnotation(Key = "vmf:jackson:schema:constraint", Value = "pattern=^\\d{3}$")]
-        // e.g., [VmfAnnotation(Key = "vmf:jackson:schema:constraint", Value = "minimum=0")]
+        // e.g., [VmfAnnotation(Key = "vmf:schema:constraint", Value = "pattern=^\\d{3}$")]
+        // e.g., [VmfAnnotation(Key = "vmf:schema:constraint", Value = "minimum=0")]
         foreach (var annotation in prop.Annotations())
         {
-            if (annotation.Key != "vmf:jackson:schema:constraint") continue;
+            if (annotation.Key != VmfSchemaKeys.Constraint) continue;
             var value = annotation.Value;
             if (string.IsNullOrWhiteSpace(value) || !value.Contains('=')) continue;
 
@@ -196,14 +196,14 @@ public sealed class VmfJsonSchemaGenerator
 
     private static void AddUniqueItems(VmfProperty prop, Dictionary<string, object> schema)
     {
-        var annotation = prop.AnnotationByKey("vmf:jackson:schema:uniqueItems");
+        var annotation = prop.AnnotationByKey(VmfSchemaKeys.UniqueItems);
         if (annotation is not null && bool.TryParse(annotation.Value, out var unique))
             schema["uniqueItems"] = unique;
     }
 
     private static void AddPropertyOrder(VmfProperty prop, Dictionary<string, object> schema)
     {
-        var annotation = prop.AnnotationByKey("vmf:jackson:schema:propertyOrder");
+        var annotation = prop.AnnotationByKey(VmfSchemaKeys.PropertyOrder);
         if (annotation is not null && int.TryParse(annotation.Value, out var order))
             schema["propertyOrder"] = order;
     }
@@ -212,7 +212,7 @@ public sealed class VmfJsonSchemaGenerator
     {
         // Injects arbitrary JSON key-value pairs into the schema.
         // Value is raw JSON fragment without outer braces, e.g., "\"examples\":[1,2,3]"
-        var annotation = prop.AnnotationByKey("vmf:jackson:schema:inject");
+        var annotation = prop.AnnotationByKey(VmfSchemaKeys.Inject);
         if (annotation is null) return;
 
         try

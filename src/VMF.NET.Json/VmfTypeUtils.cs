@@ -56,7 +56,7 @@ public static class VmfTypeUtils
     /// </summary>
     public static string GetFieldName(VmfProperty prop)
     {
-        var annotation = prop.AnnotationByKey("vmf:jackson:rename");
+        var annotation = prop.AnnotationByKey(VmfJsonKeys.Name);
         if (annotation is not null) return annotation.Value;
         return prop.Name;
     }

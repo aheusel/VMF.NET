@@ -321,7 +321,7 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
     }
 
     /// <summary>
-    /// Builds a map of property name -> renamed field name from vmf:jackson:rename annotations.
+    /// Builds a map of property name -> renamed field name from vmf:json:name annotations.
     /// Returns null if no prototype can be created or no renames exist.
     /// </summary>
     private static Dictionary<string, string>? BuildRenameMap(System.Type targetType)
@@ -332,7 +332,7 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
         Dictionary<string, string>? map = null;
         foreach (var prop in prototype.Vmf().Reflect().Properties())
         {
-            var annotation = prop.AnnotationByKey("vmf:jackson:rename");
+            var annotation = prop.AnnotationByKey(VmfJsonKeys.Name);
             if (annotation is not null)
             {
                 map ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

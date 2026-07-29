@@ -11,22 +11,22 @@ namespace VMF.NET.IntegrationTests.Models;
 [VmfModel(Equality = EqualsType.All)]
 public partial interface IServiceConfig
 {
-    [VmfAnnotation("service_name", Key = "vmf:jackson:rename")]
+    [VmfAnnotation("service_name", Key = "vmf:json:name")]
     string? Name { get; set; }
 
-    [VmfAnnotation("The port number for the service", Key = "vmf:jackson:schema:description")]
-    [VmfAnnotation("minimum=1", Key = "vmf:jackson:schema:constraint")]
-    [VmfAnnotation("maximum=65535", Key = "vmf:jackson:schema:constraint")]
+    [VmfAnnotation("The port number for the service", Key = "vmf:schema:description")]
+    [VmfAnnotation("minimum=1", Key = "vmf:schema:constraint")]
+    [VmfAnnotation("maximum=65535", Key = "vmf:schema:constraint")]
     [VmfDefaultValue("8080")]
     int Port { get; set; }
 
-    [VmfAnnotation("hostname", Key = "vmf:jackson:schema:format")]
-    [VmfAnnotation("Server Hostname", Key = "vmf:jackson:schema:title")]
+    [VmfAnnotation("hostname", Key = "vmf:schema:format")]
+    [VmfAnnotation("Server Hostname", Key = "vmf:schema:title")]
     string? Host { get; set; }
 
-    [VmfAnnotation("true", Key = "vmf:jackson:schema:uniqueItems")]
+    [VmfAnnotation("true", Key = "vmf:schema:uniqueItems")]
     VList<string> Tags { get; }
 
-    [VmfAnnotation("1", Key = "vmf:jackson:schema:propertyOrder")]
+    [VmfAnnotation("1", Key = "vmf:schema:propertyOrder")]
     bool Enabled { get; set; }
 }

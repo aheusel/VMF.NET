@@ -36,15 +36,15 @@ using VMF.NET.Runtime.Attributes;
 namespace AnnotationEscapingModel
 {
     [VmfModel(Equality = EqualsType.All)]
-    [VmfAnnotation(""default=[\""alldrop\"", \""smartdrop\"", \""biospot\""]"", Key = ""vmf:jackson:schema:constraint"")]
+    [VmfAnnotation(""default=[\""alldrop\"", \""smartdrop\"", \""biospot\""]"", Key = ""vmf:schema:constraint"")]
     public partial interface IDevice
     {
         // The exact value from the reported build failure — embedded double quotes.
-        [VmfAnnotation(""default=[\""alldrop\"", \""smartdrop\"", \""biospot\""]"", Key = ""vmf:jackson:schema:constraint"")]
+        [VmfAnnotation(""default=[\""alldrop\"", \""smartdrop\"", \""biospot\""]"", Key = ""vmf:schema:constraint"")]
         VList<string> DeviceIds { get; }
 
         // Backslash, embedded quotes, and a real newline in the decoded value.
-        [VmfAnnotation(""path\\to\nnext \""line\"""", Key = ""vmf:jackson:schema:description"")]
+        [VmfAnnotation(""path\\to\nnext \""line\"""", Key = ""vmf:schema:description"")]
         string? Name { get; set; }
     }
 }";
