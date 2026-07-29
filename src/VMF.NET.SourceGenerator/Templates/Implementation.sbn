@@ -35,7 +35,7 @@ namespace {{ ns }}
         private static readonly IAnnotation[] _VMF_OBJECT_ANNOTATIONS = new IAnnotation[]
         {
 {{~ for ann in type.Annotations ~}}
-            new VMF.NET.Runtime.Internal.AnnotationImpl("{{ ann.Key }}", "{{ ann.Value }}"),
+            new VMF.NET.Runtime.Internal.AnnotationImpl({{ csharp_string ann.Key }}, {{ csharp_string ann.Value }}),
 {{~ end ~}}
 {{~ if type.IsImmutable ~}}
             new VMF.NET.Runtime.Internal.AnnotationImpl("vmf:type:immutable", ""),
@@ -51,7 +51,7 @@ namespace {{ ns }}
             new IAnnotation[]
             {
 {{~ for ann in prop.Annotations ~}}
-                new VMF.NET.Runtime.Internal.AnnotationImpl("{{ ann.Key }}", "{{ ann.Value }}"),
+                new VMF.NET.Runtime.Internal.AnnotationImpl({{ csharp_string ann.Key }}, {{ csharp_string ann.Value }}),
 {{~ end ~}}
 {{~ if prop.IsContainer ~}}
                 new VMF.NET.Runtime.Internal.AnnotationImpl("vmf:property:containment-info", "container{{ if prop.Containment.OppositeProp != null }}:{{ prop.Containment.OppositeProp.Name }}{{ end }}"),

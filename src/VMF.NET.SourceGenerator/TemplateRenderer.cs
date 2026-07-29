@@ -113,6 +113,8 @@ public sealed class TemplateRenderer
         scriptObject.Import("camel_case", new Func<string, string>(TemplateHelpers.CamelCase));
         scriptObject.Import("int_array", new Func<IEnumerable<int>, string>(TemplateHelpers.IntArray));
         scriptObject.Import("string_array", new Func<IEnumerable<string>, string>(TemplateHelpers.StringArray));
+        scriptObject.Import("csharp_string", new Func<string, string>(TemplateHelpers.CSharpString));
+        scriptObject.Import("xml_doc", new Func<string, string>(TemplateHelpers.XmlDoc));
         scriptObject.Import("is_primitive", new Func<PropertyInfo, bool>(p => p.PropType == PropType.Primitive));
         // A property gets a trailing `?` when it is a reference type (Class/Collection) OR a
         // nullable value type (double?/int?/bool?), which is classified Primitive but nullable.
@@ -335,6 +337,36 @@ internal sealed class TemplateHelpers
     /// </summary>
     public static string StringArray(IEnumerable<string> values)
     {
-        return "new string[] { " + string.Join(", ", values.Select(v => $"\"{v}\"")) + " }";
+        return "new string[] { " + string.Join(", ", values.Select(CSharpString)) + " }";
+    }
+
+    /// <summary>
+    /// Returns a fully-quoted, C#-escaped string literal for <paramref name="value"/>,
+    /// e.g. <c>a"b\c</c> becomes <c>"a\"b\\c"</c>. Use this whenever user-controlled text
+    /// (annotation keys/values, etc.) is interpolated into generated source, so embedded
+    /// quotes, backslashes, and newlines cannot break the emitted literal.
+    /// The returned string includes its own surrounding double quotes.
+    /// </summary>
+    public static string CSharpString(string? value)
+    {
+        return Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(value ?? string.Empty, quote: true);
+    }
+
+    /// <summary>
+    /// Escapes a value for safe inclusion in a single-line XML doc comment:
+    /// XML-escapes &amp;, &lt;, &gt; and collapses any CR/LF run into a single space so a
+    /// multi-line <c>[Doc]</c> value cannot break out of the <c>///</c> comment.
+    /// </summary>
+    public static string XmlDoc(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        var escaped = value!
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;");
+        // Collapse any CR/LF run (with surrounding whitespace) into a single space so a
+        // multi-line Doc value stays inside one /// line.
+        escaped = System.Text.RegularExpressions.Regex.Replace(escaped, @"\s*[\r\n]+\s*", " ");
+        return escaped;
     }
 }
