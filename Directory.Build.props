@@ -22,4 +22,34 @@
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+  <!--
+    Scriban is deliberately held at 5.x — DO NOT "fix" these audit warnings by upgrading.
+    Scriban 6+/7+ add a hard System.Text.Json assembly reference; the source generator runs in
+    the compiler host, which only provides what it ships, so Scriban 7 breaks code generation on
+    anything older than the .NET 10 SDK. The advisories below all concern rendering UNTRUSTED
+    templates, which VMF.NET never does (templates are embedded in this repo; model metadata is
+    passed as data, not as template source), so none are reachable here.
+
+    Full rationale, the tested compatibility matrix, and a re-verification runbook:
+      devdoc/source-generator-dependencies.md
+
+    These are suppressed individually — package auditing stays ON for every other package.
+  -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-24c8-4792-22hx" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-5rpf-x9jg-8j5p" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-5wr9-m6jw-xx44" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-7jvp-hj45-2f2m" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-c875-h985-hvrc" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-grr9-747v-xvcp" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-m2p3-hwv5-xpqw" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-p6q4-fgr8-vx4p" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-q6rr-fm2g-g5x8" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v66j-x4hw-fv9g" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-wgh7-7m3c-fx25" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-x6m9-38vm-2xhf" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-xcx6-vp38-8hr5" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-xw6w-9jjh-p9cr" />
+  </ItemGroup>
+
 </Project>
