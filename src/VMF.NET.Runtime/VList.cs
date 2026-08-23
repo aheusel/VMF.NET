@@ -4,6 +4,7 @@
 
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace VMF.NET.Runtime;
 
@@ -91,6 +92,90 @@ public class VList<T> : ObservableCollection<T>
             _onElementRemoved?.Invoke(removed[i], default);
             FireChangeEvent(evt);
         }
+    }
+
+    /// <summary>
+    /// Appends several elements as a single change: listeners see one event carrying all of
+    /// them, not one event per element.
+    /// </summary>
+    public void AddRange(IEnumerable<T> items)
+    {
+        if (items is null) throw new ArgumentNullException(nameof(items));
+
+        var added = items as IList<T> ?? items.ToList();
+        if (added.Count == 0) return;
+
+        CheckReentrancy();
+
+        int index = Items.Count;
+        for (int i = 0; i < added.Count; i++)
+        {
+            Items.Add(added[i]);
+        }
+
+        var elements = new object?[added.Count];
+        for (int i = 0; i < added.Count; i++)
+        {
+            elements[i] = added[i];
+            _onElementAdded?.Invoke(added[i], default);
+        }
+
+        RaiseBatchCollectionChanged();
+        FireChangeEvent(VListChangeEvent.CreateAddEvent(elements, index, _eventInfo));
+    }
+
+    /// <summary>
+    /// Removes the elements at the given indices as a single change: listeners see one event
+    /// carrying every removed element. Indices may be given in any order; duplicates are
+    /// ignored. Nothing is removed unless all indices are in range.
+    /// </summary>
+    public void RemoveAll(params int[] indices)
+    {
+        if (indices is null) throw new ArgumentNullException(nameof(indices));
+        if (indices.Length == 0) return;
+
+        // Validate before mutating, so a bad index cannot leave a half-applied removal behind.
+        var ordered = indices.Distinct().OrderBy(i => i).ToArray();
+        foreach (int index in ordered)
+        {
+            if (index < 0 || index >= Items.Count)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(indices), index, $"Index is out of range for a list of {Items.Count} elements.");
+            }
+        }
+
+        CheckReentrancy();
+
+        // Collected in ascending index order so the event lists them as the list held them,
+        // but removed descending so the remaining indices stay valid.
+        var removed = new object?[ordered.Length];
+        for (int i = 0; i < ordered.Length; i++)
+        {
+            removed[i] = Items[ordered[i]];
+        }
+        for (int i = ordered.Length - 1; i >= 0; i--)
+        {
+            var element = Items[ordered[i]];
+            Items.RemoveAt(ordered[i]);
+            _onElementRemoved?.Invoke(element, default);
+        }
+
+        RaiseBatchCollectionChanged();
+        FireChangeEvent(VListChangeEvent.CreateRemoveEvent(removed, ordered[0], _eventInfo));
+    }
+
+    /// <summary>
+    /// A batch touches several positions at once. <c>ObservableCollection</c> consumers such as
+    /// <c>CollectionView</c> reject a multi-element Add or Remove notification, so a batch is
+    /// reported to <see cref="INotifyCollectionChanged"/> as a Reset. VMF's own change event
+    /// still carries the individual elements.
+    /// </summary>
+    private void RaiseBatchCollectionChanged()
+    {
+        OnPropertyChanged(new PropertyChangedEventArgs(nameof(Count)));
+        OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
 
     private void FireChangeEvent(VListChangeEvent evt)

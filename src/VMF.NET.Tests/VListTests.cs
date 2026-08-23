@@ -103,4 +103,74 @@ public class VListTests
         Assert.Equal(3, list.Count);
         Assert.Equal(2, list[1]);
     }
+
+    [Fact]
+    public void AddRange_FiresOneEventCarryingEveryElement()
+    {
+        var list = new VList<string> { "a" };
+        var events = new List<VListChangeEvent>();
+        list.AddChangeListener(events.Add);
+
+        list.AddRange(new[] { "b", "c", "d" });
+
+        Assert.Single(events);
+        Assert.Equal(VListChangeType.Add, events[0].ChangeType);
+        Assert.Equal(new object?[] { "b", "c", "d" }, events[0].Added);
+        Assert.Equal(1, events[0].Index);
+        Assert.Equal(new[] { "a", "b", "c", "d" }, list);
+    }
+
+    [Fact]
+    public void AddRange_EmptyInput_FiresNothing()
+    {
+        var list = new VList<string> { "a" };
+        var events = new List<VListChangeEvent>();
+        list.AddChangeListener(events.Add);
+
+        list.AddRange(Array.Empty<string>());
+
+        Assert.Empty(events);
+        Assert.Single(list);
+    }
+
+    [Fact]
+    public void RemoveAll_FiresOneEventCarryingEveryElement()
+    {
+        var list = new VList<string> { "a", "b", "c", "d" };
+        var events = new List<VListChangeEvent>();
+        list.AddChangeListener(events.Add);
+
+        list.RemoveAll(0, 2);
+
+        Assert.Single(events);
+        Assert.Equal(VListChangeType.Remove, events[0].ChangeType);
+        // reported in list order, not in the order the indices were given
+        Assert.Equal(new object?[] { "a", "c" }, events[0].Removed);
+        Assert.Equal(0, events[0].Index);
+        Assert.Equal(new[] { "b", "d" }, list);
+    }
+
+    [Fact]
+    public void RemoveAll_UnorderedAndDuplicateIndices_RemoveEachElementOnce()
+    {
+        var list = new VList<string> { "a", "b", "c", "d" };
+
+        list.RemoveAll(3, 1, 1);
+
+        Assert.Equal(new[] { "a", "c" }, list);
+    }
+
+    [Fact]
+    public void RemoveAll_IndexOutOfRange_LeavesTheListUnchanged()
+    {
+        var list = new VList<string> { "a", "b", "c" };
+        var events = new List<VListChangeEvent>();
+        list.AddChangeListener(events.Add);
+
+        // the valid index must not be applied when a later one turns out to be invalid
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAll(0, 7));
+
+        Assert.Equal(new[] { "a", "b", "c" }, list);
+        Assert.Empty(events);
+    }
 }
