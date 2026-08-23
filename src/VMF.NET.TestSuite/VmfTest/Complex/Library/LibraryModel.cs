@@ -1,0 +1,43 @@
+// Ported from eu.mihosoft.vmftest.complex.library.vmfmodel.Library
+
+using VMF.NET.Runtime;
+using VMF.NET.Runtime.Attributes;
+
+namespace VMF.NET.TestSuite.VmfTest.Complex.Library;
+
+[VmfModel]
+public partial interface ILibrary
+{
+    string? Name { get; set; }
+
+    [Contains("IBook.Library")]
+    VList<IBook> Books { get; }
+
+    [Contains("IWriter.Library")]
+    VList<IWriter> Authors { get; }
+}
+
+[VmfModel]
+public partial interface IBook
+{
+    string? Title { get; set; }
+    int? Pages { get; set; }
+
+    [Container("ILibrary.Books")]
+    ILibrary? Library { get; }
+
+    [Refers("IWriter.Books")]
+    VList<IWriter> Authors { get; }
+}
+
+[VmfModel]
+public partial interface IWriter
+{
+    string? Name { get; set; }
+
+    [Container("ILibrary.Authors")]
+    ILibrary? Library { get; }
+
+    [Refers("IBook.Authors")]
+    VList<IBook> Books { get; }
+}
