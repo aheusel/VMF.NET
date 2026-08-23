@@ -1,0 +1,38 @@
+// Ported from eu.mihosoft.vmftest.externaltypes.ExternalTypesTest
+//
+// DEVIATION: Java declares stand-in interfaces (@ExternalType) for java.util.List and for the
+// action type. The C# model references real .NET types directly, so the facts exercise the
+// same thing -- an external type as a scalar property, as a list element, and as a delegated
+// method parameter -- against MyType/MyAction rather than List.
+
+using Xunit;
+
+namespace VMF.NET.TestSuite.VmfTest.ExternalTypes;
+
+public class ExternalTypesTest
+{
+    [Fact]
+    public void BasicListTypeTest()
+    {
+        var model = IModel.NewInstance();
+
+        // an external type is usable as a scalar property and as a list element
+        model.Entry = new MyType { Name = "single" };
+        model.Entries.Add(new MyType { Name = "in list" });
+
+        Assert.Equal("single", model.Entry!.Name);
+        Assert.Single(model.Entries);
+        Assert.Equal("in list", model.Entries[0].Name);
+    }
+
+    [Fact]
+    public void CustomActionTypeTest()
+    {
+        var model = IModel.NewInstance();
+
+        // the delegated method takes an external type as its parameter
+        model.RunAction(new MyAction { Name = "ran" });
+
+        Assert.Equal("ran", model.Name);
+    }
+}

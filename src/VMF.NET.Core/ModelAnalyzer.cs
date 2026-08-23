@@ -407,9 +407,15 @@ public static class ModelAnalyzer
 
             foreach (var baseProp in baseType.Properties)
             {
+                if (seenProps.Contains(baseProp.Name)) continue;
+
+                // A property RE-DECLARED on the deriving type is ordered with that type's own
+                // properties, not left at its position in the base: re-declaring is how a
+                // subtype restates [PropertyOrder], and the restated order must win.
+                if (target.Properties.Any(p => p.Name == baseProp.Name)) continue;
+
                 if (seenProps.Add(baseProp.Name))
                 {
-                    // the deriving type may re-declare (override) the property
                     var ownProp = target.Properties.FirstOrDefault(p => p.Name == baseProp.Name);
 
                     // PropId is assigned per type by index into AllProperties. Inherited
