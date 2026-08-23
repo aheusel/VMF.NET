@@ -76,6 +76,11 @@ namespace {{ ns }}
 {{~ end ~}}
 {{~ end ~}}
 
+        // VMF API facade. Memoised: Changes() stores its ChangesManager on this instance,
+        // so a fresh VmfImpl per Vmf() call would create a new manager each time and orphan
+        // every listener registered through an earlier call.
+        private VmfImpl? __vmf_vmfImpl;
+
 {{~ if !type.IsImmutable ~}}
         // Containment
         private IVObject? __vmf_container;
@@ -396,7 +401,7 @@ namespace {{ ns }}
 {{~ end ~}}
 
         // --- IVObject ---
-        public IVmf Vmf() => new VmfImpl(this);
+        public IVmf Vmf() => __vmf_vmfImpl ??= new VmfImpl(this);
         IVObject IVObject.Clone() => Clone();
         IVObject IVObject.AsReadOnly() => AsReadOnly();
 
