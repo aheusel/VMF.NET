@@ -106,6 +106,65 @@ scoping. Blocks `events_undo_redo` (5 facts).
 - **M4 before M5.** It blocks the most facts and holds the remaining correctness risk. The
   reflection gaps are missing *data*, which is inert until something reads it.
 
+## M4b design note — notify *up* the container chain
+
+Measured starting point (probe, 2026-08-23), which corrects the skip note on
+`RecursiveVsNonRecursiveListenerTest`: a change on a descendant currently reaches **neither**
+listener kind — 0 recursive, 0 non-recursive. Containment itself is correct
+(`GetContainer() == root`), but `__vmf_changes` is null on every descendant, and each generated
+setter fires through `__vmf_changes?.Fire…`, so a descendant fires nothing at all. The recursive
+flag being ignored in `ProcessChange` is the *second* half of the gap and only becomes
+observable once changes reach the root's manager.
+
+**The obvious fix is push-down, and it is the wrong one.** `SetModelToChanges` exists and is
+never called, which suggests the intended design: when `Changes()` is called on a root, push
+that manager into every contained descendant, and maintain it as the graph mutates. Rejected:
+
+- Each object has exactly **one** `__vmf_changes` field. Pushing a root's manager into a child
+  overwrites whatever manager the child already had, silently orphaning every listener
+  registered directly on that child. That is the 0.2.1 `Vmf()` orphaning bug reintroduced one
+  level down. Java does not have this problem because it keeps a *list* of
+  `PropertyChangeListener`s per object; matching that would mean turning `__vmf_changes` into a
+  collection and rewriting all six fire sites.
+- It needs attach/detach bookkeeping at four sites (list add, list remove, scalar set old,
+  scalar set new) plus a subtree walk on every containment change — bookkeeping that can drift
+  out of sync with the actual graph.
+
+**Instead, walk up at fire time.** A change notifies its own object's manager and every manager
+found by following `GetContainer()` to the root, deduplicated. This is strictly less machinery
+and is correct by construction:
+
+- No attach/detach bookkeeping exists to drift, because **reachability *is* the container
+  chain**. Detaching a node stops its events with no extra code — which is exactly what
+  `registerUnregisterSimpleProperties` asserts.
+- A child keeps its own manager *and* reaches its root's. No orphaning is possible.
+- Recursive vs non-recursive falls out for free: the owner's own manager sees a change whose
+  `Object` **is** the owner, so both listener kinds fire; a manager found further up sees a
+  change whose `Object` is *not* its owner, so only recursive listeners fire.
+
+The cost is O(containment depth) per change instead of O(1). Depth is small in practice, and
+the alternative pays a subtree walk per containment change instead.
+
+Consequence for the audit: `SetModelToChanges` is not merely unwired, it is **obsolete** under
+this design — the walk replaces it. It is removed rather than left as dead plumbing.
+
+### Work items
+
+| # | Item | Un-skips |
+|---|---|---|
+| 1 | Notify up the container chain; honour the recursive flag in `ProcessChange` | `recursivelistener01` (1) |
+| 2 | Read-only observation: `ReadOnlyVmfImpl.Changes()` delegates to the mutable object's manager, and read-only reflection stops marking itself `staticOnly` | `observableprop` (2) |
+| 3 | `VList.AddRange` / `RemoveAll(params int[])` raising **one** event carrying several elements | `observableprop` (1) |
+| 4 | Settable `[Container]` property | `recursivelistener01` (1), `unparsermodel` (1) |
+
+Item 2 note: read-only reflection currently calls `ReflectImpl.SetStaticOnly(true)`, which makes
+every reflective operation throw "Cannot access property without an instance". That conflates
+*read-only* with *instance-less*: a read-only wrapper does have an instance. Writes stay refused
+by the existing mechanism — the read-only impl is `IVObjectInternal`, not
+`IVObjectInternalModifiable`, so `VmfProperty.Set` throws "Cannot modify unmodifiable object".
+The `staticOnly` flag stays, reserved for its real purpose in M5 (`Type.type().reflect()`), where
+there genuinely is no instance. No test depends on read-only reflection throwing.
+
 ## The audit that produced this
 
 Most of section A came from asking a single question mechanically: **which members are never
