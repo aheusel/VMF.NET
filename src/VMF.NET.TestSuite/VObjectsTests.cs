@@ -1,8 +1,8 @@
-using VMF.NET.IntegrationTests.Models;
+using VMF.NET.TestSuite.Models;
 using VMF.NET.Runtime;
 using Xunit;
 
-namespace VMF.NET.IntegrationTests;
+namespace VMF.NET.TestSuite;
 
 public class VObjectsTests
 {

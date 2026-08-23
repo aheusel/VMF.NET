@@ -3,7 +3,7 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.IntegrationTests.Models;
+namespace VMF.NET.TestSuite.Models;
 
 /// <summary>
 /// A service config with various JSON schema annotations for testing.

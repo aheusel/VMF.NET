@@ -1,11 +1,11 @@
 // Issue A — model-interface inheritance must generate compilable, correct implementations.
 // On 0.1.3 the model file itself fails to compile (CS0738/CS0539); once fixed, these pass.
 
-using VMF.NET.IntegrationTests.Models;
+using VMF.NET.TestSuite.Models;
 using VMF.NET.Runtime;
 using Xunit;
 
-namespace VMF.NET.IntegrationTests;
+namespace VMF.NET.TestSuite;
 
 public class InheritanceCodegenTests
 {

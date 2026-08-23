@@ -5,7 +5,7 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.IntegrationTests.Models;
+namespace VMF.NET.TestSuite.Models;
 
 /// <summary>A JSON-array constraint value (default=[...]) must render as a real JSON array.</summary>
 [VmfModel(Equality = EqualsType.All)]

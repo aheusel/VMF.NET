@@ -4,7 +4,7 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.IntegrationTests.Models;
+namespace VMF.NET.TestSuite.Models;
 
 /// <summary>
 /// A flow graph containing nodes and connections.

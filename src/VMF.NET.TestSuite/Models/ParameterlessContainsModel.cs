@@ -8,7 +8,7 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.IntegrationTests.Models;
+namespace VMF.NET.TestSuite.Models;
 
 [VmfModel(Equality = EqualsType.All)]
 public partial interface IBoxItem

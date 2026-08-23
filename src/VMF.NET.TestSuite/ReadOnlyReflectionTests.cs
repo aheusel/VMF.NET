@@ -1,9 +1,9 @@
-using VMF.NET.IntegrationTests.Models;
+using VMF.NET.TestSuite.Models;
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Internal;
 using Xunit;
 
-namespace VMF.NET.IntegrationTests;
+namespace VMF.NET.TestSuite;
 
 /// <summary>
 /// Tests read-only wrappers, reflection API, and content iteration.

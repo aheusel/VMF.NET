@@ -2,12 +2,12 @@
 // On 0.1.3 the model file fails to compile (CS0723/0721/0722); once fixed, these pass.
 
 using System.Text.Json;
-using VMF.NET.IntegrationTests.Models;
+using VMF.NET.TestSuite.Models;
 using VMF.NET.Json;
 using VMF.NET.Runtime;
 using Xunit;
 
-namespace VMF.NET.IntegrationTests;
+namespace VMF.NET.TestSuite;
 
 public class NullableValueTypeTests
 {
