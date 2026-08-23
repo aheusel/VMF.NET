@@ -85,7 +85,7 @@ scoping. Blocks `events_undo_redo` (5 facts).
 | # | Milestone | Content | Done when |
 |---|---|---|---|
 | ~~M2′~~ | ~~Finish the port~~ | **DONE.** All 30 Java test classes ported; 62 active, 20 blocked | inventory closed |
-| **M3** | **Release 0.2.1** | 18 defects fixed since 0.2.0, two crash-class | published |
+| ~~M3~~ | ~~Release 0.2.1~~ | **DONE.** 19 defects fixed since 0.2.0, two crash-class; notes in [`CHANGELOG.md`](../CHANGELOG.md) | published to NuGet |
 | ~~M4a~~ | ~~Cross-reference echo classification~~ | **DONE.** The induced side is marked with `IsCrossRefEcho` while it is updated, so its change is tagged `crossref-echo`; `ProcessChange` reports echoes but does not record them | all 3 cross_ref facts active |
 | **M4b** | Change propagation | Propagate `SetModelToChanges` down containment as the graph mutates; read-only observation; batch list removal; settable container | `recursivelistener01`, `observableprop` green |
 | **M5** | Reflection metadata | Populate `AllTypes`/`SuperTypes`/`Annotations`; add a static entry point. Then retire the `IsPolymorphic` call-site workaround from 0.1.4 | `annotations`, `staticreflection` green |
