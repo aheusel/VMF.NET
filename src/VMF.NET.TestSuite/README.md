@@ -8,6 +8,14 @@ For generator-level tests that do *not* need generated code (model analysis, tem
 compile-gates over model source text), see **`VMF.NET.Tests`** instead — that is the counterpart
 of Java's `core/src/test` plus `VMFGeneratorTest`.
 
+> **The port is not complete.** Two Java test classes have no counterpart here:
+> `vmf/VMFGenerateRuns` (25 facts) and `events_undo_redo/UndoRedoWithContainmentTest` (5). Both
+> belong in *this* project — they are behavioural, not generator-level. Their model areas are
+> already ported, so `VmfTest/EventsUndoRedo/`, `VmfTest/Test1/`, `VmfTest/Test2/`,
+> `VmfTest/ReflectionTest/`, `VmfTest/DelegationTest/`, `VmfTest/NoPropertiesTest/` and
+> `VmfTest/CompletePropertyOrderTest/` currently hold models with no tests. See M2″ in
+> [`../../devdoc/java-parity-roadmap.md`](../../devdoc/java-parity-roadmap.md).
+
 ## Layout
 
 ```

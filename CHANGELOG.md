@@ -133,13 +133,20 @@ All of these are the *intended* behaviour and match Java VMF, but they differ fr
 ### Testing
 
 `VMF.NET.IntegrationTests` was renamed to **`VMF.NET.TestSuite`**, mirroring the Java project's
-`test-suite` module, and all 39 Java model areas plus all 30 Java test classes were ported into
-it. The suite runs 252 facts, with 20 skipped; each skip names the capability it waits on, so
-the skip count *is* the measured parity gap against Java VMF. See
+`test-suite` module, and all 39 Java model areas plus 26 Java test classes were ported into it.
+The suite runs 252 facts, with 20 skipped; each skip names the capability it waits on. See
 [`devdoc/java-parity-roadmap.md`](devdoc/java-parity-roadmap.md).
+
+> **Correction (2026-08-23).** This section originally said "all 30 Java test classes" were
+> ported and that the skip count was therefore the measured parity gap. Both were wrong. The
+> Java suite has three source roots and the port audit walked one, so 30 further facts —
+> `vmf/VMFGenerateRuns` (25) and `events_undo_redo/UndoRedoWithContainmentTest` (5) — were
+> never ported and never counted. Nothing about the 0.2.1 code changes; the claim about how
+> thoroughly it was verified does. The roadmap carries the reconciled inventory.
 
 ### Known gaps
 
 Carried forward and tracked in the roadmap: type-level annotations and static type reflection,
 recursive change listeners, undo/redo, covariant property narrowing, inherited and type-level
-delegation, and builder-accepting `With*` overloads.
+delegation, and builder-accepting `With*` overloads. Reflective set/unset and inherited default
+values should be read as unverified rather than working — see the correction above.

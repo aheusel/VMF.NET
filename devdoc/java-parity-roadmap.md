@@ -1,28 +1,69 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** all Java test classes ported; **M4b complete** — change propagation and observation done.
+**Status:** the port is **not** complete — see the correction below. M4a/M4b done.
 **Last updated:** 2026-08-23.
 
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
 
+## Correction, 2026-08-23
+
+An earlier revision of this document claimed "all 30 Java test classes ported" and "the
+inventory is closed". **Both were wrong**, and the headline fact counts derived from them were
+too small. What the re-audit found:
+
+- The Java suite has **three** source roots under `src/test/java/eu/mihosoft`, not one. The
+  original audit walked only `vmftest`. It missed `vmf/VMFGenerateRuns` — **25 behavioural
+  facts** that drive generated code through `VMFTestShell`, covering getter/setter, clone,
+  read-only, containment, `ToString`, method delegation, reflective set/unset, inherited default
+  values, and the negative models. None of its six model areas (`test1`, `test2`,
+  `reflectiontest`, `delegationtest`, `completepropertyordertest`, `nopropertiestest`) has a C#
+  test class, although all six have their models ported.
+- `events_undo_redo/UndoRedoWithContainmentTest` (**5 facts**) was never ported either.
+  `VmfTest/EventsUndoRedo/` holds the model and no test. Section C below did track those facts,
+  but they never reached the headline numbers, because those counted only facts that exist in
+  the suite.
+- The class count itself was wrong: 29 classes carry `@Test`, not 30.
+
+The invariant this document relies on — **skip count = parity gap** — therefore did not hold: a
+fact that was never ported is invisible, where a skipped one is not. Closing that is M2″, and it
+comes before further feature work.
+
 ## Where things stand
 
 | | Java `test-suite` | `VMF.NET.TestSuite` |
 |---|---|---|
-| Model areas | 39 | **39 — all ported** |
-| Test classes | 30 (excl. 2 deliberate non-ports) | **30 — all ported** |
-| Facts | ~80 | **68 active, 14 blocked** |
+| Model areas | 39 | **39 — all ported** (verified 2026-08-23) |
+| Test classes | 31; 29 portable after 2 deliberate non-ports | **26 of 28 — 2 missing** |
+| Facts | 104; **101 portable** | 77 declared, 63 running, **57 mapped to a Java fact** |
 
-Suite totals today: **263 passing**, 14 skipped, 0 failing (188 + 75).
+Suite totals today: **263 passing**, 14 skipped, 0 failing (188 TestSuite + 75 Tests).
 
-The inventory is closed: every Java fact has been examined. The 14 blocked facts are the
-parity gap, and each names the capability it waits on.
+28 rather than 29 C# classes, because Java's two `complex/vflow` classes — `LargeFlowModelTest`
+and `VFlowGlobalListenerTest` — are ported as one `VFlowTest`.
 
-Two Java classes are deliberately **not** ported: `MemoryResourceSetTest` (tests a Java I/O
-abstraction with no .NET counterpart, and is commented out upstream) and `VMFGeneratorTest`
-(already covered by `GeneratorCompilesTests` in `VMF.NET.Tests`).
+Six C# facts have no Java counterpart and are excluded from "mapped": four cross-reference
+regression facts guarding the recursion fix, the `FSMTest` clone/`ToString` split, and
+`UnparserModelTest`'s from-the-child-side variant.
+
+### The parity gap: 44 facts
+
+| | Facts | Where |
+|---|---|---|
+| Ported but skipped | 14 | see the table below |
+| Never ported — undo/redo | 5 | `events_undo_redo/UndoRedoWithContainmentTest` |
+| Never ported — generator runs | 25 | `vmf/VMFGenerateRuns` |
+
+The 25 are a mix and will not all become new capability work: roughly 9 exercise reflective
+set/unset and inherited default values (which section A already lists as unwired), ~7 are
+generation-validation facts that partly overlap `ModelAnalyzerTests`/`GeneratorCompilesTests` in
+`VMF.NET.Tests`, and the rest re-test clone, read-only, containment and `ToString` on other
+models. The overlap has **not** been measured fact by fact; that is part of M2″.
+
+Two Java classes are deliberately **not** ported: `MemoryResourceSetTest` (a Java I/O
+abstraction with no .NET counterpart, commented out upstream) and `VMFGeneratorTest` (covered by
+`GeneratorCompilesTests`). `VMFGenerateRuns` is **not** in that category — it was missed.
 
 ### Blocked facts by milestone
 
@@ -35,8 +76,10 @@ abstraction with no .NET counterpart, and is commented out upstream) and `VMFGen
 | Clone traversal order (needs investigation) | 1 | fsm (1) |
 | Covariant narrowing + static reflection (M7) | 1 | propertyinheritance (1) |
 
-A blocked fact is kept as `[Fact(Skip = "...")]` with the missing capability named, so the
-**skip count is the parity gap** rather than the fact quietly disappearing.
+A blocked fact is kept as `[Fact(Skip = "...")]` with the missing capability named. The intent
+is that the **skip count is the parity gap** — but that only holds once every Java fact has a
+ported counterpart, which is what M2″ restores. Until then the gap is skips *plus* the 30
+unported facts above.
 
 ## Gap inventory
 
@@ -73,33 +116,45 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 
 Undo/redo has an API (`IChange.Undo`, `ITransaction.Undo`, `IsUndoable`) and **zero** tests.
 `TransactionImpl.Undo()` does call `_changes[i].Undo()`, so some of it is built. Verify before
-scoping. Blocks `events_undo_redo` (5 facts).
+scoping. Blocks `events_undo_redo` (5 facts) — which is also **not ported yet**, so nothing in
+the suite currently reports this gap at all. M2″ ports it, M8 makes it pass.
 
 ## Milestones
 
 | # | Milestone | Content | Done when |
 |---|---|---|---|
-| ~~M2′~~ | ~~Finish the port~~ | **DONE.** All 30 Java test classes ported; 62 active, 20 blocked | inventory closed |
+| ~~M2′~~ | ~~Finish the port~~ | **PARTIAL.** Ported every test class under the `vmftest` root — 26 classes, 62 active and 20 blocked at the time. Claimed to have closed the inventory; it had not, because it never looked at the other two roots. M2″ finishes the job | superseded by M2″ |
 | ~~M3~~ | ~~Release 0.2.1~~ | **DONE.** 19 defects fixed since 0.2.0, two crash-class; notes in [`CHANGELOG.md`](../CHANGELOG.md) | published to NuGet |
 | ~~M4a~~ | ~~Cross-reference echo classification~~ | **DONE.** The induced side is marked with `IsCrossRefEcho` while it is updated, so its change is tagged `crossref-echo`; `ProcessChange` reports echoes but does not record them | all 3 cross_ref facts active |
 | ~~M4b~~ | ~~Change propagation~~ | **DONE.** Changes route up the container chain; recursive flag honoured; read-only observation; `AddRange`/`RemoveAll`; settable `[Container]` | `recursivelistener01`, `observableprop`, `unparsermodel` green |
+| **M2″** | **Close the port** | Port `VMFGenerateRuns` (25) and `UndoRedoWithContainmentTest` (5); classify each as passing, or skipped with the capability named; record which duplicate existing `VMF.NET.Tests` coverage | every Java fact has a counterpart; skip count = parity gap again |
 | **M5** | Reflection metadata | Populate `AllTypes`/`SuperTypes`/`Annotations`; add a static entry point. Then retire the `IsPolymorphic` call-site workaround from 0.1.4 | `annotations`, `staticreflection` green |
 | **M6** | Inherited delegation | Generate bodies for inherited `[DelegateTo]`; type-level delegation | 4 models de-deviated |
 | **M7** | Covariant narrowing | Public property at the narrowest type + forwarding explicit implementations per declaring interface | 5 models de-deviated |
-| **M8** | Undo/redo | Verify what exists, then finish | `events_undo_redo` green |
+| **M8** | Undo/redo | Verify what exists, then finish. `IChange.Apply` is implemented and never called and `TransactionImpl.Undo` partly works, so scope this against the code, not against the API surface | `events_undo_redo` (5) and vflow (2) green |
 | **M9** | Tail + audit | Collection defaults; decide wire-or-delete on the dead members; negative models as compile-gates; parity audit table | documented parity statement |
 
 ### Sequencing rationale
 
-- **Port before feature work.** Every area ported so far has changed the plan. M2′ is cheap and
-  completes the inventory before anything expensive is committed to.
-- **Release early (M3).** Two crash-class bugs — a stack overflow on bidirectional
-  cross-references, and silent listener orphaning — are in shipped 0.2.0. They should not wait
-  for the whole roadmap.
+- **Port before feature work.** Every area ported so far has changed the plan, and the M2″
+  correction is the sharpest example: 30 facts were invisible because the audit that produced
+  this document walked one of three Java source roots. Porting is cheap relative to being wrong
+  about what is left.
+- **No release until the ported suite runs green with zero skips.** This replaces the earlier
+  "release early" rationale, which argued that the crash-class bugs in shipped 0.2.0 — the
+  cross-reference stack overflow and the silent listener orphaning — should not wait for the
+  whole roadmap. That reasoning shipped 0.2.1, but it was resting on a fact count that silently
+  excluded 30 unported facts, so "the suite passes" meant less than it appeared to. A release
+  states that the implementation matches the reference; it cannot state that while facts are
+  skipped or missing. 0.2.1 is published and NuGet does not allow withdrawal, only unlisting.
+  Everything since M3 accumulates under `Unreleased` in [`CHANGELOG.md`](../CHANGELOG.md).
 - **Group by subsystem, not by symptom.** The gaps are not independent features; they are two or
   three unfinished subsystems. One design decision per subsystem resolves several symptoms.
-- **M4 before M5.** It blocks the most facts and holds the remaining correctness risk. The
-  reflection gaps are missing *data*, which is inert until something reads it.
+- **M4 before M5** (done). It blocked the most facts and held the remaining correctness risk.
+  The reflection gaps are missing *data*, which is inert until something reads it.
+- **M2″ before M5.** `VMFGenerateRuns` covers reflective set/unset and inherited default values,
+  which is M5 and M9 territory. Scoping those milestones before seeing what those facts actually
+  assert would repeat the mistake this correction documents.
 
 ## M4b design note — notify *up* the container chain
 
@@ -185,3 +240,26 @@ Worth re-running after each milestone. Two cautions learned the hard way:
 The audit is also a corrective. The cross-reference recording gap was first diagnosed, from a
 failing test alone, as needing new design; the audit showed the classification helpers already
 existed and were simply never called. Read the code before concluding something is missing.
+
+### The inventory audit, and how it failed
+
+Section A audits *this* repo. The parity inventory audits the **Java** side, and that is the one
+that went wrong: it enumerated Java test classes under
+`test-suite/src/test/java/eu/mihosoft/vmftest` and treated the result as complete. There are
+three roots — `vmftest`, `vmftests` (models only) and `vmf` — and the third holds 26 facts.
+
+Enumerate from the file system, not from an assumed layout, and reconcile the totals:
+
+```
+# every Java class carrying facts, all roots, keyed by PATH not class name
+#   (`ContainmentTest` and `ToStringTest` each exist in two packages -- keying by
+#    class name silently collapses them and undercounts by 12 facts)
+find test-suite/src/test/java -name '*.java' | xargs grep -c '@Test'
+
+# reconcile against the port, per area:
+#   Java facts = C# facts - (C# facts with no Java counterpart) + (unported Java facts)
+```
+
+The reconciliation is the part that catches this. A per-area table that has to balance makes a
+missing class impossible to overlook; a bare count of what was ported cannot, because the thing
+it is missing is precisely what it does not enumerate.
