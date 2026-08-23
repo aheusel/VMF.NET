@@ -330,6 +330,10 @@ namespace {{ ns }}
                     newMod.SetContainerPropertyId({{ prop.PropId }});
                 }
 {{~ end ~}}
+                // Assign BEFORE the cross-reference sync below: that sets the opposite,
+                // whose setter sets this one back, and the ReferenceEquals guard above must
+                // already see the new value or the two recurse forever.
+                {{ field_name prop }} = value;
 {{~ if prop.IsCrossRefProperty && prop.Reference != null ~}}
                 // Cross-reference sync
 {{~ if prop.Reference.OppositeProp.IsCollectionType ~}}
@@ -353,7 +357,6 @@ namespace {{ ns }}
                     newRefMod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, this);
 {{~ end ~}}
 {{~ end ~}}
-                {{ field_name prop }} = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("{{ prop.Name }}"));
                 __vmf_changes?.FirePropertyChange(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value{{ if prop.IsContained }}, "vmf:change:type:containment"{{ else if prop.IsCrossRefProperty }}, "vmf:change:type:crossref"{{ end }});
             }
