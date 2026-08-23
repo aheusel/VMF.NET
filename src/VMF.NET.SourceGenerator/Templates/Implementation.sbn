@@ -745,12 +745,17 @@ namespace {{ ns }}
 {{~ end ~}}
         public override string ToString()
         {
-            return VmfToString(new HashSet<object>(ReferenceEqualityComparer.Instance));
+            return VmfToString(new Dictionary<object, int>(ReferenceEqualityComparer.Instance));
         }
 
-        internal string VmfToString(HashSet<object> visited)
+        internal string VmfToString(Dictionary<object, int> visited)
         {
-            if (!visited.Add(this)) return "\"{{ strip_i type.TypeName }}@" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this).ToString("X") + "\"";
+            // A revisited node is marked with its ordinal in traversal order, NOT its identity
+            // hash: the hash differs between an object and its clone, which made ToString()
+            // unstable for structurally identical graphs.
+            if (visited.TryGetValue(this, out var seen_))
+                return "\"{{ strip_i type.TypeName }}@" + seen_ + "\"";
+            visited[this] = visited.Count;
 
             var sb = new System.Text.StringBuilder();
             sb.Append("{{ strip_i type.TypeName }} {");
