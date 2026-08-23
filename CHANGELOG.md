@@ -3,6 +3,37 @@
 Notable changes per release. Earlier releases are listed on the
 [GitHub releases page](https://github.com/aheusel/VMF.NET/releases).
 
+## Unreleased
+
+### Added
+
+- **Recursive change listeners now work.** A listener registered on a root sees changes anywhere
+  in the subtree that root contains. Previously a change on a contained object reached no
+  listener at all.
+- **Read-only views can observe changes.** `readOnly.Vmf().Changes()` returns the wrapped
+  object's manager instead of throwing, and reflective access through a read-only view works —
+  including `AddChangeListener` on a property obtained from it. Writes are still refused.
+- **`VList.AddRange(IEnumerable<T>)` and `VList.RemoveAll(params int[])`**, each raising a single
+  change carrying every affected element rather than one change per element.
+- **Settable `[Container]` properties.** A model can declare a container property
+  `{ get; set; }`, letting containment be driven from the child (`child.Parent = p`, or `null`
+  to detach). A `[Container]` with no declared opposite gets no setter.
+
+### Behaviour changes
+
+- `IChanges.AddListener(listener, recursive: false)` now means what it says. Previously the flag
+  was recorded and ignored, so every listener behaved recursively — which was invisible because
+  no subtree change ever arrived. Code that passed `false` and relied on seeing everything will
+  now see less; the default (`AddListener(listener)`) is still recursive.
+- A listener on a root now receives changes from contained objects. Anything counting changes on
+  a root of a non-trivial object graph will see more of them.
+- `ReadOnly*Impl.Vmf().Changes()` no longer throws `InvalidOperationException`.
+- Reflection through a read-only view no longer throws "Cannot access property without an
+  instance"; reads and listeners work, and writes throw "Cannot modify unmodifiable object".
+- `IVObjectInternal` gained `GetChangesManager`, and `IVObjectInternalModifiable` lost
+  `SetModelToChanges` — it was never called, and routing changes up the container chain makes it
+  obsolete. This affects hand-written implementations of those internal contracts only.
+
 ## 0.2.1
 
 A fix release. Nineteen defects, found by porting the Java VMF `test-suite` into
