@@ -94,6 +94,52 @@ namespace NullableModel
         AssertGeneratedCodeCompiles(source);
     }
 
+    [Fact]
+    public void InterfaceOnlyBase_GeneratesCompilableCode()
+    {
+        // An [InterfaceOnly] type never declares Clone()/AsReadOnly() (Interface.sbn skips them),
+        // so the implementation must NOT emit explicit interface implementations for such a base
+        // -- doing so produced CS0539. Covers the mutable and the immutable derived case.
+        const string source = @"
+using VMF.NET.Runtime;
+using VMF.NET.Runtime.Attributes;
+namespace InterfaceOnlyModel
+{
+    [VmfModel(Equality = EqualsType.All)] [InterfaceOnly]
+    public partial interface IWithName { string? Name { get; set; } }
+
+    [VmfModel(Equality = EqualsType.All)]
+    public partial interface IThing : IWithName { int Value { get; set; } }
+
+    [VmfModel(Equality = EqualsType.All)] [InterfaceOnly]
+    public partial interface IWithLabel { [GetterOnly] string? Label { get; } }
+
+    [VmfModel(Equality = EqualsType.All)] [Immutable]
+    public partial interface IFrozen : IWithLabel { int Size { get; } }
+}";
+        AssertGeneratedCodeCompiles(source);
+    }
+
+    [Fact]
+    public void GetterOnlyProperty_OnMutableType_GeneratesCompilableCode()
+    {
+        // A [GetterOnly] property generates no public setter, so SetPropertyValueById and the
+        // builder's Build() must assign the backing field instead -- assigning the property
+        // produced CS0200. ApplyTo() cannot set it at all and must skip it.
+        const string source = @"
+using VMF.NET.Runtime;
+using VMF.NET.Runtime.Attributes;
+namespace GetterOnlyModel
+{
+    [VmfModel(Equality = EqualsType.All)] [InterfaceOnly]
+    public partial interface IWithName { [GetterOnly] string? Name { get; } }
+
+    [VmfModel(Equality = EqualsType.All)]
+    public partial interface IThing : IWithName { int Value { get; set; } }
+}";
+        AssertGeneratedCodeCompiles(source);
+    }
+
     // --- harness (same approach as SourceGeneratorTests.FullPipeline_*) ---
 
     private static void AssertGeneratedCodeCompiles(string modelSource)

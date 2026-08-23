@@ -33,12 +33,20 @@ namespace {{ ns }}
 {{~ end ~}}
 {{~ else if prop.IsContainer ~}}
         public {{ prop_type_name prop }}? {{ prop.Name }} => _mutable.{{ prop.Name }};
-        IVObject? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }}?.AsReadOnly();
 {{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject)_mutable.{{ prop.Name }}).AsReadOnly() : null;
         public {{ prop_type_name prop }}? {{ prop.Name }} => _mutable.{{ prop.Name }};
 {{~ else ~}}
         public {{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} {{ prop.Name }} => _mutable.{{ prop.Name }};
+{{~ end ~}}
+{{~ end ~}}
+
+{{~ # explicit members for every read-only interface that declares the property ~}}
+{{~ for impl in readonly_prop_impls ~}}
+{{~ prop = impl.Prop ~}}
+{{~ if prop.IsContainer ~}}
+        IVObject? {{ impl.IfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }}?.AsReadOnly();
+{{~ else if prop.IsModelType ~}}
+        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ impl.IfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject)_mutable.{{ prop.Name }}).AsReadOnly() : null;
 {{~ end ~}}
 {{~ end ~}}
 
@@ -51,8 +59,11 @@ namespace {{ ns }}
         {
             return ({{ type.ReadOnlyInterfaceName }})((IVObject)_mutable.Clone()).AsReadOnly();
         }
+{{~ # Interface-only bases never declare Clone() on their read-only interface. ~}}
 {{~ for base_type in type.AllInheritedTypes ~}}
+{{~ if !base_type.IsInterfaceOnly ~}}
         {{ base_type.ReadOnlyInterfaceName }} {{ base_type.ReadOnlyInterfaceName }}.Clone() => ({{ base_type.ReadOnlyInterfaceName }})Clone();
+{{~ end ~}}
 {{~ end ~}}
 
         // --- IVObjectInternal ---

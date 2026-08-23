@@ -193,6 +193,33 @@ public sealed class TemplateRenderer
         }
         scriptObject.Add("to_string_props", toStringProps);
 
+        // Read-only explicit interface implementations.
+        // A property may be declared by several interfaces in the hierarchy: the type itself
+        // (when it re-declares/hides an inherited member with `new`) AND one or more bases.
+        // Every declaring read-only interface needs its own explicit implementation, otherwise
+        // the base member is left unimplemented (CS0738).
+        var roImpls = new List<ReadOnlyPropImpl>();
+        var roSeen = new HashSet<string>();
+        foreach (var p in allProps)
+        {
+            var declaring = new List<ModelTypeInfo>();
+            if (type.Properties.Any(x => x.Name == p.Name)) declaring.Add(type);
+            foreach (var bt in type.AllInheritedTypes)
+            {
+                if (bt.Properties.Any(x => x.Name == p.Name)) declaring.Add(bt);
+            }
+            if (declaring.Count == 0) declaring.Add(p.Parent);
+
+            foreach (var d in declaring)
+            {
+                if (roSeen.Add(d.ReadOnlyInterfaceName + "|" + p.Name))
+                {
+                    roImpls.Add(new ReadOnlyPropImpl(d.ReadOnlyInterfaceName, p));
+                }
+            }
+        }
+        scriptObject.Add("readonly_prop_impls", roImpls);
+
         // Types that contain this type (for UnregisterFromContainers)
         var containingPropsWithOpposite = model.FindAllPropsThatContainType(type, true);
         var containingPropsWithoutOpposite = model.FindAllPropsThatContainType(type, false);
@@ -204,6 +231,25 @@ public sealed class TemplateRenderer
         context.MemberRenamer = member => member.Name;
         return context;
     }
+}
+
+/// <summary>
+/// One read-only explicit interface implementation to emit: the declaring read-only
+/// interface plus the property it declares.
+/// </summary>
+public sealed class ReadOnlyPropImpl
+{
+    public ReadOnlyPropImpl(string ifaceName, PropertyInfo prop)
+    {
+        IfaceName = ifaceName;
+        Prop = prop;
+    }
+
+    /// <summary>Name of the read-only interface that declares the property.</summary>
+    public string IfaceName { get; }
+
+    /// <summary>The property to implement.</summary>
+    public PropertyInfo Prop { get; }
 }
 
 /// <summary>

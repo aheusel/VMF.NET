@@ -153,7 +153,9 @@ internal static class SymbolExtractor
         {
             FullTypeName = targetType != null ? GetFullName(targetType) : "",
             MethodName = method.Name,
-            ReturnType = GetFullName(method.ReturnType),
+            // GetFullName would yield "System.Void", which is not writable in C#; the
+            // template also compares against the literal "void" to decide whether to return.
+            ReturnType = method.ReturnsVoid ? "void" : GetFullName(method.ReturnType),
             ParamTypes = method.Parameters.Select(p => GetFullName(p.Type)).ToList(),
             ParamNames = method.Parameters.Select(p => p.Name).ToList(),
             Documentation = GetDocAttribute(method),
@@ -236,6 +238,14 @@ internal static class SymbolExtractor
         if (attr == null) return null;
 
         var data = new VmfEqualsData();
+
+        // VmfEqualsAttribute takes the strategy as a constructor argument;
+        // a named "Equality" is also accepted for symmetry with [VmfModel].
+        if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is int ctorVal)
+        {
+            data.Value = (EqualsStrategy)ctorVal;
+        }
+
         foreach (var named in attr.NamedArguments)
         {
             if (named.Key == "Equality" && named.Value.Value is int val)

@@ -119,8 +119,10 @@ namespace {{ ns }}
                     {
                         if (item != null && identityMap.TryGetValue(item, out var existing))
                             {{ prop.Name }}.Add(({{ prop.GenericModelType.TypeName }})existing);
+{{~ if !prop.GenericModelType.IsInterfaceOnly ~}}
                         else if (item is IVObjectInternalModifiable cloneable)
                             {{ prop.Name }}.Add(({{ prop.GenericModelType.TypeName }})(({{ prop.GenericModelType.ImplClassName }})cloneable).CloneInternal(identityMap));
+{{~ end ~}}
                         else
                             {{ prop.Name }}.Add(item!);
                     }
@@ -142,8 +144,10 @@ namespace {{ ns }}
             {
                 if (identityMap.TryGetValue(other.{{ field_name prop }}, out var existing))
                     {{ field_name prop }} = ({{ prop.ModelType.TypeName }})existing;
+{{~ if !prop.ModelType.IsInterfaceOnly ~}}
                 else if (other.{{ field_name prop }} is {{ prop.ModelType.ImplClassName }} impl)
                     {{ field_name prop }} = ({{ prop.ModelType.TypeName }})impl.CloneInternal(identityMap);
+{{~ end ~}}
                 else
                     {{ field_name prop }} = other.{{ field_name prop }};
             }
@@ -235,7 +239,7 @@ namespace {{ ns }}
                             foreach (var added in evt.Added)
                             {
 {{~ if prop.Reference.OppositeProp.IsCollectionType ~}}
-                                if (added is {{ prop.Reference.OppositeType.ImplClassName }} impl)
+                                if (added is {{ prop.Reference.OppositeType.IsInterfaceOnly ? prop.Reference.OppositeType.TypeName : prop.Reference.OppositeType.ImplClassName }} impl)
                                 {
                                     impl.{{ prop.Reference.OppositeProp.Name }}.EventInfo = "vmf:change:type:crossref";
                                     if (!impl.{{ prop.Reference.OppositeProp.Name }}.Contains(this))
@@ -253,7 +257,7 @@ namespace {{ ns }}
                             foreach (var removed in evt.Removed)
                             {
 {{~ if prop.Reference.OppositeProp.IsCollectionType ~}}
-                                if (removed is {{ prop.Reference.OppositeType.ImplClassName }} impl)
+                                if (removed is {{ prop.Reference.OppositeType.IsInterfaceOnly ? prop.Reference.OppositeType.TypeName : prop.Reference.OppositeType.ImplClassName }} impl)
                                 {
                                     impl.{{ prop.Reference.OppositeProp.Name }}.EventInfo = "vmf:change:type:crossref";
                                     impl.{{ prop.Reference.OppositeProp.Name }}.Remove(({{ prop.Reference.OppositeProp.GenericModelType?.TypeName ?? type.TypeName }})this);
@@ -324,13 +328,13 @@ namespace {{ ns }}
 {{~ if prop.IsCrossRefProperty && prop.Reference != null ~}}
                 // Cross-reference sync
 {{~ if prop.Reference.OppositeProp.IsCollectionType ~}}
-                if (oldValue is {{ prop.Reference.OppositeType.ImplClassName }} oldRef)
+                if (oldValue is {{ prop.Reference.OppositeType.IsInterfaceOnly ? prop.Reference.OppositeType.TypeName : prop.Reference.OppositeType.ImplClassName }} oldRef)
                 {
                     oldRef.{{ prop.Reference.OppositeProp.Name }}.EventInfo = "vmf:change:type:crossref";
                     oldRef.{{ prop.Reference.OppositeProp.Name }}.Remove(({{ prop.Reference.OppositeProp.GenericModelType?.TypeName ?? type.TypeName }})this);
                     oldRef.{{ prop.Reference.OppositeProp.Name }}.EventInfo = null;
                 }
-                if (value is {{ prop.Reference.OppositeType.ImplClassName }} newRef)
+                if (value is {{ prop.Reference.OppositeType.IsInterfaceOnly ? prop.Reference.OppositeType.TypeName : prop.Reference.OppositeType.ImplClassName }} newRef)
                 {
                     newRef.{{ prop.Reference.OppositeProp.Name }}.EventInfo = "vmf:change:type:crossref";
                     if (!newRef.{{ prop.Reference.OppositeProp.Name }}.Contains(({{ prop.Reference.OppositeProp.GenericModelType?.TypeName ?? type.TypeName }})this))
@@ -361,9 +365,10 @@ namespace {{ ns }}
    # For mutable types, each member is implemented explicitly against the interface that
    # DECLARES it (prop.Parent.ReadOnlyInterfaceName), so inherited members resolve correctly. ~}}
 {{~ if !type.IsImmutable ~}}
-{{~ for prop in all_props ~}}
+{{~ for impl in readonly_prop_impls ~}}
+{{~ prop = impl.Prop ~}}
 {{~ if prop.IsCollectionType ~}}
-        IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.ReadOnlyInterfaceName : (prop.GenericTypeName ?? "object") }}> {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }}
+        IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.ReadOnlyInterfaceName : (prop.GenericTypeName ?? "object") }}> {{ impl.IfaceName }}.{{ prop.Name }}
         {
 {{~ if prop.GenericModelType != null ~}}
             get => new ReadOnlyMappedList<{{ prop.GenericModelType.TypeName }}, {{ prop.GenericModelType.ReadOnlyInterfaceName }}>({{ prop.Name }}, x => ({{ prop.GenericModelType.ReadOnlyInterfaceName }})((IVObject)x).AsReadOnly());
@@ -372,9 +377,9 @@ namespace {{ ns }}
 {{~ end ~}}
         }
 {{~ else if prop.IsContainer ~}}
-        IVObject? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => __vmf_container?.AsReadOnly();
+        IVObject? {{ impl.IfaceName }}.{{ prop.Name }} => __vmf_container?.AsReadOnly();
 {{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ prop.Parent.ReadOnlyInterfaceName }}.{{ prop.Name }} => {{ field_name prop }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject){{ field_name prop }}).AsReadOnly() : null;
+        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ impl.IfaceName }}.{{ prop.Name }} => {{ field_name prop }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject){{ field_name prop }}).AsReadOnly() : null;
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -400,10 +405,14 @@ namespace {{ ns }}
         public {{ type.TypeName }} Clone() => this;
         {{ type.ReadOnlyInterfaceName }} {{ type.TypeName }}.AsReadOnly() => this;
         public {{ type.ReadOnlyInterfaceName }} AsReadOnly() => this;
+{{~ # Interface-only bases never declare Clone()/AsReadOnly() (see Interface.sbn),
+   # so emitting an explicit implementation for them would be CS0539. ~}}
 {{~ for base_type in type.AllInheritedTypes ~}}
+{{~ if !base_type.IsInterfaceOnly ~}}
         // Inherited from {{ base_type.TypeName }}
         {{ base_type.TypeName }} {{ base_type.TypeName }}.Clone() => this;
         {{ base_type.ReadOnlyInterfaceName }} {{ base_type.TypeName }}.AsReadOnly() => this;
+{{~ end ~}}
 {{~ end ~}}
 
         internal {{ type.ImplClassName }} CloneInternal(Dictionary<object, object> identityMap) => this;
@@ -412,11 +421,15 @@ namespace {{ ns }}
         public {{ type.TypeName }} Clone() => CloneInternal(new Dictionary<object, object>());
         {{ type.ReadOnlyInterfaceName }} {{ type.TypeName }}.AsReadOnly() => AsReadOnly();
         {{ type.ReadOnlyInterfaceName }} {{ type.ReadOnlyInterfaceName }}.Clone() => ({{ type.ReadOnlyInterfaceName }})AsReadOnly().Clone();
+{{~ # Interface-only bases never declare Clone()/AsReadOnly() (see Interface.sbn),
+   # so emitting an explicit implementation for them would be CS0539. ~}}
 {{~ for base_type in type.AllInheritedTypes ~}}
+{{~ if !base_type.IsInterfaceOnly ~}}
         // Inherited from {{ base_type.TypeName }}
         {{ base_type.TypeName }} {{ base_type.TypeName }}.Clone() => Clone();
         {{ base_type.ReadOnlyInterfaceName }} {{ base_type.TypeName }}.AsReadOnly() => AsReadOnly();
         {{ base_type.ReadOnlyInterfaceName }} {{ base_type.ReadOnlyInterfaceName }}.Clone() => ({{ base_type.ReadOnlyInterfaceName }})AsReadOnly().Clone();
+{{~ end ~}}
 {{~ end ~}}
 
         public {{ type.ReadOnlyInterfaceName }} AsReadOnly()
@@ -536,6 +549,9 @@ namespace {{ ns }}
                 case {{ prop.PropId }}: break; // container is read-only
 {{~ else if prop.IsCollectionType ~}}
                 case {{ prop.PropId }}: break; // collections are set via add/remove
+{{~ else if prop.IsGetterOnly ~}}
+                // [GetterOnly]: no public setter -- assign the backing field directly
+                case {{ prop.PropId }}: {{ field_name prop }} = ({{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }})value; break;
 {{~ else ~}}
                 case {{ prop.PropId }}: {{ prop.Name }} = ({{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }})value; break;
 {{~ end ~}}
@@ -563,7 +579,7 @@ namespace {{ ns }}
         {
 {{~ for cprop in containing_props_with_opposite ~}}
             // Contained by {{ cprop.Parent.TypeName }}.{{ cprop.Name }}
-            if (__vmf_container is {{ cprop.Parent.ImplClassName }} container_{{ for.index }})
+            if (__vmf_container is {{ cprop.Parent.IsInterfaceOnly ? cprop.Parent.TypeName : cprop.Parent.ImplClassName }} container_{{ for.index }})
             {
 {{~ if cprop.IsCollectionType ~}}
                 container_{{ for.index }}.{{ cprop.Name }}.Remove(({{ cprop.GenericModelType?.TypeName ?? type.TypeName }})this);
@@ -573,7 +589,7 @@ namespace {{ ns }}
             }
 {{~ end ~}}
 {{~ for cprop in containing_props_without_opposite ~}}
-            if (__vmf_container is {{ cprop.Parent.ImplClassName }} containerNO_{{ for.index }})
+            if (__vmf_container is {{ cprop.Parent.IsInterfaceOnly ? cprop.Parent.TypeName : cprop.Parent.ImplClassName }} containerNO_{{ for.index }})
             {
 {{~ if cprop.IsCollectionType ~}}
                 containerNO_{{ for.index }}.{{ cprop.Name }}.Remove(({{ cprop.GenericModelType?.TypeName ?? type.TypeName }})this);
@@ -700,16 +716,22 @@ namespace {{ ns }}
             {
                 if (i > 0) sb.Append(", ");
 {{~ if prop.GenericModelType != null ~}}
+{{~ if !prop.GenericModelType.IsInterfaceOnly ~}}
                 if ({{ prop.Name }}[i] is {{ prop.GenericModelType.ImplClassName }} ts_{{ prop.PropId }}) sb.Append(ts_{{ prop.PropId }}.VmfToString(visited));
-                else sb.Append(((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ prop.Name }}[i]?.ToString() ?? "null"));
+                else
+{{~ end ~}}
+                sb.Append(((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ prop.Name }}[i]?.ToString() ?? "null"));
 {{~ else ~}}
-                sb.Append({{ prop.Name }}[i] is string ? "\"" + {{ prop.Name }}[i] + "\"" : (((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ prop.Name }}[i]?.ToString() ?? "null")));
+                sb.Append({{ prop.Name }}[i] is string ? "\"" + {{ prop.Name }}[i] + "\"" : (((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ((((object?){{ prop.Name }}[i])?.ToString()) ?? "null")));
 {{~ end ~}}
             }
             sb.Append("]");
 {{~ else if prop.IsModelType ~}}
+{{~ if !prop.ModelType.IsInterfaceOnly ~}}
             if ({{ field_name prop }} is {{ prop.ModelType.ImplClassName }} ts_{{ prop.PropId }}) sb.Append(ts_{{ prop.PropId }}.VmfToString(visited));
-            else sb.Append({{ field_name prop }}?.ToString() ?? "null");
+            else
+{{~ end ~}}
+            sb.Append({{ field_name prop }}?.ToString() ?? "null");
 {{~ else if prop.SimpleTypeName == "String" || prop.SimpleTypeName == "string" ~}}
             sb.Append({{ field_name prop }} != null ? "\"" + {{ field_name prop }} + "\"" : "null");
 {{~ else ~}}
@@ -788,6 +810,8 @@ namespace {{ ns }}
                     foreach (var item in __builder_{{ prop.Name }})
                         obj.{{ prop.Name }}.Add(item);
                 }
+{{~ else if prop.IsGetterOnly ~}}
+                if (__builder_{{ prop.Name }}_set) obj.{{ field_name prop }} = __builder_{{ prop.Name }};
 {{~ else ~}}
                 if (__builder_{{ prop.Name }}_set) obj.{{ prop.Name }} = __builder_{{ prop.Name }};
 {{~ end ~}}
@@ -830,6 +854,8 @@ namespace {{ ns }}
                     foreach (var item in __builder_{{ prop.Name }})
                         target.{{ prop.Name }}.Add(item);
                 }
+{{~ else if prop.IsGetterOnly ~}}
+                // [GetterOnly]: not settable through the public interface -- skipped
 {{~ else ~}}
                 if (__builder_{{ prop.Name }}_set) target.{{ prop.Name }} = __builder_{{ prop.Name }};
 {{~ end ~}}

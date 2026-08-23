@@ -49,8 +49,29 @@ public sealed class DelegationInfo
     /// <summary>Custom documentation.</summary>
     public string? Documentation { get; }
 
-    /// <summary>Variable name for the delegation target instance.</summary>
-    public string VariableName => $"__vmf_delegate_{MethodName}";
+    /// <summary>
+    /// Variable name for the delegation target instance. The parameter types are folded in
+    /// so that overloaded delegated methods (same name, different signature) do not collide
+    /// on a single generated field.
+    /// </summary>
+    public string VariableName
+    {
+        get
+        {
+            if (ParamTypes.Count == 0) return $"__vmf_delegate_{MethodName}";
+
+            var sb = new System.Text.StringBuilder("__vmf_delegate_").Append(MethodName);
+            foreach (var t in ParamTypes)
+            {
+                sb.Append('_');
+                foreach (var c in t)
+                {
+                    sb.Append(char.IsLetterOrDigit(c) ? c : '_');
+                }
+            }
+            return sb.ToString();
+        }
+    }
 
     /// <summary>True if this delegation is for interface-only types (no behavior type specified).</summary>
     public bool IsExclusivelyForInterfaceOnlyTypes => string.IsNullOrEmpty(FullTypeName);

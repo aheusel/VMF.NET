@@ -107,10 +107,14 @@ public sealed class ModelInfo
                     ? !p.Containment.IsWithoutOpposite
                     : p.Containment.IsWithoutOpposite;
 
+                // `type` must be ASSIGNABLE TO the property's element/target type: only then
+                // can an instance of `type` actually sit in that property. Matching the other
+                // direction as well made a base type emit cleanup casting `this` to a derived
+                // type, which does not compile.
                 if (p.IsContainmentProperty
                     && matchesOpposite
                     && p.Containment.ContainmentType == ContainmentType.Contained
-                    && (pType.ExtendsType(type) || type.ExtendsType(pType)))
+                    && type.ExtendsType(pType))
                 {
                     result.Add(p);
                 }

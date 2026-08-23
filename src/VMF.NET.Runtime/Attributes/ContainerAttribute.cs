@@ -11,10 +11,22 @@ namespace VMF.NET.Runtime.Attributes;
 public sealed class ContainerAttribute : Attribute
 {
     /// <summary>
-    /// The name of the opposite property on the container type.
+    /// The name of the opposite property on the container type, or <c>null</c> when the
+    /// container is not known at compile time (several unrelated properties, possibly on
+    /// different types, may contain this type).
     /// </summary>
-    public string Opposite { get; }
+    public string? Opposite { get; }
 
+    /// <summary>
+    /// Declares a container back-reference with no single declared opposite.
+    /// </summary>
+    public ContainerAttribute()
+    {
+    }
+
+    /// <summary>
+    /// Declares a container back-reference with an explicit opposite property.
+    /// </summary>
     public ContainerAttribute(string opposite)
     {
         Opposite = opposite;

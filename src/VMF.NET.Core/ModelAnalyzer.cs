@@ -371,24 +371,14 @@ public static class ModelAnalyzer
 
     private static void CollectAllProperties(ModelTypeInfo type)
     {
-        // Start with own properties
         var seen = new HashSet<string>();
         type.AllProperties.Clear();
 
-        // Add inherited properties first
-        foreach (var baseType in type.Implements)
-        {
-            foreach (var baseProp in baseType.Properties)
-            {
-                if (seen.Add(baseProp.Name))
-                {
-                    // Check if this type overrides the property
-                    var ownProp = type.Properties.FirstOrDefault(p => p.Name == baseProp.Name);
-                    type.AllProperties.Add(ownProp ?? baseProp);
-                    if (ownProp != null) seen.Add(ownProp.Name);
-                }
-            }
-        }
+        // Add inherited properties first, walking the FULL base hierarchy (not just the
+        // direct bases): with diamond inheritance (C : A, B where A and B both extend Root)
+        // Root's properties are only reachable transitively, and missing them makes the
+        // generated implementation fail to implement the interface.
+        CollectInheritedProperties(type, type, seen, new HashSet<string>());
 
         // Add own properties not yet added
         foreach (var prop in type.Properties)
@@ -398,6 +388,68 @@ public static class ModelAnalyzer
                 type.AllProperties.Add(prop);
             }
         }
+    }
+
+    private static void CollectInheritedProperties(
+        ModelTypeInfo target, ModelTypeInfo current,
+        HashSet<string> seenProps, HashSet<string> visitedTypes)
+    {
+        foreach (var baseType in current.Implements)
+        {
+            // guard against diamonds and cycles
+            if (!visitedTypes.Add(baseType.FullTypeName)) continue;
+
+            // base-most properties first, so ordering stays stable for linear hierarchies
+            CollectInheritedProperties(target, baseType, seenProps, visitedTypes);
+
+            foreach (var baseProp in baseType.Properties)
+            {
+                if (seenProps.Add(baseProp.Name))
+                {
+                    // the deriving type may re-declare (override) the property
+                    var ownProp = target.Properties.FirstOrDefault(p => p.Name == baseProp.Name);
+
+                    // PropId is assigned per type by index into AllProperties. Inherited
+                    // properties must therefore NOT be shared instances -- a property that
+                    // lands at a different index in two types would otherwise have its PropId
+                    // overwritten, producing duplicate switch cases in the generated code.
+                    target.AllProperties.Add(ownProp ?? CopyInherited(baseProp));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a per-type copy of an inherited property. <see cref="PropertyInfo.Parent"/> is
+    /// deliberately preserved as the DECLARING type, so generated explicit interface
+    /// implementations still target the interface that declares the member.
+    /// </summary>
+    private static PropertyInfo CopyInherited(PropertyInfo source)
+    {
+        var copy = new PropertyInfo(source.Parent, source.Name)
+        {
+            TypeName = source.TypeName,
+            SimpleTypeName = source.SimpleTypeName,
+            PackageName = source.PackageName,
+            PropType = source.PropType,
+            IsNullableValueType = source.IsNullableValueType,
+            ModelType = source.ModelType,
+            GenericTypeName = source.GenericTypeName,
+            GenericPackageName = source.GenericPackageName,
+            GenericModelType = source.GenericModelType,
+            Containment = source.Containment,
+            Reference = source.Reference,
+            IsRequired = source.IsRequired,
+            IsIgnoredForEquals = source.IsIgnoredForEquals,
+            IsIgnoredForToString = source.IsIgnoredForToString,
+            IsGetterOnly = source.IsGetterOnly,
+            IsReadOnly = source.IsReadOnly,
+            DefaultValueAsString = source.DefaultValueAsString,
+            CustomOrderIndex = source.CustomOrderIndex,
+            Documentation = source.Documentation,
+        };
+        copy.Annotations.AddRange(source.Annotations);
+        return copy;
     }
 
     private static void ComputeAllInheritedTypes(
