@@ -1,9 +1,8 @@
 // Ported from eu.mihosoft.vmftest.cross_ref.CrossRefTest
 //
-// The three Java facts bundle two things: that setting one side of a cross-reference wires
-// up the opposite, and precise accounting of the resulting change events/records. The wiring
-// works; the accounting differs from Java in two ways, so those facts are Skip-ped with the
-// difference named. The wiring itself is covered by the regression facts below.
+// Setting one side of a cross-reference wires up the opposite. Both objects report a change
+// EVENT, but the change is only RECORDED on the object the update was initiated on -- the
+// opposite's update is an echo of the same logical change.
 
 using VMF.NET.Runtime;
 using Xunit;
@@ -12,29 +11,133 @@ namespace VMF.NET.TestSuite.VmfTest.CrossRef;
 
 public class CrossRefTest
 {
-    private const string ChangeAccountingSkip =
-        "Cross-reference change accounting differs from Java in two ways. (1) The echo is " +
-        "RECORDED on both objects: Java records the change only on the object the change was " +
-        "initiated on, but both the initiating setter and the opposite's setter fire with " +
-        "internalChangeInfo \"vmf:change:type:crossref\", so ChangesManager cannot tell an " +
-        "echo from an initiating change and records both. (2) For LIST cross-references the " +
-        "echo side fires NO event at all: the generated list listener returns early on " +
-        "EventInfo == \"vmf:change:type:crossref\" to break the cascade, which suppresses the " +
-        "change event along with the recursion. Java fires an event on both sides.";
+    private static Counter CountChangeEvents(IVObject o)
+    {
+        var counter = new Counter();
+        o.Vmf().Changes().AddListener(_ => counter.Value++);
+        return counter;
+    }
 
-    [Fact(Skip = ChangeAccountingSkip)]
+    private sealed class Counter
+    {
+        public int Value;
+    }
+
+    [Fact]
     public void SingleRefTest()
     {
+        // one-to-one, initiated from the A side
+        {
+            var entityOneA = IEntityOneA.NewInstance();
+            var entityTwoA = IEntityTwoA.NewInstance();
+            var numEvtOneA = CountChangeEvents(entityOneA);
+            var numEvtTwoA = CountChangeEvents(entityTwoA);
+            entityOneA.Vmf().Changes().Start();
+            entityTwoA.Vmf().Changes().Start();
+
+            entityOneA.Ref = entityTwoA;
+
+            Assert.Same(entityOneA, entityTwoA.Ref);
+            Assert.Single(entityOneA.Vmf().Changes().All());
+            Assert.Equal(1, numEvtOneA.Value);
+            Assert.Equal(1, numEvtTwoA.Value);
+            // recorded only on the initiating object
+            Assert.Empty(entityTwoA.Vmf().Changes().All());
+        }
+        // ...and symmetrically, initiated from the B side
+        {
+            var entityOneA = IEntityOneA.NewInstance();
+            var entityTwoA = IEntityTwoA.NewInstance();
+            var numEvtOneA = CountChangeEvents(entityOneA);
+            var numEvtTwoA = CountChangeEvents(entityTwoA);
+            entityOneA.Vmf().Changes().Start();
+            entityTwoA.Vmf().Changes().Start();
+
+            entityTwoA.Ref = entityOneA;
+
+            Assert.Same(entityTwoA, entityOneA.Ref);
+            Assert.Single(entityTwoA.Vmf().Changes().All());
+            Assert.Equal(1, numEvtTwoA.Value);
+            Assert.Equal(1, numEvtOneA.Value);
+            Assert.Empty(entityOneA.Vmf().Changes().All());
+        }
     }
 
-    [Fact(Skip = ChangeAccountingSkip)]
+    [Fact]
     public void SingleMultipleRefTest()
     {
+        // one-to-many, initiated from the list side
+        {
+            var entityOneB = IEntityOneB.NewInstance();
+            var entityTwoB = IEntityTwoB.NewInstance();
+            var numEvtOneB = CountChangeEvents(entityOneB);
+            var numEvtTwoB = CountChangeEvents(entityTwoB);
+            entityOneB.Vmf().Changes().Start();
+            entityTwoB.Vmf().Changes().Start();
+
+            entityTwoB.Refs.Add(entityOneB);
+
+            Assert.Same(entityTwoB, entityOneB.Ref);
+            Assert.Equal(1, numEvtOneB.Value);
+            Assert.Equal(1, numEvtTwoB.Value);
+            Assert.Single(entityTwoB.Vmf().Changes().All());
+            Assert.Empty(entityOneB.Vmf().Changes().All());
+        }
+        // ...and from the single side
+        {
+            var entityOneB = IEntityOneB.NewInstance();
+            var entityTwoB = IEntityTwoB.NewInstance();
+            var numEvtOneB = CountChangeEvents(entityOneB);
+            var numEvtTwoB = CountChangeEvents(entityTwoB);
+            entityOneB.Vmf().Changes().Start();
+            entityTwoB.Vmf().Changes().Start();
+
+            entityOneB.Ref = entityTwoB;
+
+            Assert.Contains(entityOneB, entityTwoB.Refs);
+            Assert.Equal(1, numEvtOneB.Value);
+            Assert.Equal(1, numEvtTwoB.Value);
+            Assert.Empty(entityTwoB.Vmf().Changes().All());
+            Assert.Single(entityOneB.Vmf().Changes().All());
+        }
     }
 
-    [Fact(Skip = ChangeAccountingSkip)]
+    [Fact]
     public void MultipleMultipleRefTest()
     {
+        // many-to-many, initiated from either side
+        {
+            var entityOneC = IEntityOneC.NewInstance();
+            var entityTwoC = IEntityTwoC.NewInstance();
+            var numEvtOneC = CountChangeEvents(entityOneC);
+            var numEvtTwoC = CountChangeEvents(entityTwoC);
+            entityOneC.Vmf().Changes().Start();
+            entityTwoC.Vmf().Changes().Start();
+
+            entityOneC.Refs.Add(entityTwoC);
+
+            Assert.Contains(entityOneC, entityTwoC.Refs);
+            Assert.Equal(1, numEvtOneC.Value);
+            Assert.Equal(1, numEvtTwoC.Value);
+            Assert.Empty(entityTwoC.Vmf().Changes().All());
+            Assert.Single(entityOneC.Vmf().Changes().All());
+        }
+        {
+            var entityOneC = IEntityOneC.NewInstance();
+            var entityTwoC = IEntityTwoC.NewInstance();
+            var numEvtOneC = CountChangeEvents(entityOneC);
+            var numEvtTwoC = CountChangeEvents(entityTwoC);
+            entityOneC.Vmf().Changes().Start();
+            entityTwoC.Vmf().Changes().Start();
+
+            entityTwoC.Refs.Add(entityOneC);
+
+            Assert.Contains(entityTwoC, entityOneC.Refs);
+            Assert.Equal(1, numEvtOneC.Value);
+            Assert.Equal(1, numEvtTwoC.Value);
+            Assert.Empty(entityOneC.Vmf().Changes().All());
+            Assert.Single(entityTwoC.Vmf().Changes().All());
+        }
     }
 
     // --- regression cover for the wiring itself (not from the Java suite) ---
@@ -73,12 +176,10 @@ public class CrossRefTest
         var one = IEntityOneB.NewInstance();
         var two = IEntityTwoB.NewInstance();
 
-        // from the list side
         two.Refs.Add(one);
         Assert.Same(two, one.Ref);
         Assert.Contains(one, two.Refs);
 
-        // and from the single side
         var one2 = IEntityOneB.NewInstance();
         var two2 = IEntityTwoB.NewInstance();
         one2.Ref = two2;

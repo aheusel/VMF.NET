@@ -132,7 +132,11 @@ public sealed class ChangesManager : IChanges
 
     private void ProcessChange(IChange change)
     {
-        if (_recording)
+        // The echo side of a cross-reference is reported but never recorded: one logical
+        // change happened, and it belongs to the object it was initiated on.
+        bool isEcho = IChangeInternal.IsCrossRefEchoChange(change);
+
+        if (_recording && !isEcho)
         {
             _allChanges?.Add(change);
             _versionNumber++;

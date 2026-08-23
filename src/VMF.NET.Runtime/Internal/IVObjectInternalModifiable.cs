@@ -36,4 +36,11 @@ public interface IVObjectInternalModifiable : IVObjectInternal
 
     /// <summary>Registers this model with the change tracking system.</summary>
     void SetModelToChanges(IChanges changes);
+
+    /// <summary>
+    /// Set by the initiating side of a cross-reference update while it updates the opposite,
+    /// so the resulting change on that opposite can be classified as an echo rather than an
+    /// initiating change. Both sides still report the change to listeners.
+    /// </summary>
+    bool IsCrossRefEcho { get; set; }
 }

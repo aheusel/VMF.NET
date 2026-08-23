@@ -12,9 +12,9 @@
 |---|---|---|
 | Model areas | 39 | **39 — all ported** |
 | Test classes | 30 (excl. 2 deliberate non-ports) | 6 ported |
-| Facts | ~80 | 41 ported: **32 active, 9 skipped** |
+| Facts | ~80 | 41 ported: **35 active, 6 skipped** |
 
-Suite totals today: **227 passing**, 9 skipped, 0 failing.
+Suite totals today: **230 passing**, 6 skipped, 0 failing.
 
 Two Java classes are deliberately **not** ported: `MemoryResourceSetTest` (tests a Java I/O
 abstraction with no .NET counterpart, and is commented out upstream) and `VMFGeneratorTest`
@@ -27,7 +27,7 @@ abstraction with no .NET counterpart, and is commented out upstream) and `VMFGen
 | `containment` | 11 | 11 | — |
 | `equals` | 14 | 14 | — |
 | `lazyinit` | 2 | 2 | — |
-| `cross_ref` | 3 + 4 regression | 4 | 3 |
+| `cross_ref` | 3 + 4 regression | 7 | — |
 | `observableprop` | 5 | 1 | 4 |
 | `recursivelistener01` | 2 | 0 | 2 |
 
@@ -45,7 +45,7 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 
 | Member | Consequence | Milestone |
 |---|---|---|
-| `IChangeInternal.IsCrossRefChange` / `IsContainmentChange` | implemented and never called, so `ChangesManager` cannot tell a cross-reference echo from an initiating change and records both | M4a |
+| `IChangeInternal.IsContainmentChange` | implemented, still never called | M9 (wire or delete) |
 | `ChangesManager._listenerEntries` recursive flag | recorded, then ignored by `ProcessChange`; recursive and non-recursive listeners behave identically | M4a |
 | `IVObjectInternalModifiable.SetModelToChanges` | never called, so a manager attached to a root never reaches contained descendants | M4b |
 | `ReflectImpl.SetAnnotations` | `Reflect().Annotations()` always empty — the data (`_VMF_OBJECT_ANNOTATIONS`) is generated but never read | M5 |
@@ -77,7 +77,7 @@ scoping. Blocks `events_undo_redo` (5 facts).
 |---|---|---|---|
 | **M2′** | Finish the port | ~19 facts across 14 small areas: `tostring`, `builders`, `getteronly`, `immutabletypes`, `propertytype`, `defaultvaluesandbuilders`, `ignoretostring`, `annotations`, `staticreflection`, `propertyorder`, `test1`, `test2`, `delegationtest`, `nopropertiestest`, and the 5 small `complex/*` | inventory complete; no unexamined Java fact remains |
 | **M3** | **Release 0.2.1** | 13 defects fixed since 0.2.0, two crash-class | published |
-| **M4a** | Change classification | Wire `IsCrossRefChange` into `ProcessChange`; honour the recursive flag | cross-ref recording facts pass |
+| ~~M4a~~ | ~~Cross-reference echo classification~~ | **DONE.** The induced side is marked with `IsCrossRefEcho` while it is updated, so its change is tagged `crossref-echo`; `ProcessChange` reports echoes but does not record them | all 3 cross_ref facts active |
 | **M4b** | Change propagation | Propagate `SetModelToChanges` down containment as the graph mutates; read-only observation; batch list removal; settable container | `recursivelistener01`, `observableprop` green |
 | **M5** | Reflection metadata | Populate `AllTypes`/`SuperTypes`/`Annotations`; add a static entry point. Then retire the `IsPolymorphic` call-site workaround from 0.1.4 | `annotations`, `staticreflection` green |
 | **M6** | Inherited delegation | Generate bodies for inherited `[DelegateTo]`; type-level delegation | 4 models de-deviated |

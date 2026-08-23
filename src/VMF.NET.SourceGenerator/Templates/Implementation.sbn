@@ -76,6 +76,10 @@ namespace {{ ns }}
 {{~ end ~}}
 {{~ end ~}}
 
+        // Set while this object is updated as the opposite side of a cross-reference, so the
+        // resulting change is classified as an echo. See IChangeInternal.IsCrossRefEchoChange.
+        private bool __vmf_crossRefEcho;
+
         // VMF API facade. Memoised: Changes() stores its ChangesManager on this instance,
         // so a fresh VmfImpl per Vmf() call would create a new manager each time and orphan
         // every listener registered through an earlier call.
@@ -238,7 +242,12 @@ namespace {{ ns }}
                     // Cross-reference change listener
                     {{ field_name prop }}.AddChangeListener(evt =>
                     {
-                        if (evt.EventInfo == "vmf:change:type:crossref") return; // prevent cascade
+                        if (evt.EventInfo == "vmf:change:type:crossref")
+                        {
+                            // echo: do not cascade back, but still report the change
+                            __vmf_changes?.FireListChange(this, "{{ prop.Name }}", evt, "vmf:change:type:crossref-echo");
+                            return;
+                        }
                         if (evt.WasAdded)
                         {
                             foreach (var added in evt.Added)
@@ -253,7 +262,11 @@ namespace {{ ns }}
                                 }
 {{~ else ~}}
                                 if (added is IVObjectInternalModifiable mod)
-                                    mod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, this);
+                                {
+                                    mod.IsCrossRefEcho = true;
+                                    try { mod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, this); }
+                                    finally { mod.IsCrossRefEcho = false; }
+                                }
 {{~ end ~}}
                             }
                         }
@@ -270,7 +283,11 @@ namespace {{ ns }}
                                 }
 {{~ else ~}}
                                 if (removed is IVObjectInternalModifiable mod)
-                                    mod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, null);
+                                {
+                                    mod.IsCrossRefEcho = true;
+                                    try { mod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, null); }
+                                    finally { mod.IsCrossRefEcho = false; }
+                                }
 {{~ end ~}}
                             }
                         }
@@ -352,13 +369,25 @@ namespace {{ ns }}
                 }
 {{~ else ~}}
                 if (oldValue is IVObjectInternalModifiable oldRefMod)
-                    oldRefMod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, null);
+                {
+                    oldRefMod.IsCrossRefEcho = true;
+                    try { oldRefMod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, null); }
+                    finally { oldRefMod.IsCrossRefEcho = false; }
+                }
                 if (value is IVObjectInternalModifiable newRefMod)
-                    newRefMod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, this);
+                {
+                    newRefMod.IsCrossRefEcho = true;
+                    try { newRefMod.SetPropertyValueById({{ prop.Reference.OppositeProp.PropId }}, this); }
+                    finally { newRefMod.IsCrossRefEcho = false; }
+                }
 {{~ end ~}}
 {{~ end ~}}
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("{{ prop.Name }}"));
-                __vmf_changes?.FirePropertyChange(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value{{ if prop.IsContained }}, "vmf:change:type:containment"{{ else if prop.IsCrossRefProperty }}, "vmf:change:type:crossref"{{ end }});
+{{~ if prop.IsCrossRefProperty ~}}
+                __vmf_changes?.FirePropertyChange(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value, __vmf_crossRefEcho ? "vmf:change:type:crossref-echo" : "vmf:change:type:crossref");
+{{~ else ~}}
+                __vmf_changes?.FirePropertyChange(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value{{ if prop.IsContained }}, "vmf:change:type:containment"{{ end }});
+{{~ end ~}}
             }
 {{~ end ~}}
         }
@@ -547,6 +576,7 @@ namespace {{ ns }}
         public void SetContainerPropertyId(int id) { }
         public void UnregisterFromContainers() { }
         public void SetModelToChanges(IChanges changes) { }
+        public bool IsCrossRefEcho { get => __vmf_crossRefEcho; set => __vmf_crossRefEcho = value; }
 {{~ else ~}}
         public void SetPropertyValueById(int id, object? value)
         {
@@ -613,6 +643,12 @@ namespace {{ ns }}
         public void SetModelToChanges(IChanges changes)
         {
             __vmf_changes = changes as ChangesManager;
+        }
+
+        public bool IsCrossRefEcho
+        {
+            get => __vmf_crossRefEcho;
+            set => __vmf_crossRefEcho = value;
         }
 {{~ end ~}}
 
