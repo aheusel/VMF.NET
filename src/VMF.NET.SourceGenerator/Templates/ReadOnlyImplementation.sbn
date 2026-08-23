@@ -88,6 +88,9 @@ namespace {{ ns }}
         public bool IsReadOnly => true;
         public object GetMutableObject() => _mutable;
 
+        // Changes happen on the wrapped object, so that is whose manager observes them.
+        public ChangesManager? GetChangesManager() => ((IVObjectInternal)_mutable).GetChangesManager();
+
         public bool VmfEquals(object? other, HashSet<long> visited) => _mutable.VmfEquals(other, visited);
         public int VmfHashCode(HashSet<object> visited) => _mutable.VmfHashCode(visited);
         public bool VmfContentEquals(object? other, HashSet<long> visited) => _mutable.VmfContentEquals(other, visited);
@@ -116,11 +119,18 @@ namespace {{ ns }}
             }
 
             public IContent Content() => new ReadOnlyContentImpl(_ro, _mutable);
-            public IChanges Changes() => throw new InvalidOperationException("Cannot access Changes on a read-only object.");
+
+            // A read-only view observes the object it wraps: it cannot cause changes, but it can
+            // watch them. Sharing the wrapped object's manager is what makes a listener
+            // registered here see changes made through the mutable object.
+            public IChanges Changes() => ((IVObject)_mutable).Vmf().Changes();
+
             public IReflect Reflect()
             {
+                // NOT static-only: a read-only wrapper has an instance, so reflective reads and
+                // change listeners work. Writes are still refused, because the read-only impl is
+                // IVObjectInternal and not IVObjectInternalModifiable.
                 _reflect ??= new ReflectImpl(_ro);
-                _reflect.SetStaticOnly(true);
                 return _reflect;
             }
             public IBehavior<T> Behavior<T>() where T : IVObject => throw new NotSupportedException();

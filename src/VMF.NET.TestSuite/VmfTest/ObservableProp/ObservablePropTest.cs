@@ -44,11 +44,35 @@ public class ObservablePropTest
     {
     }
 
-    [Fact(Skip = "Needs change observation through a read-only view: " +
-                 "ReadOnly*Impl.Vmf().Changes() throws InvalidOperationException, while Java " +
-                 "allows listening on a read-only wrapper.")]
+    [Fact]
     public void ObserveSimplePropertyOfReadOnlyTest()
     {
+        // a read-only view cannot cause changes, but it can observe them: both the view's
+        // Changes() and a property obtained through the view see writes made through the
+        // mutable object
+        var observed = IObserveMyProperties.NewInstance();
+        IReadOnlyObserveMyProperties observedRO = observed.AsReadOnly();
+
+        var nameProperty = observedRO.Vmf().Reflect().PropertyByName("Name");
+        Assert.NotNull(nameProperty);
+
+        var expectedValues = new List<string?> { "ABC", "123", "", null };
+        var actualValues1 = new List<string?>();
+        var actualValues2 = new List<string?>();
+
+        observedRO.Vmf().Changes().AddListener(
+            change => actualValues1.Add((string?)change.PropertyChange!.NewValue));
+
+        nameProperty!.AddChangeListener(
+            change => actualValues2.Add((string?)change.PropertyChange!.NewValue));
+
+        foreach (var expected in expectedValues)
+        {
+            observed.Name = expected;
+        }
+
+        Assert.Equal(expectedValues, actualValues1);
+        Assert.Equal(expectedValues, actualValues2);
     }
 
     [Fact(Skip = "Needs change observation through a read-only view (see above).")]

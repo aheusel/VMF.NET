@@ -10,12 +10,7 @@ namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01;
 
 public class RecursiveListenerTest
 {
-    [Fact(Skip = "Recursive change listeners are not wired up. Two halves are missing: " +
-                 "nothing ever calls IVObjectInternalModifiable.SetModelToChanges, so a " +
-                 "ChangesManager attached to a root never reaches contained descendants; and " +
-                 "ChangesManager.ProcessChange iterates _listeners, ignoring the recursive " +
-                 "flag it records in _listenerEntries, so recursive and non-recursive " +
-                 "listeners behave identically.")]
+    [Fact]
     public void RecursiveVsNonRecursiveListenerTest()
     {
         // build a tree: root + 3 layers of 10 children each

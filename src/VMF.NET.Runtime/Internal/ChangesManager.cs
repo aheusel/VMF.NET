@@ -12,7 +12,6 @@ namespace VMF.NET.Runtime.Internal;
 public sealed class ChangesManager : IChanges
 {
     private readonly IVObject _owner;
-    private readonly List<Action<IChange>> _listeners = [];
     private readonly List<(Action<IChange> listener, bool recursive)> _listenerEntries = [];
     private bool _recording;
     private VList<IChange>? _allChanges;
@@ -33,13 +32,9 @@ public sealed class ChangesManager : IChanges
 
     public IDisposable AddListener(Action<IChange> listener, bool recursive)
     {
-        _listeners.Add(listener);
-        _listenerEntries.Add((listener, recursive));
-        return new Subscription(() =>
-        {
-            _listeners.Remove(listener);
-            _listenerEntries.RemoveAll(e => ReferenceEquals(e.listener, listener));
-        });
+        var entry = (listener, recursive);
+        _listenerEntries.Add(entry);
+        return new Subscription(() => _listenerEntries.Remove(entry));
     }
 
     public void Start()
@@ -147,9 +142,19 @@ public sealed class ChangesManager : IChanges
             }
         }
 
-        // Notify listeners regardless of recording state
-        foreach (var listener in _listeners)
+        // A change reaches this manager either because it happened on the object the manager
+        // belongs to, or because it happened somewhere in the subtree that object contains
+        // (ChangeNotification walks up the container chain to find us). Only recursive
+        // listeners are interested in the second kind.
+        // Changes always originate on the mutable implementation, and a read-only wrapper hands
+        // out the wrapped object's manager, so both sides of this comparison are that object.
+        bool isOwnChange = ReferenceEquals(change.Object, _owner);
+
+        // Snapshot: a listener is allowed to add or remove listeners while being notified.
+        var entries = _listenerEntries.ToArray();
+        foreach (var (listener, recursive) in entries)
         {
+            if (!recursive && !isOwnChange) continue;
             listener(change);
         }
     }

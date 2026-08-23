@@ -88,4 +88,11 @@ public interface IVObjectInternal : IVObject
 
     /// <summary>Content-based hash code matching <see cref="VmfContentEquals"/>.</summary>
     int VmfContentHashCode(HashSet<object> visited);
+
+    /// <summary>
+    /// The change manager stored on this object, or null if nothing has asked for one. Used by
+    /// <see cref="ChangeNotification"/> to walk the container chain; a read-only wrapper reports
+    /// the manager of the object it wraps, since that is where changes actually happen.
+    /// </summary>
+    ChangesManager? GetChangesManager();
 }

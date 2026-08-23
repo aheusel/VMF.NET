@@ -236,7 +236,7 @@ namespace {{ ns }}
                                 }
                             }
                         }
-                        __vmf_changes?.FireListChange(this, "{{ prop.Name }}", evt, "{{ if prop.IsContained }}vmf:change:type:containment{{ end }}");
+                        ChangeNotification.FireList(this, "{{ prop.Name }}", evt, "{{ if prop.IsContained }}vmf:change:type:containment{{ end }}");
                     });
 {{~ else if prop.IsCrossRefProperty && prop.Reference != null ~}}
                     // Cross-reference change listener
@@ -245,7 +245,7 @@ namespace {{ ns }}
                         if (evt.EventInfo == "vmf:change:type:crossref")
                         {
                             // echo: do not cascade back, but still report the change
-                            __vmf_changes?.FireListChange(this, "{{ prop.Name }}", evt, "vmf:change:type:crossref-echo");
+                            ChangeNotification.FireList(this, "{{ prop.Name }}", evt, "vmf:change:type:crossref-echo");
                             return;
                         }
                         if (evt.WasAdded)
@@ -291,13 +291,13 @@ namespace {{ ns }}
 {{~ end ~}}
                             }
                         }
-                        __vmf_changes?.FireListChange(this, "{{ prop.Name }}", evt, "vmf:change:type:crossref");
+                        ChangeNotification.FireList(this, "{{ prop.Name }}", evt, "vmf:change:type:crossref");
                     });
 {{~ else ~}}
                     // Simple list change listener
                     {{ field_name prop }}.AddChangeListener(evt =>
                     {
-                        __vmf_changes?.FireListChange(this, "{{ prop.Name }}", evt);
+                        ChangeNotification.FireList(this, "{{ prop.Name }}", evt);
                     });
 {{~ end ~}}
                 }
@@ -384,9 +384,9 @@ namespace {{ ns }}
 {{~ end ~}}
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("{{ prop.Name }}"));
 {{~ if prop.IsCrossRefProperty ~}}
-                __vmf_changes?.FirePropertyChange(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value, __vmf_crossRefEcho ? "vmf:change:type:crossref-echo" : "vmf:change:type:crossref");
+                ChangeNotification.FireProperty(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value, __vmf_crossRefEcho ? "vmf:change:type:crossref-echo" : "vmf:change:type:crossref");
 {{~ else ~}}
-                __vmf_changes?.FirePropertyChange(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value{{ if prop.IsContained }}, "vmf:change:type:containment"{{ end }});
+                ChangeNotification.FireProperty(this, "{{ prop.Name }}", {{ prop.PropId }}, oldValue, value{{ if prop.IsContained }}, "vmf:change:type:containment"{{ end }});
 {{~ end ~}}
             }
 {{~ end ~}}
@@ -565,6 +565,15 @@ namespace {{ ns }}
 
         public IReadOnlyList<IAnnotation> GetAnnotations() => _VMF_OBJECT_ANNOTATIONS;
 
+{{~ # ChangeNotification walks the container chain and asks each object for its manager, so a
+   # change on a descendant reaches every manager observing an ancestor. ~}}
+{{~ if type.IsImmutable ~}}
+        // Immutable types never change, so nothing ever observes them.
+        public ChangesManager? GetChangesManager() => null;
+{{~ else ~}}
+        public ChangesManager? GetChangesManager() => __vmf_changes;
+{{~ end ~}}
+
         // --- IVObjectInternalModifiable ---
 {{~ if type.IsImmutable ~}}
         public void SetPropertyValueById(int id, object? value) => throw new InvalidOperationException("This type is immutable.");
@@ -575,7 +584,6 @@ namespace {{ ns }}
         public int GetContainerPropertyId() => -1;
         public void SetContainerPropertyId(int id) { }
         public void UnregisterFromContainers() { }
-        public void SetModelToChanges(IChanges changes) { }
         public bool IsCrossRefEcho { get => __vmf_crossRefEcho; set => __vmf_crossRefEcho = value; }
 {{~ else ~}}
         public void SetPropertyValueById(int id, object? value)
@@ -638,11 +646,6 @@ namespace {{ ns }}
 {{~ end ~}}
             __vmf_container = null;
             __vmf_container_prop_id = -1;
-        }
-
-        public void SetModelToChanges(IChanges changes)
-        {
-            __vmf_changes = changes as ChangesManager;
         }
 
         public bool IsCrossRefEcho
