@@ -8,8 +8,9 @@ namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01.NoContainment;
 [VmfModel]
 public partial interface INodeNoContainment
 {
+    // Settable so the fact can detach a node with Parent = null (Java: setParent(null)).
     [Container("INodeNoContainment.Children")]
-    INodeNoContainment? Parent { get; }
+    INodeNoContainment? Parent { get; set; }
 
     [Contains("INodeNoContainment.Parent")]
     VList<INodeNoContainment> Children { get; }

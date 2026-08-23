@@ -311,11 +311,36 @@ namespace {{ ns }}
             return {{ raw_list_field_name prop }};
         }
 
-{{~ # --- CONTAINER PROPERTY (read-only) --- ~}}
+{{~ # --- CONTAINER PROPERTY --- ~}}
 {{~ else if prop.IsContainer ~}}
         public {{ prop_type_name prop }}? {{ prop.Name }}
         {
             get => __vmf_container as {{ prop_type_name prop }};
+{{~ if prop.Containment.OppositeProp != null ~}}
+{{~ # Settable so containment can be driven from the child side (child.Parent = p, or
+   # child.Parent = null to detach). The model interface decides whether this is public API:
+   # declaring the property `{ get; }` simply leaves this setter unexposed.
+   #
+   # The attach is delegated to the opposite property rather than reimplemented here. That
+   # property's containment listener (list) or setter (scalar) is the single place that
+   # establishes a link, so the two directions cannot drift apart. ~}}
+            set
+            {
+                if (ReferenceEquals(__vmf_container, value)) return;
+
+                // Leave whatever contains us now; this is the whole job when value is null.
+                UnregisterFromContainers();
+
+                if (value is {{ prop.Containment.OppositeType.IsInterfaceOnly ? prop.Containment.OppositeType.TypeName : prop.Containment.OppositeType.ImplClassName }} newContainer_{{ prop.PropId }})
+                {
+{{~ if prop.Containment.OppositeProp.IsCollectionType ~}}
+                    newContainer_{{ prop.PropId }}.{{ prop.Containment.OppositeProp.Name }}.Add(({{ prop.Containment.OppositeProp.GenericModelType?.TypeName ?? type.TypeName }})this);
+{{~ else ~}}
+                    newContainer_{{ prop.PropId }}.{{ prop.Containment.OppositeProp.Name }} = ({{ prop.Containment.OppositeProp.ModelType?.TypeName ?? type.TypeName }})this;
+{{~ end ~}}
+                }
+            }
+{{~ end ~}}
         }
 
 {{~ # --- SCALAR PROPERTY --- ~}}
@@ -592,7 +617,11 @@ namespace {{ ns }}
             {
 {{~ for prop in all_props ~}}
 {{~ if prop.IsContainer ~}}
-                case {{ prop.PropId }}: break; // container is read-only
+{{~ if prop.Containment.OppositeProp != null ~}}
+                case {{ prop.PropId }}: {{ prop.Name }} = ({{ prop_type_name prop }}?)value; break;
+{{~ else ~}}
+                case {{ prop.PropId }}: break; // container without an opposite cannot be set
+{{~ end ~}}
 {{~ else if prop.IsCollectionType ~}}
                 case {{ prop.PropId }}: break; // collections are set via add/remove
 {{~ else if prop.IsGetterOnly ~}}

@@ -120,6 +120,7 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 | `@Contains(opposite="parent")` | `[Contains("IChild.Parent")]` |
 | `@Contains` (no opposite) | `[Contains]` |
 | `@Container(opposite="child")` | `[Container("IParent.Children")]` |
+| a container's generated `setParent(x)` | declare the property `{ get; set; }` — see below |
 | `@Refers(opposite="…")` | `[Refers("IOther.Prop")]` |
 | `@GetterOnly` / `@IgnoreEquals` / `@IgnoreToString` | `[GetterOnly]` / `[IgnoreEquals]` / `[IgnoreToString]` |
 | `@Immutable` / `@InterfaceOnly` / `@ExternalType` | `[Immutable]` / `[InterfaceOnly]` / `[ExternalType]` |
@@ -130,6 +131,23 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 
 The model interface is `partial` — the generator adds `NewInstance`, `NewBuilder`, `Clone`,
 `AsReadOnly` and the `Builder` type to it.
+
+### Settable container properties
+
+Java generates a container setter automatically, so `child.setParent(p)` and
+`child.setParent(null)` are always available. VMF.NET cannot: the model interface **is** the
+public API here, and a partial interface cannot add a setter to a property already declared
+`{ get; }`. So a model opts in by declaring the container property settable:
+
+```csharp
+[Container("IParent.Children")]
+IParent? Parent { get; set; }     // instead of { get; }
+```
+
+The generated setter detaches from the current container and then attaches by driving the
+**opposite** property, so containment is established in exactly one place regardless of which
+side the caller used. Setting it to `null` detaches. A `[Container]` with no declared opposite
+gets no setter — there is nothing to drive.
 
 ## Porting the tests
 

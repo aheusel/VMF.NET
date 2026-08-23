@@ -19,11 +19,23 @@ public class UnparserModelTest
         Assert.Same(alternative, sre.ParentAlt);
     }
 
-    [Fact(Skip = "Needs a settable [Container] property. The Java fact drives containment from " +
-                 "the child side (sre.setParentAlt(alternative)); VMF.NET never generates a " +
-                 "setter for a [Container] property, so only the parent side can drive it.")]
+    [Fact]
     public void ContainmentWithInheritanceTest1_FromChildSide()
     {
+        // the same containment, driven from the child instead of the parent
+        var alternative = IAlternative.NewInstance();
+        var sre = IUPSubRuleElement.NewInstance();
+
+        sre.ParentAlt = alternative;
+
+        Assert.Same(alternative, sre.ParentAlt);
+        Assert.Contains(sre, alternative.Elements);
+
+        // and detaching from the child side removes it from the parent's list
+        sre.ParentAlt = null;
+
+        Assert.Null(sre.ParentAlt);
+        Assert.DoesNotContain(sre, alternative.Elements);
     }
 
     [Fact(Skip = "Needs VListChangeEvent.Source (Java evt.source()) so a change listener can " +

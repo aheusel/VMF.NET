@@ -90,8 +90,11 @@ public partial interface IAlternativeBase : IWithText, IWithAltId
 [VmfModel]
 public partial interface IUPElement : IWithText, IWithElementId, IWithTokenLocation
 {
+    // Settable so containment can be driven from the child side, as the Java fact does.
+    // Java generates a container setter automatically; in VMF.NET the model interface IS
+    // the public API, so `set` is how a model opts in.
     [Container("IAlternativeBase.Elements")]
-    IAlternativeBase? ParentAlt { get; }
+    IAlternativeBase? ParentAlt { get; set; }
 
     bool ListType { get; set; }
     bool LexerRule { get; set; }

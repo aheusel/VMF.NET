@@ -63,10 +63,47 @@ public class RecursiveListenerTest
         Assert.Equal(2, recursiveChanges);
     }
 
-    [Fact(Skip = "Needs a settable container property: the Java fact calls n1.setParent(null) " +
-                 "to detach a node. VMF.NET never generates a setter for a [Container] " +
-                 "property, so the child side cannot be detached directly.")]
+    [Fact]
     public void RegisterUnregisterSimpleProperties()
     {
+        // a listener on the root sees a node's changes exactly while that node is reachable
+        // from the root through CONTAINMENT -- a plain reference is not enough
+        int changeCounter = 0;
+
+        var root = NoContainment.INodeNoContainment.NewInstance();
+        root.Vmf().Changes().AddListener(change =>
+        {
+            if (change.PropertyName == "Name") changeCounter++;
+        });
+
+        var n1 = NoContainment.INodeNoContainment.NewInstance();
+
+        root.Node = n1;
+
+        // no event: Node is a plain reference property, so n1 is not contained
+        n1.Name = "my name 0";
+        Assert.Equal(0, changeCounter);
+        changeCounter = 0;
+
+        root.Children.Add(n1);
+
+        // now contained, so the change reaches the root's listener
+        n1.Name = "my name 1";
+        Assert.Equal(1, changeCounter);
+        changeCounter = 0;
+
+        root.Node = null;
+
+        // still contained via Children, so a path to the root remains
+        n1.Name = "my name 2";
+        n1.Name = "my name 3";
+        Assert.Equal(2, changeCounter);
+        changeCounter = 0;
+
+        // detaching from the child side ends it
+        n1.Parent = null;
+
+        n1.Name = "my name 4";
+        Assert.Equal(0, changeCounter);
     }
 }
