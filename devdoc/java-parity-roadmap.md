@@ -1,7 +1,8 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** models ported; **all Java test classes ported (M2' complete)**. **Last updated:** 2026-08-23.
+**Status:** all Java test classes ported; **M4b complete** — change propagation and observation done.
+**Last updated:** 2026-08-23.
 
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
@@ -12,11 +13,11 @@
 |---|---|---|
 | Model areas | 39 | **39 — all ported** |
 | Test classes | 30 (excl. 2 deliberate non-ports) | **30 — all ported** |
-| Facts | ~80 | **62 active, 20 blocked** |
+| Facts | ~80 | **68 active, 14 blocked** |
 
-Suite totals today: **252 passing**, 20 skipped, 0 failing (182 + 70).
+Suite totals today: **263 passing**, 14 skipped, 0 failing (188 + 75).
 
-The inventory is now closed: every Java fact has been examined. The 20 blocked facts are the
+The inventory is closed: every Java fact has been examined. The 14 blocked facts are the
 parity gap, and each names the capability it waits on.
 
 Two Java classes are deliberately **not** ported: `MemoryResourceSetTest` (tests a Java I/O
@@ -27,13 +28,12 @@ abstraction with no .NET counterpart, and is commented out upstream) and `VMFGen
 
 | Waiting on | Facts | Areas |
 |---|---|---|
-| Change propagation / observation (M4b) | 6 | recursivelistener01 (2), observableprop (3), unparsermodel (1) |
-| Reflection metadata + static entry (M5) | 5 | annotations (3), staticreflection (1), propertyinheritance (1) |
+| Reflection metadata + static entry (M5) | 5 | annotations (3), staticreflection (1), observableprop (1) |
 | Delegation, type-level and inherited (M6) | 2 | parentcontainment01 (2) |
 | Undo / container-change events (M8) | 2 | vflow (2) |
 | Builder ergonomics and VList API (M9) | 3 | builders (1), horses (1), unparsermodel (1) |
 | Clone traversal order (needs investigation) | 1 | fsm (1) |
-| Covariant narrowing (M7) | 1 | propertyinheritance, counted above |
+| Covariant narrowing + static reflection (M7) | 1 | propertyinheritance (1) |
 
 A blocked fact is kept as `[Fact(Skip = "...")]` with the missing capability named, so the
 **skip count is the parity gap** rather than the fact quietly disappearing.
@@ -50,8 +50,6 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 | Member | Consequence | Milestone |
 |---|---|---|
 | `IChangeInternal.IsContainmentChange` | implemented, still never called | M9 (wire or delete) |
-| `ChangesManager._listenerEntries` recursive flag | recorded, then ignored by `ProcessChange`; recursive and non-recursive listeners behave identically | M4a |
-| `IVObjectInternalModifiable.SetModelToChanges` | never called, so a manager attached to a root never reaches contained descendants | M4b |
 | `ReflectImpl.SetAnnotations` | `Reflect().Annotations()` always empty — the data (`_VMF_OBJECT_ANNOTATIONS`) is generated but never read | M5 |
 | `VmfType.SetSuperTypes` | `SuperTypes()` always empty — `_VMF_SUPER_TYPE_NAMES` likewise generated and never read | M5 |
 | `IChange.Apply(target)` | implemented, never called — suggests undo/redo is partly built rather than absent | M8 |
@@ -61,9 +59,6 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 
 | Capability | Blocks | Milestone |
 |---|---|---|
-| Change observation through a read-only view (`ReadOnly*Impl.Vmf().Changes()` throws) | 2 facts | M4b |
-| Batch list removal (Java `VList.removeAll(int...)` raises ONE change carrying several elements) | 1 fact | M4b |
-| Settable `[Container]` property — never generated | 1 fact | M4b |
 | Static type reflection (Java `Type.type().reflect()`) | 1 fact | M5 |
 | Inherited `[DelegateTo]` — only methods declared on the type itself get a body | ~5 facts, 4 deviated models | M6 |
 | Covariant property narrowing — C# interfaces cannot override a property type | ~3–6 facts, 5 deviated models | M7 |
@@ -87,7 +82,7 @@ scoping. Blocks `events_undo_redo` (5 facts).
 | ~~M2′~~ | ~~Finish the port~~ | **DONE.** All 30 Java test classes ported; 62 active, 20 blocked | inventory closed |
 | ~~M3~~ | ~~Release 0.2.1~~ | **DONE.** 19 defects fixed since 0.2.0, two crash-class; notes in [`CHANGELOG.md`](../CHANGELOG.md) | published to NuGet |
 | ~~M4a~~ | ~~Cross-reference echo classification~~ | **DONE.** The induced side is marked with `IsCrossRefEcho` while it is updated, so its change is tagged `crossref-echo`; `ProcessChange` reports echoes but does not record them | all 3 cross_ref facts active |
-| **M4b** | Change propagation | Propagate `SetModelToChanges` down containment as the graph mutates; read-only observation; batch list removal; settable container | `recursivelistener01`, `observableprop` green |
+| ~~M4b~~ | ~~Change propagation~~ | **DONE.** Changes route up the container chain; recursive flag honoured; read-only observation; `AddRange`/`RemoveAll`; settable `[Container]` | `recursivelistener01`, `observableprop`, `unparsermodel` green |
 | **M5** | Reflection metadata | Populate `AllTypes`/`SuperTypes`/`Annotations`; add a static entry point. Then retire the `IsPolymorphic` call-site workaround from 0.1.4 | `annotations`, `staticreflection` green |
 | **M6** | Inherited delegation | Generate bodies for inherited `[DelegateTo]`; type-level delegation | 4 models de-deviated |
 | **M7** | Covariant narrowing | Public property at the narrowest type + forwarding explicit implementations per declaring interface | 5 models de-deviated |
