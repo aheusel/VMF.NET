@@ -78,4 +78,14 @@ public interface IVObjectInternal : IVObject
     /// VMF content-based hash code with recursion detection.
     /// </summary>
     int VmfHashCode(HashSet<object> visited);
+
+    /// <summary>
+    /// Content-based equality, independent of the declared equality strategy. A type using
+    /// <c>EqualsType.Instance</c> compares by identity in <c>Equals</c> but still compares
+    /// content here, which is what <c>Vmf().Content().ContentEquals</c> relies on.
+    /// </summary>
+    bool VmfContentEquals(object? other, HashSet<long> visited);
+
+    /// <summary>Content-based hash code matching <see cref="VmfContentEquals"/>.</summary>
+    int VmfContentHashCode(HashSet<object> visited);
 }

@@ -147,7 +147,12 @@ public sealed class DelegationSymbolData
 /// <summary>[VmfModel] attribute data.</summary>
 public sealed class VmfModelData
 {
-    public EqualsStrategy Value { get; set; } = EqualsStrategy.Instance;
+    /// <summary>
+    /// The model-wide equality default, or <c>null</c> when the attribute did not specify
+    /// one. [VmfModel] doubles as the per-interface marker, so a bare [VmfModel] must NOT
+    /// override a default declared elsewhere in the model.
+    /// </summary>
+    public EqualsStrategy? Value { get; set; }
 }
 
 /// <summary>[VmfEquals] attribute data.</summary>

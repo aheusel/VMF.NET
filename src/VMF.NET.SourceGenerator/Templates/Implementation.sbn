@@ -609,11 +609,10 @@ namespace {{ ns }}
 {{~ end ~}}
 
         // --- Equals / HashCode / ToString ---
-{{~ if type.IsEqualsAndHashCode ~}}
-        public override bool Equals(object? obj) => VmfEquals(obj, new HashSet<long>());
-        public override int GetHashCode() => VmfHashCode(new HashSet<object>(ReferenceEqualityComparer.Instance));
-
-        public bool VmfEquals(object? other, HashSet<long> visited)
+{{~ # Content-based comparison is ALWAYS generated, independent of the declared strategy.
+   # A type using EqualsType.Instance still needs it for Vmf().Content().ContentEquals(),
+   # which compares content no matter how Equals() behaves. ~}}
+        public bool VmfContentEquals(object? other, HashSet<long> visited)
         {
             if (ReferenceEquals(this, other)) return true;
 {{~ if !type.IsImmutable ~}}
@@ -629,10 +628,10 @@ namespace {{ ns }}
 {{~ if prop.IsContainer ~}}
             // skip container in equals
 {{~ else if prop.IsCollectionType ~}}
-            if (!SequenceEqual({{ prop.Name }}, o.{{ prop.Name }}, visited)) return false;
+            if (!SequenceContentEqual({{ prop.Name }}, o.{{ prop.Name }}, visited)) return false;
 {{~ else if prop.IsModelType ~}}
             if ({{ field_name prop }} is IVObjectInternal lhs_{{ prop.PropId }} && o.{{ field_name prop }} is IVObjectInternal rhs_{{ prop.PropId }})
-            { if (!lhs_{{ prop.PropId }}.VmfEquals(rhs_{{ prop.PropId }}, visited)) return false; }
+            { if (!lhs_{{ prop.PropId }}.VmfContentEquals(rhs_{{ prop.PropId }}, visited)) return false; }
             else if (!Equals({{ field_name prop }}, o.{{ field_name prop }})) return false;
 {{~ else ~}}
             if (!Equals({{ field_name prop }}, o.{{ field_name prop }})) return false;
@@ -641,7 +640,7 @@ namespace {{ ns }}
             return true;
         }
 
-        public int VmfHashCode(HashSet<object> visited)
+        public int VmfContentHashCode(HashSet<object> visited)
         {
             if (!visited.Add(this)) return 0;
             unchecked
@@ -652,12 +651,12 @@ namespace {{ ns }}
                 // skip container
 {{~ else if prop.IsCollectionType && prop.GenericModelType ~}}
                 foreach (var item in {{ prop.Name }})
-                    hash = hash * 31 + (item is IVObjectInternal vi ? vi.VmfHashCode(visited) : (item?.GetHashCode() ?? 0));
+                    hash = hash * 31 + (item is IVObjectInternal vi ? vi.VmfContentHashCode(visited) : (item?.GetHashCode() ?? 0));
 {{~ else if prop.IsCollectionType ~}}
                 foreach (var item in {{ prop.Name }})
-                    hash = hash * 31 + (item?.GetHashCode() ?? 0);
+                    hash = hash * 31 + (((object?)item)?.GetHashCode() ?? 0);
 {{~ else if prop.IsModelType ~}}
-                hash = hash * 31 + ({{ field_name prop }} is IVObjectInternal vi_{{ prop.PropId }} ? vi_{{ prop.PropId }}.VmfHashCode(visited) : ({{ field_name prop }}?.GetHashCode() ?? 0));
+                hash = hash * 31 + ({{ field_name prop }} is IVObjectInternal vi_{{ prop.PropId }} ? vi_{{ prop.PropId }}.VmfContentHashCode(visited) : ({{ field_name prop }}?.GetHashCode() ?? 0));
 {{~ else if (is_primitive prop) ~}}
                 hash = hash * 31 + {{ field_name prop }}.GetHashCode();
 {{~ else ~}}
@@ -668,19 +667,28 @@ namespace {{ ns }}
             }
         }
 
-        private static bool SequenceEqual<T>(IList<T> a, IList<T> b, HashSet<long> visited)
+        private static bool SequenceContentEqual<T>(IList<T> a, IList<T> b, HashSet<long> visited)
         {
             if (a.Count != b.Count) return false;
             for (int i = 0; i < a.Count; i++)
             {
                 if (a[i] is IVObjectInternal ai && b[i] is IVObjectInternal bi)
-                { if (!ai.VmfEquals(bi, visited)) return false; }
+                { if (!ai.VmfContentEquals(bi, visited)) return false; }
                 else if (!Equals(a[i], b[i])) return false;
             }
             return true;
         }
+
+{{~ if type.IsEqualsAndHashCode ~}}
+        // Declared strategy is content-based, so Equals() follows it
+        public override bool Equals(object? obj) => VmfContentEquals(obj, new HashSet<long>());
+        public override int GetHashCode() => VmfContentHashCode(new HashSet<object>(ReferenceEqualityComparer.Instance));
+
+        public bool VmfEquals(object? other, HashSet<long> visited) => VmfContentEquals(other, visited);
+        public int VmfHashCode(HashSet<object> visited) => VmfContentHashCode(visited);
 {{~ else ~}}
-        // Instance equality (default)
+        // Declared strategy is EqualsType.Instance: Equals() is identity, while the content
+        // comparison above stays reachable through Vmf().Content()
         public bool VmfEquals(object? other, HashSet<long> visited)
         {
 {{~ if !type.IsImmutable ~}}
@@ -691,7 +699,6 @@ namespace {{ ns }}
 
         public int VmfHashCode(HashSet<object> visited) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
 {{~ end ~}}
-
         public override string ToString()
         {
             return VmfToString(new HashSet<object>(ReferenceEqualityComparer.Instance));
@@ -908,8 +915,8 @@ namespace {{ ns }}
             public IEnumerable<T> Stream<T>(IterationStrategy strategy) where T : IVObject => Stream(strategy).OfType<T>();
             public T DeepCopy<T>() => (T)(object)_obj.CloneInternal(new Dictionary<object, object>());
             public T ShallowCopy<T>() => (T)(object)_obj.ShallowCloneInternal();
-            public bool ContentEquals(object? other) => _obj.VmfEquals(other, new HashSet<long>());
-            public int ContentHashCode() => _obj.VmfHashCode(new HashSet<object>(ReferenceEqualityComparer.Instance));
+            public bool ContentEquals(object? other) => _obj.VmfContentEquals(other, new HashSet<long>());
+            public int ContentHashCode() => _obj.VmfContentHashCode(new HashSet<object>(ReferenceEqualityComparer.Instance));
         }
     }
 

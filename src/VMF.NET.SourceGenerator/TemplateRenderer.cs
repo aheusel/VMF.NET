@@ -180,7 +180,10 @@ public sealed class TemplateRenderer
         foreach (var p in allProps)
         {
             if (p.IsIgnoredForEquals) continue;
-            if (type.IsEqualsContainmentAndExternal && !p.IsContained && p.IsModelType) continue;
+            // Only EqualsType.All considers non-contained model references (cross-refs).
+            // Everything else -- including EqualsType.Instance, whose CONTENT comparison
+            // follows ContainmentAndExternal semantics -- skips them.
+            if (!type.IsEqualsAll && !p.IsContained && p.IsModelType) continue;
             equalsProps.Add(p);
         }
         scriptObject.Add("equals_props", equalsProps);

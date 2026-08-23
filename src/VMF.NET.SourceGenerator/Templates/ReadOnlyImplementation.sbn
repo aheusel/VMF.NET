@@ -90,6 +90,8 @@ namespace {{ ns }}
 
         public bool VmfEquals(object? other, HashSet<long> visited) => _mutable.VmfEquals(other, visited);
         public int VmfHashCode(HashSet<object> visited) => _mutable.VmfHashCode(visited);
+        public bool VmfContentEquals(object? other, HashSet<long> visited) => _mutable.VmfContentEquals(other, visited);
+        public int VmfContentHashCode(HashSet<object> visited) => _mutable.VmfContentHashCode(visited);
 
         public override bool Equals(object? obj)
         {
@@ -142,8 +144,8 @@ namespace {{ ns }}
             public IEnumerable<T> Stream<T>(IterationStrategy strategy) where T : IVObject => Stream(strategy).OfType<T>();
             public T DeepCopy<T>() => (T)(object)((IVObject)_mutable.Clone()).AsReadOnly();
             public T ShallowCopy<T>() => (T)(object)((IVObject)_mutable.ShallowCloneInternal()).AsReadOnly();
-            public bool ContentEquals(object? other) => _mutable.VmfEquals(other, new HashSet<long>());
-            public int ContentHashCode() => _mutable.VmfHashCode(new HashSet<object>(ReferenceEqualityComparer.Instance));
+            public bool ContentEquals(object? other) => _mutable.VmfContentEquals(other, new HashSet<long>());
+            public int ContentHashCode() => _mutable.VmfContentHashCode(new HashSet<object>(ReferenceEqualityComparer.Instance));
         }
     }
 }
