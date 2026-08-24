@@ -273,9 +273,14 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
         {
             if (m.Name.StartsWith("With") && m.Name.Length > 4 && m.GetParameters().Length == 1)
             {
-                // Skip if parameter is a builder type
+                // Skip the builder-accepting overloads: With*(T.Builder) and the collection
+                // form With*(params T.Builder[]). Only the array case is new, but it is the one
+                // that matters -- an array of builders is not itself assignable to IBuilder, so
+                // checking the parameter type alone let the overload through and deserialisation
+                // then tried to construct an interface.
                 var paramType = m.GetParameters()[0].ParameterType;
-                if (typeof(IBuilder).IsAssignableFrom(paramType)) continue;
+                var elementType = paramType.IsArray ? paramType.GetElementType()! : paramType;
+                if (typeof(IBuilder).IsAssignableFrom(elementType)) continue;
 
                 var propName = m.Name.Substring(4); // "WithName" -> "Name"
                 result[propName] = m;

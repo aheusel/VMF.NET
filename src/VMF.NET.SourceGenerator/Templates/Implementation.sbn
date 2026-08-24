@@ -939,9 +939,16 @@ namespace {{ ns }}
 {{~ if !(prop.IsContainer) ~}}
 {{~ if prop.IsCollectionType ~}}
             private List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>? __builder_{{ prop.Name }};
+{{~ if prop.GenericModelType != null && !prop.GenericModelType.IsInterfaceOnly ~}}
+            // nested builders handed over unbuilt; materialised in Build()
+            private List<{{ prop.GenericModelType.TypeName }}.Builder>? __builder_{{ prop.Name }}_nested;
+{{~ end ~}}
 {{~ else ~}}
             private {{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} __builder_{{ prop.Name }};
             private bool __builder_{{ prop.Name }}_set;
+{{~ if prop.IsModelType && prop.ModelType != null && !prop.ModelType.IsInterfaceOnly ~}}
+            private {{ prop.ModelType.TypeName }}.Builder? __builder_{{ prop.Name }}_nested;
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -954,6 +961,15 @@ namespace {{ ns }}
                 __builder_{{ prop.Name }} = new List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>(values);
                 return this;
             }
+{{~ if prop.GenericModelType != null && !prop.GenericModelType.IsInterfaceOnly ~}}
+{{~ # Nested builders are accepted UNBUILT and built during Build(), as Java does -- so a
+   # builder handed over here can still be modified afterwards and the change takes effect. ~}}
+            public {{ type.TypeName }}.Builder With{{ prop.Name }}(params {{ prop.GenericModelType.TypeName }}.Builder[] values)
+            {
+                __builder_{{ prop.Name }}_nested = new List<{{ prop.GenericModelType.TypeName }}.Builder>(values);
+                return this;
+            }
+{{~ end ~}}
 {{~ else ~}}
             public {{ type.TypeName }}.Builder With{{ prop.Name }}({{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} value)
             {
@@ -961,12 +977,38 @@ namespace {{ ns }}
                 __builder_{{ prop.Name }}_set = true;
                 return this;
             }
+{{~ if prop.IsModelType && prop.ModelType != null && !prop.ModelType.IsInterfaceOnly ~}}
+            public {{ type.TypeName }}.Builder With{{ prop.Name }}({{ prop.ModelType.TypeName }}.Builder value)
+            {
+                __builder_{{ prop.Name }}_nested = value;
+                return this;
+            }
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 
             public {{ type.TypeName }} Build()
             {
+{{~ # Build any nested builders first, so the required-property checks below see their values. ~}}
+{{~ for prop in all_props ~}}
+{{~ if !(prop.IsContainer) ~}}
+{{~ if prop.IsCollectionType && prop.GenericModelType != null && !prop.GenericModelType.IsInterfaceOnly ~}}
+                if (__builder_{{ prop.Name }}_nested != null)
+                {
+                    __builder_{{ prop.Name }} = new List<{{ prop.GenericModelType.TypeName }}>();
+                    foreach (var nested in __builder_{{ prop.Name }}_nested)
+                        __builder_{{ prop.Name }}.Add(nested.Build());
+                }
+{{~ else if !(prop.IsCollectionType) && prop.IsModelType && prop.ModelType != null && !prop.ModelType.IsInterfaceOnly ~}}
+                if (__builder_{{ prop.Name }}_nested != null)
+                {
+                    __builder_{{ prop.Name }} = __builder_{{ prop.Name }}_nested.Build();
+                    __builder_{{ prop.Name }}_set = true;
+                }
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 {{~ for prop in all_props ~}}
 {{~ if prop.IsRequired && !prop.IsContainer && !prop.IsCollectionType ~}}
                 if (!__builder_{{ prop.Name }}_set)

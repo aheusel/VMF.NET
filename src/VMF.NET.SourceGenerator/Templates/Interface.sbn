@@ -47,8 +47,16 @@ namespace {{ ns }}
 {{~ if !(prop.IsContainer) ~}}
 {{~ if prop.IsCollectionType ~}}
             Builder With{{ prop.Name }}(params {{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}[] values);
+{{~ if prop.GenericModelType != null && !prop.GenericModelType.IsInterfaceOnly ~}}
+            /// <summary>Accepts nested builders unbuilt; they are built by <see cref="Build"/>.</summary>
+            Builder With{{ prop.Name }}(params {{ prop.GenericModelType.TypeName }}.Builder[] values);
+{{~ end ~}}
 {{~ else ~}}
             Builder With{{ prop.Name }}({{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} value);
+{{~ if prop.IsModelType && prop.ModelType != null && !prop.ModelType.IsInterfaceOnly ~}}
+            /// <summary>Accepts a nested builder unbuilt; it is built by <see cref="Build"/>.</summary>
+            Builder With{{ prop.Name }}({{ prop.ModelType.TypeName }}.Builder value);
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
