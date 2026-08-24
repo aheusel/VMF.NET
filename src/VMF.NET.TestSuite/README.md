@@ -208,6 +208,37 @@ The generated setter detaches from the current container and then attaches by dr
 side the caller used. Setting it to `null` detaches. A `[Container]` with no declared opposite
 gets no setter — there is nothing to drive.
 
+### Narrowed properties
+
+Java narrows a property covariantly by overriding its getter with a narrower return type.
+Translate it by re-declaring the property with `new`:
+
+```csharp
+[VmfModel][InterfaceOnly]
+public partial interface IWithLocation      { [GetterOnly] ILocation? Location { get; } }
+
+[VmfModel][InterfaceOnly]
+public partial interface IWithLocationX : IWithLocation
+{
+    [GetterOnly] new ILocationX? Location { get; }   // `new`, not an override
+}
+```
+
+C# has no covariant override for an interface property, so the redeclaration hides the base
+member and the compiler asks for the intent to be stated. The generated implementation carries
+the member at the narrowed type and satisfies each wider declaration with a forwarding explicit
+implementation, so both views see the same object at their own type.
+
+Two limits, both C#'s:
+
+- **A collection cannot be narrowed.** `VList<T>` is invariant, so no forwarding implementation
+  can exist; the generator reports it. Java allows it only because its properties are arrays.
+- **A narrowed setter rejects a value that does not fit**, with `InvalidCastException` at the
+  assignment. Java stores it and throws at the next narrowed read instead.
+
+Re-declaring at the *same* type is a different thing and needs no special handling — it is how a
+model resolves `CS0229` or restates `[PropertyOrder]`.
+
 ### Porting a behaviour delegate
 
 Delegates translate almost literally. Three things to know:

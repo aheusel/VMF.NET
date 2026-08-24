@@ -54,6 +54,18 @@ Notable changes per release. Earlier releases are listed on the
   **This is a breaking change for models that already carry a type-level `[DelegateTo]`:** the
   delegate class must now declare the hook method, or the generated code will not compile.
 
+- **Covariant property narrowing.** A subtype may re-declare an inherited property at a narrower
+  type — `ILocation` to `ILocationX` to `ILocationXY`, or `object?` to `int?`. The generated
+  implementation carries the member at the narrowed type and satisfies every interface that
+  declares it wider with a forwarding explicit implementation, so `gCode1.Location` is an
+  `ILocationXY`, `((IWithLocation)gCode1).Location` is an `ILocation`, and both are the same
+  object. Reflection reports the narrowed type.
+
+  Declare the narrowing with `new` on the model interface: C# has no covariant *override* for an
+  interface property, so the redeclaration hides the base member and the compiler asks for the
+  intent to be stated. A **collection** property cannot be narrowed — `VList<T>` is invariant —
+  and the generator now reports that rather than emitting code that will not compile.
+
 ### Changed
 
 - **`[DelegateTo]` is inherited.** A subtype now gets a body for a delegated method declared on

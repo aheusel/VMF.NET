@@ -1,7 +1,7 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** port complete (M2″); M4a/M4b/M5/M6/M8/M9 done. Only M7 remains.
+**Status:** port complete (M2″); every milestone done. **0 skipped facts.**
 **Last updated:** 2026-08-24.
 
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
@@ -13,9 +13,12 @@
 Where the two can behave the same, they must. This is the standard the parity suite measures
 against, and it decides how a difference is classified:
 
-- **C# forces it** — covariant property narrowing, compile-time member resolution, `CS0229` on a
-  member inherited from two unrelated interfaces. Unavoidable. Document it in a `DEVIATION:` note
-  at the top of the file and move on.
+- **C# forces it** — compile-time member resolution, `CS0229` on a member inherited from two
+  unrelated interfaces, an invariant `VList<T>` where Java has covariant arrays. Unavoidable.
+  Document it in a `DEVIATION:` note at the top of the file and move on. Be slow to put anything
+  here: "covariant property narrowing" sat in this list until M7, and it was never true — C#
+  cannot *override* a property's type, but `new` plus a forwarding explicit implementation gives
+  the same observable behaviour.
 - **We chose it** — anything else. Treat it as a **defect to fix**, not a preference to defend,
   even when VMF.NET's behaviour is arguably nicer. "Nicer but different" is exactly the surprise
   this goal exists to prevent.
@@ -72,9 +75,9 @@ comes before further feature work.
 |---|---|---|
 | Model areas | 39 | **39 — all ported** |
 | Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
-| Facts | 104; **101 portable** | **97 in the TestSuite** (96 running, 1 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
+| Facts | 104; **101 portable** | **97 in the TestSuite** (all running) **+ 5 validation facts in `VMF.NET.Tests`** |
 
-Suite totals today: **316 passing**, 1 skipped, 0 failing (231 TestSuite + 85 Tests).
+Suite totals today: **320 passing**, 0 skipped, 0 failing (232 TestSuite + 88 Tests).
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -84,14 +87,15 @@ compiled project.
 Some C# facts have no Java counterpart and are extra coverage rather than parity: four
 cross-reference regression facts guarding the recursion fix, the `FSMTest` clone/`ToString`
 split, `UnparserModelTest`'s from-the-child-side variant, five `VList` batch-operation unit tests,
-and five `ModelAnalyzerTests` facts pinning the delegation-inheritance rules M6 introduced.
+and eight `ModelAnalyzerTests` facts pinning the delegation-inheritance rules M6 introduced and
+the narrowing rules M7 introduced.
 
-### The parity gap: 1 fact
+### The parity gap: none
 
-It is a ported fact carrying `[Fact(Skip = "…")]` with the missing capability named, so
-**the skip count is the parity gap again** — the invariant M2″ set out to restore. It also
-carries its real body; where a skipped fact needs an API that does not exist yet, those calls are
-commented out behind a `NEEDS` marker rather than the body being left empty.
+Every portable Java fact has a running counterpart. The convention that produced that number
+stays in force: a fact blocked on a missing capability is kept as `[Fact(Skip = "…")]` with the
+capability named **and its real body**, so the skip count is the parity gap and un-skipping is
+never a rewrite.
 
 The `VMFGenerateRuns` overlap is now measured rather than estimated. Of its nine
 model-validation facts, **four were already covered** by `ModelAnalyzerTests` and the five that
@@ -107,7 +111,7 @@ abstraction with no .NET counterpart, commented out upstream) and `VMFGeneratorT
 | Waiting on | Facts | Areas |
 |---|---|---|
 | ~~Delegation, type-level and inherited (M6)~~ | ~~2~~ 0 | parentcontainment01 — both active |
-| Covariant narrowing (M7) | 1 | propertyinheritance (1) |
+| ~~Covariant narrowing (M7)~~ | ~~1~~ 0 | propertyinheritance — active |
 
 A blocked fact is kept as `[Fact(Skip = "...")]` with the missing capability named **and its
 real body**, so the skip count is the parity gap and un-skipping is not a rewrite. Where the
@@ -135,14 +139,13 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 | Capability | Blocks | Milestone |
 |---|---|---|
 | ~~Inherited `[DelegateTo]` — only methods declared on the type itself get a body~~ | **DONE (M6).** 2 facts un-skipped, 5 models de-deviated | M6 |
-| Covariant property narrowing — C# interfaces cannot override a property type | 1 fact, 5 deviated models | M7 |
+| ~~Covariant property narrowing~~ | **DONE (M7).** The last skipped fact un-skipped, 5 models de-deviated | M7 |
 | Collection default values | 1 fact | M9 |
 | Cross-reference lists accept duplicates (Java keeps one reference) | 1 fact | M9 |
 | Builder-accepting `With*` overloads (Java passes unbuilt nested builders) | 1 fact | M9 |
 | `VListChangeEvent.Source`, so a listener can mutate the list it observes | 1 fact | M9 |
 | `ToString` renders a different shape from Java's: Java puts the type in an `@type` member and orders properties alphabetically, VMF.NET puts the type outside the braces and orders them as declared | 1 fact | M9 (align with Java) |
 | Clone and original are content-equal but traverse differently, so they do not serialise identically | 1 fact | investigate |
-| `ConnectorDelegate.TryConnect`/`Connect` return null instead of Java's connection logic, which needs `Connector.Parent` — unavailable while a `new` property redeclaration leaves the base read-only member unimplemented | 0 facts (nothing calls either) | M7-adjacent |
 
 ### C. Resolved
 
@@ -153,23 +156,21 @@ fact needs it, so it moves to M9's wire-or-delete list.
 
 ## Parity statement
 
-What the suite proves, as of M6.
+What the suite proves, as of M7.
 
-**Every portable Java fact has a running counterpart except one.** 101 portable facts; 1 is
-skipped, naming the capability it waits on and carrying its real body. The one remaining
-milestone is M7 (covariant property narrowing) — a C# language limit rather than missing
-behaviour, which also de-deviates 5 ported models.
+**Every portable Java fact has a running counterpart.** 101 portable facts, 0 skipped. Every
+milestone on this roadmap is done.
 
 **Deliberate, permanent differences.** These are forced by C# and will not close:
 
 | Difference | Why |
 |---|---|
 | `ModelType()` rather than Java's `type()` | a model may declare a property named `Type`, and a method cannot share a name with a property |
-| Covariant property narrowing unavailable | C# interfaces cannot override a property's type |
 | A member inherited from two unrelated interfaces must be re-declared | `CS0229` |
 | A settable `[Container]` needs `{ get; set; }` in the model | the model interface *is* the public API; a partial interface cannot add a setter |
 | `Name` rather than `name`, `IParent` rather than `Parent`, `[Contains]` rather than `@Contains` | surface convention, not behaviour |
 | Read-only write attempts fail at compile time, not at runtime | C# resolves members statically |
+| A narrowed property needs `new` on the model interface, and a **collection** cannot be narrowed at all | C# has no covariant override for an interface property, and `VList<T>` is invariant where Java's properties are covariant arrays |
 
 **Known differences that are not forced**, and remain open questions rather than decisions:
 
@@ -193,7 +194,7 @@ API that Java also exposes and also never calls internally. They have no ported 
 | ~~M2″~~ | ~~Close the port~~ | **DONE.** Ported `VMFGenerateRuns` (25, split behavioural/validation) and `UndoRedoWithContainmentTest` (5); measured the validation overlap (4 of 9 already covered, 5 added, all pass); gave all 13 empty skipped facts real bodies; restored fidelity in `HorsesTest` and wrote the porting rules down | every Java fact has a counterpart; skip count = parity gap again |
 | ~~M5~~ | ~~Reflection metadata~~ | **DONE.** Type-level annotations read on demand; static reflection over a generated prototype plus a per-namespace type registry answering `AllTypes`/`SuperTypes`; per-instance default values; `IsPolymorphic` workaround retired, which fixed a missing `@vmf-type` discriminator | 8 facts un-skipped |
 | ~~M6~~ | ~~Inherited delegation~~ | **DONE.** Type-level `[DelegateTo]` is a constructor delegation calling `On<Type>Instantiated()` and supplies the class for undecorated methods; delegations inherit, deduped by signature with own-first; the cast reads `T` off the delegate class; one delegate instance per class per object | 2 facts un-skipped, 5 models de-deviated |
-| **M7** | Covariant narrowing | Public property at the narrowest type + forwarding explicit implementations per declaring interface | 5 models de-deviated |
+| ~~M7~~ | ~~Covariant narrowing~~ | **DONE.** Public member at the narrowed type plus one forwarding explicit implementation per declaring interface, typed from the interface that declares it; a narrowed collection is rejected, since `VList<T>` is invariant | last fact un-skipped, 5 models de-deviated |
 | ~~M8~~ | ~~Undo/redo~~ | **DONE.** A change now fires when a child's container changes, reported locally and not recorded, as Java does; undo verified working and given tests; content iteration defaults to `UniqueNode` | `events_undo_redo` and vflow green |
 | ~~M9~~ | ~~Tail + audit~~ | **DONE.** `ToString` aligned with Java; clone identity fixed; cross-reference duplicates rejected; `VListChangeEvent.Source`; builder-accepting `With*`; collection defaults; wire-or-delete settled; parity statement written | documented parity statement |
 
@@ -334,6 +335,52 @@ Unblocks the 3 `reflectiontest` facts.
 walks `AllTypes()` and `SuperTypes()` — both currently degenerate (`AllTypes()` returns just the
 one type, `SuperTypes()` is always empty). Once 2 populates them, revisit it. Not fact-blocking;
 do it last and only if it genuinely simplifies.
+
+## M7 design note — covariant property narrowing
+
+Java narrows a property down an inheritance chain: `WithLocation.getLocation()` returns
+`Location`, `WithLocationX` overrides it to return `LocationX`, `GCode1` to return `LocationXY`.
+The reflected property type is the narrowed one, which is what `propertyInheritanceTest01`
+asserts.
+
+**Java's rule is "most derived", not "narrowest".** `Implementation.collectAndSetProperties` puts
+the type's own properties first and adds inherited ones only when the name is not already present
+— it never compares types. It does not have to: the Java compiler has already rejected a
+covariant override that widens, so most-derived *is* narrowest. VMF.NET's `CollectAllProperties`
+resolves the same way, and a build with the narrowing restored confirmed it — the public property
+came out at `ILocationXY` on its own. **The analysis side needed no change at all**; the gap was
+entirely in the generated code.
+
+**What C# forbids is narrower than the deviation note claimed.** There is no covariant *override*
+of an interface property. But there is `new`, which declares a second member hiding the first so
+that both exist, and there are explicit interface implementations, which satisfy each declaring
+interface at its own type. One backing property at the narrowed type plus one forwarding explicit
+implementation per interface that declares it wider reproduces Java's observable behaviour:
+`gCode1.Location` is an `ILocationXY`, `((IWithLocation)gCode1).Location` is an `ILocation`, and
+they are the same object.
+
+The generator already emitted that shape on the read-only side — `readonly_prop_impls` exists
+because a re-declaration leaves the base member unimplemented — but typed every explicit
+implementation at the *winning* property's type, which is only correct while nothing narrows. So:
+
+1. Each explicit implementation is typed from the interface that **declares** it.
+2. The mutable side gets the same loop, which it never needed before because the public property
+   always matched every declaration.
+
+**The model still writes `new`.** The model interface is the public API here, so the narrowing is
+the model author's declaration, exactly as the covariant `getLocation()` override is in Java. What
+changes is that the generator now produces an implementation that compiles.
+
+**Where a narrowed setter lands.** Every base in this model declares `location` `@GetterOnly`, so
+every forwarding implementation is get-only. When a base does declare a setter at a wider type,
+the forwarding setter has to narrow the incoming value and throws `InvalidCastException` if it
+does not fit. Java stores it and throws `ClassCastException` at the next narrowed read instead —
+both reject it, ours at the assignment rather than a step later.
+
+**Collections cannot narrow.** Java's properties are arrays and arrays are covariant, so
+`Statement[]` narrowing to `SubStatement[]` works there. `VList<T>` is invariant, so no forwarding
+implementation can exist, and the generator reports it rather than emitting code that will not
+compile. No ported model does this.
 
 ## M6 design note — delegation
 
