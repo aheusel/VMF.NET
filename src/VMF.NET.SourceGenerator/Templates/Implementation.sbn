@@ -513,7 +513,7 @@ namespace {{ ns }}
         internal {{ type.ImplClassName }} CloneInternal(Dictionary<object, object> identityMap) => this;
         internal {{ type.ImplClassName }} ShallowCloneInternal() => this;
 {{~ else ~}}
-        public {{ type.TypeName }} Clone() => CloneInternal(new Dictionary<object, object>());
+        public {{ type.TypeName }} Clone() => CloneInternal(new Dictionary<object, object>(ReferenceEqualityComparer.Instance));
         {{ type.ReadOnlyInterfaceName }} {{ type.TypeName }}.AsReadOnly() => AsReadOnly();
         {{ type.ReadOnlyInterfaceName }} {{ type.ReadOnlyInterfaceName }}.Clone() => ({{ type.ReadOnlyInterfaceName }})AsReadOnly().Clone();
 {{~ # Interface-only bases never declare Clone()/AsReadOnly() (see Interface.sbn),
@@ -542,7 +542,7 @@ namespace {{ ns }}
 
         internal {{ type.ImplClassName }} ShallowCloneInternal()
         {
-            var identityMap = new Dictionary<object, object>();
+            var identityMap = new Dictionary<object, object>(ReferenceEqualityComparer.Instance);
             return new {{ type.ImplClassName }}(this, false, identityMap);
         }
 {{~ end ~}}
@@ -862,19 +862,20 @@ namespace {{ ns }}
             // A revisited node is marked with its ordinal in traversal order, NOT its identity
             // hash: the hash differs between an object and its clone, which made ToString()
             // unstable for structurally identical graphs.
-            if (visited.TryGetValue(this, out var seen_))
-                return "\"{{ strip_i type.TypeName }}@" + seen_ + "\"";
+            // Java's marker is a constant, so a graph and a clone that traverse in different
+            // orders still render identically. An ordinal here would expose that difference.
+            if (visited.ContainsKey(this))
+                return "{skipping recursion}";
             visited[this] = visited.Count;
 
             var sb = new System.Text.StringBuilder();
-            sb.Append("{{ strip_i type.TypeName }} {");
+            sb.Append("{\"@type\":\"{{ strip_i type.TypeName }}\"");
 {{~ idx = 0 ~}}
 {{~ for prop in to_string_props ~}}
 {{~ if prop.IsContainer ~}}
 {{~ continue ~}}
 {{~ end ~}}
-            {{ if idx > 0 }}sb.Append(",");{{ end }}
-            sb.Append(" \"{{ prop.Name }}\": ");
+            sb.Append(", \"{{ prop.Name }}\": ");
 {{~ if prop.IsCollectionType ~}}
             sb.Append("[");
             for (int i = 0; i < {{ prop.Name }}.Count; i++)
@@ -892,19 +893,24 @@ namespace {{ ns }}
             }
             sb.Append("]");
 {{~ else if prop.IsModelType ~}}
+{{~ # Java wraps a nested model object in quotes too. Not valid JSON, but it is what the
+   # reference renders, so it is what we render. ~}}
+            sb.Append("\"");
 {{~ if !prop.ModelType.IsInterfaceOnly ~}}
             if ({{ field_name prop }} is {{ prop.ModelType.ImplClassName }} ts_{{ prop.PropId }}) sb.Append(ts_{{ prop.PropId }}.VmfToString(visited));
             else
 {{~ end ~}}
             sb.Append({{ field_name prop }}?.ToString() ?? "null");
-{{~ else if prop.SimpleTypeName == "String" || prop.SimpleTypeName == "string" ~}}
-            sb.Append({{ field_name prop }} != null ? "\"" + {{ field_name prop }} + "\"" : "null");
+            sb.Append("\"");
 {{~ else ~}}
-            sb.Append(((object?){{ field_name prop }}) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ field_name prop }}{{ if (is_nullable prop) }}?{{ end }}.ToString(){{ if (is_nullable prop) }} ?? "null"{{ end }}));
+{{~ # Every scalar is quoted, numbers included, as Java does. ~}}
+            sb.Append("\"");
+            sb.Append(((object?){{ field_name prop }}) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ((object?){{ field_name prop }})?.ToString() ?? "null");
+            sb.Append("\"");
 {{~ end ~}}
 {{~ idx = idx + 1 ~}}
 {{~ end ~}}
-            sb.Append(" }");
+            sb.Append("}");
             return sb.ToString();
         }
 
@@ -1074,7 +1080,7 @@ namespace {{ ns }}
             public IEnumerable<IVObject> Stream(IterationStrategy strategy) => Iterator(strategy).AsEnumerable();
             public IEnumerable<T> Stream<T>() where T : IVObject => Stream().OfType<T>();
             public IEnumerable<T> Stream<T>(IterationStrategy strategy) where T : IVObject => Stream(strategy).OfType<T>();
-            public T DeepCopy<T>() => (T)(object)_obj.CloneInternal(new Dictionary<object, object>());
+            public T DeepCopy<T>() => (T)(object)_obj.CloneInternal(new Dictionary<object, object>(ReferenceEqualityComparer.Instance));
             public T ShallowCopy<T>() => (T)(object)_obj.ShallowCloneInternal();
             public bool ContentEquals(object? other) => _obj.VmfContentEquals(other, new HashSet<long>());
             public int ContentHashCode() => _obj.VmfContentHashCode(new HashSet<object>(ReferenceEqualityComparer.Instance));

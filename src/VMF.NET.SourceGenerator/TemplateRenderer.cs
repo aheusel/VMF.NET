@@ -188,12 +188,32 @@ public sealed class TemplateRenderer
         }
         scriptObject.Add("equals_props", equalsProps);
 
-        // ToString-relevant properties
+        // ToString-relevant properties.
+        //
+        // Ordered independently of the reflection order, because Java's is: reflection groups
+        // inherited properties before own ones, while the list ToString renders from
+        // (ModelType.sortProperties) is a plain sort over ALL properties -- by custom order index
+        // when the type declares one, by name otherwise. A `Parent extends Named` therefore
+        // renders children, elements, name rather than name first.
         var toStringProps = new List<PropertyInfo>();
         foreach (var p in allProps)
         {
             if (!p.IsIgnoredForToString) toStringProps.Add(p);
         }
+
+        if (toStringProps.Any(p => p.CustomOrderIndex.HasValue))
+        {
+            toStringProps = toStringProps
+                .OrderBy(p => p.CustomOrderIndex ?? int.MaxValue)
+                .ToList();
+        }
+        else
+        {
+            toStringProps = toStringProps
+                .OrderBy(p => p.Name, StringComparer.Ordinal)
+                .ToList();
+        }
+
         scriptObject.Add("to_string_props", toStringProps);
 
         // Read-only explicit interface implementations.

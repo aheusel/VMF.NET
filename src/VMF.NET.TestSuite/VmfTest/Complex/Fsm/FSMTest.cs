@@ -54,11 +54,7 @@ public class FSMTest
         Assert.Equal(fsm, clone);
     }
 
-    [Fact(Skip = "Clone and original are content-equal but do not serialise identically: a node " +
-                 "printed in full by one is printed as a cycle marker by the other, so the deep " +
-                 "copy traverses the graph in a different order. Needs its own investigation -- " +
-                 "the cycle marker itself is now stable (it uses a traversal ordinal, not the " +
-                 "identity hash, which previously made ToString unstable by construction).")]
+    [Fact]
     public void FsmCloneToStringMatchesOriginal()
     {
         // Same graph as FsmCreateAndCloneTest, kept separate because the content comparison
