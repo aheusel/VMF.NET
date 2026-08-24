@@ -204,6 +204,64 @@ a much smaller and much less certain part of M8 than this section assumed.
   which is M5 and M9 territory. Scoping those milestones before seeing what those facts actually
   assert would repeat the mistake this correction documents.
 
+## M5 design note — reflection metadata
+
+Read from Java's implementation (`runtime/.../core/Type.java`, `internal/ReflectImpl.java`) rather
+than from its tests, per the design goal. Four parts, in ascending order of cost.
+
+### 1. Type-level annotations — one line
+
+`ReflectImpl.Annotations()` returns an empty list and waits for `SetAnnotations`, which nothing
+calls. Java's does not have a setter at all: `annotations()` reads
+`parent._vmf_getAnnotations()` on demand. `IVObjectInternal.GetAnnotations()` already exists here
+and already returns the generated `_VMF_OBJECT_ANNOTATIONS`, so the fix is to read it and delete
+`SetAnnotations`. Unblocks the 3 `annotations` facts.
+
+### 2. Static type reflection — a prototype instance
+
+Java generates `static Type type()` on each model interface, and `Type` holds the model's
+`Class`. `Type.reflect()` lazily builds a **prototype instance** — `modelClass.getMethod(
+"newInstance").invoke(null)` — and returns `prototype.vmf().reflect()` with `staticOnly = true`.
+`superTypes()` uses the same prototype, reading `_vmf_getSuperTypeNames()` and wrapping each name
+in a `Type`.
+
+So static reflection is not a separate metadata path: it is ordinary instance reflection over a
+throwaway instance, with the instance-dependent operations disabled. `staticOnly` and
+`EnsureInstanceAccess` are already built here for exactly this and are currently unreachable —
+this is what makes them reachable.
+
+VMF.NET should do the same, with one deliberate difference: **pass a factory delegate rather than
+reflect over a name.** Java needs `Class.forName` because its `Type` only carries a name; our
+generator can emit `() => IFoo.NewInstance()` directly at the point where the `VmfType` is
+created. Same behaviour, no runtime reflection, no failure mode when a name cannot be resolved.
+
+Interface-only types have no `NewInstance`, so they get no factory and `Reflect()` on them throws
+— matching Java, where `getPrototype` fails for the same reason (less tidily: it prints a stack
+trace and then dereferences null).
+
+Unblocks `staticreflection` and the `observableprop` static fact.
+
+### 3. Per-instance default values
+
+Bigger than "add `VmfProperty.SetDefault`". Java keeps a per-instance `_VMF_DEFAULT_VALUES` array
+initialised to null; `getDefaultValueById` returns the entry if set and the compile-time default
+otherwise; and `setDefault` writes the entry and then, **if the property was unset, calls
+`unsetById`** so an unset property follows its default when the default moves. That is why the
+Java fact expects `setDefault("abc")` to leave `isSet()` false *and* change the value to `"abc"`.
+
+Needs: the per-instance array in the generated impl, `GetDefaultValueById` consulting it,
+`SetDefaultValueById` implementing the write-then-maybe-unset dance, and `VmfProperty.SetDefault`
+exposing it. Containment properties must refuse it, as Java's does explicitly.
+
+Unblocks the 3 `reflectiontest` facts.
+
+### 4. Retire the `IsPolymorphic` workaround
+
+`VmfJsonConverter` decides whether to write `@vmf-type` via `VmfTypeUtils.IsPolymorphic`, which
+walks `AllTypes()` and `SuperTypes()` — both currently degenerate (`AllTypes()` returns just the
+one type, `SuperTypes()` is always empty). Once 2 populates them, revisit it. Not fact-blocking;
+do it last and only if it genuinely simplifies.
+
 ## M4b design note — notify *up* the container chain
 
 Measured starting point (probe, 2026-08-23), which corrects the skip note on
