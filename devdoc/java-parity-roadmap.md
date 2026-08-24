@@ -7,6 +7,42 @@
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
 
+## Design goal: behavioural identity with Java VMF
+
+**Someone moving a model from Java VMF to VMF.NET should meet as few surprises as possible.**
+Where the two can behave the same, they must. This is the standard the parity suite measures
+against, and it decides how a difference is classified:
+
+- **C# forces it** — covariant property narrowing, compile-time member resolution, `CS0229` on a
+  member inherited from two unrelated interfaces. Unavoidable. Document it in a `DEVIATION:` note
+  at the top of the file and move on.
+- **We chose it** — anything else. Treat it as a **defect to fix**, not a preference to defend,
+  even when VMF.NET's behaviour is arguably nicer. "Nicer but different" is exactly the surprise
+  this goal exists to prevent.
+- **Surface conventions** — `Name` rather than `name`, `IParent` rather than `Parent`,
+  `[Contains]` rather than `@Contains`. Predictable, mechanical, and expected by anyone writing
+  C#. Not a divergence.
+
+A ported fact that fails is therefore evidence of a **behavioural divergence**, not evidence of a
+bad port. Reach for "the Java test is wrong here" only after reading Java's implementation.
+
+Verify against Java's *implementation*, not against its tests. The tests state what the authors
+chose to pin; the implementation states what actually happens. `IsSet` is the worked example:
+the test says an untouched property with a declared default reports `false`, and reading
+`_vmf_isSetById` shows why — it is a pure comparison against the current default, with no
+"was assigned" flag anywhere. That single line settles a whole family of questions the tests
+leave open, such as what happens when you assign the default explicitly (still "not set").
+
+### Known divergences this goal puts in scope
+
+| Divergence | Status |
+|---|---|
+| `ToString` shape — Java uses an `@type` member and alphabetical properties; VMF.NET puts the type outside the braces and orders as declared | **Align with Java** (M9). Previously filed as "a decision"; under this goal it is a gap |
+| `Annotations()` exposes VMF.NET's own `vmf:property:containment-info`, which Java does not | Reconsider. A Java user counting annotations gets a different number |
+| Cross-reference lists accept duplicates; Java keeps one reference | Defect (M9) |
+| `IsSet` on a **collection** uses `Count > 0`, where Java compares against the default | **Unverified.** Java returns `null` as the default for a collection without a declared one, which would make an empty list report *set* — that reads oddly enough that it needs a probe against a real Java run before being called either way |
+| A settable `[Container]` needs `{ get; set; }` in the model; Java always generates the setter | C#-forced: the model interface *is* the public API here, and a partial interface cannot add a setter to a property already declared `{ get; }` |
+
 ## Correction, 2026-08-23
 
 An earlier revision of this document claimed "all 30 Java test classes ported" and "the
@@ -77,7 +113,7 @@ abstraction with no .NET counterpart, commented out upstream) and `VMFGeneratorT
 | Builder ergonomics and VList API (M9) | 3 | builders (1), horses (1), unparsermodel (1) |
 | Collection default values (M9) | 1 | reflectiontest (1) |
 | Undo (M8) | 1 | vflow (1) |
-| `ToString` format (M9 — a decision, not a bug) | 1 | test2 (1) |
+| `ToString` format (M9 — align with Java) | 1 | test2 (1) |
 | Covariant narrowing + static reflection (M7) | 1 | propertyinheritance (1) |
 | Clone traversal order (needs investigation) | 1 | fsm (1) |
 
@@ -116,7 +152,7 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 | Builder-accepting `With*` overloads (Java passes unbuilt nested builders) | 1 fact | M9 |
 | `VListChangeEvent.Source`, so a listener can mutate the list it observes | 1 fact | M9 |
 | A change event when a child's container changes (`SetContainer` fires none) | 1 fact | M8 |
-| `ToString` renders a different shape from Java's: Java puts the type in an `@type` member and orders properties alphabetically, VMF.NET puts the type outside the braces and orders them as declared | 1 fact | M9 (decide) |
+| `ToString` renders a different shape from Java's: Java puts the type in an `@type` member and orders properties alphabetically, VMF.NET puts the type outside the braces and orders them as declared | 1 fact | M9 (align with Java) |
 | Clone and original are content-equal but traverse differently, so they do not serialise identically | 1 fact | investigate |
 
 ### C. Unknown

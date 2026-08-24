@@ -145,8 +145,12 @@ The model interface is `partial` — the generator adds `NewInstance`, `NewBuild
 
 ### Fidelity rules
 
-A port is a translation, not a rewrite. Deviating silently makes the suite claim coverage it
-does not have, so:
+The project goal is **behavioural identity with Java VMF wherever C# permits it** — someone
+moving a model across should meet as few surprises as possible. See "Design goal" in
+[`../../devdoc/java-parity-roadmap.md`](../../devdoc/java-parity-roadmap.md). The suite is how
+that is measured, so a port is a translation, not a rewrite. Deviating silently makes the suite
+claim coverage it does not have, and a failing ported fact is evidence of a real divergence
+rather than of a bad port. So:
 
 - **Port every statement.** Including ones that look redundant. `HorsesTest.horseTest` originally
   lost its last seven lines — the second tournament, and the assertion that a horse attends two
