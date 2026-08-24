@@ -30,7 +30,13 @@ namespace {{ ns }}
         private static readonly int[] _VMF_CHILD_INDICES = {{ int_array child_indices }};
         private static readonly int[] _VMF_PARENT_INDICES = {{ int_array parent_indices }};
 
-        private static readonly VmfType _vmfType = VmfType.Create(true, false, {{ type.IsInterfaceOnly }}, "{{ type.FullTypeName }}");
+{{~ # An interface-only type has no NewInstance, so it gets no factory and static
+   # reflection on it throws -- as in Java, where getPrototype() fails for the same reason. ~}}
+{{~ if type.IsInterfaceOnly ~}}
+        private static readonly VmfType _vmfType = VmfType.Create(true, false, true, "{{ type.FullTypeName }}");
+{{~ else ~}}
+        private static readonly VmfType _vmfType = VmfType.Create(true, false, false, "{{ type.FullTypeName }}", static () => new {{ type.ImplClassName }}());
+{{~ end ~}}
 
         private static readonly IAnnotation[] _VMF_OBJECT_ANNOTATIONS = new IAnnotation[]
         {

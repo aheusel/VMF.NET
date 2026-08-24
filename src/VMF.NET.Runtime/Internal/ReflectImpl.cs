@@ -69,7 +69,13 @@ public sealed class ReflectImpl : IReflect
 
     public IReadOnlyList<VmfType> AllTypes()
     {
-        // This would be populated by generated code with all types in the model
-        return [_parent.GetVmfType()];
+        // Every model type in this object's model. Each generated model registers its types on
+        // assembly load, and a model is one namespace, so the namespace is the model boundary.
+        var name = _parent.GetVmfType().Name;
+        int lastDot = name.LastIndexOf('.');
+        if (lastDot <= 0) return [_parent.GetVmfType()];
+
+        var all = VmfTypeRegistry.AllInNamespace(name.Substring(0, lastDot));
+        return all.Count > 0 ? all : [_parent.GetVmfType()];
     }
 }

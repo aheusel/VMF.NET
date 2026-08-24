@@ -1,11 +1,15 @@
 // Models exercising Finding 4 Step B: schema-annotation value validation and JSON-array defaults.
 // The malformed annotations here are valid C# (annotation values are opaque strings); they only
 // surface an error when a JSON schema is generated for the type.
+//
+// They live in their OWN namespace deliberately. A namespace is one model, and schema generation
+// emits definitions for every type in the model, so a type carrying a knowingly-invalid
+// annotation would break schema generation for every valid type beside it.
 
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.SchemaValidation;
 
 /// <summary>A JSON-array constraint value (default=[...]) must render as a real JSON array.</summary>
 [VmfModel(Equality = EqualsType.All)]

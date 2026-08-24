@@ -2,6 +2,8 @@
 // Copyright 2017-2019 Goethe Center for Scientific Computing, University Frankfurt. All rights reserved.
 // Licensed under the Apache License, Version 2.0.
 
+using VMF.NET.Runtime.Internal;
+
 namespace VMF.NET.Runtime;
 
 /// <summary>
@@ -12,17 +14,36 @@ public sealed class VmfType : IEquatable<VmfType>
 {
     private List<VmfType>? _superTypes;
 
-    private VmfType(bool isModelType, bool isListType, bool isInterfaceOnly, string name)
+    // Static reflection is instance reflection over a throwaway object, exactly as in Java --
+    // Type.reflect() there builds a prototype and disables the instance-dependent operations.
+    // Java has to go through Class.forName because its Type carries only a name; the generator
+    // can hand us a factory directly, so no runtime type resolution is involved.
+    private readonly Func<IVObject>? _prototypeFactory;
+    private IVObject? _prototype;
+
+    private VmfType(bool isModelType, bool isListType, bool isInterfaceOnly, string name,
+                    Func<IVObject>? prototypeFactory)
     {
         IsModelType = isModelType;
         IsListType = isListType;
         IsInterfaceOnly = isInterfaceOnly;
         Name = name;
+        _prototypeFactory = prototypeFactory;
     }
 
     public static VmfType Create(bool isModelType, bool isListType, bool isInterfaceOnly, string name)
     {
-        return new VmfType(isModelType, isListType, isInterfaceOnly, name);
+        return new VmfType(isModelType, isListType, isInterfaceOnly, name, null);
+    }
+
+    /// <summary>
+    /// Creates a type that supports static reflection. <paramref name="prototypeFactory"/> builds
+    /// the throwaway instance used to answer <see cref="Reflect"/> and <see cref="SuperTypes"/>.
+    /// </summary>
+    public static VmfType Create(bool isModelType, bool isListType, bool isInterfaceOnly, string name,
+                                 Func<IVObject> prototypeFactory)
+    {
+        return new VmfType(isModelType, isListType, isInterfaceOnly, name, prototypeFactory);
     }
 
     /// <summary>
@@ -62,17 +83,55 @@ public sealed class VmfType : IEquatable<VmfType>
     }
 
     /// <summary>
-    /// Returns the super types of this type (only for model types).
+    /// Returns the reflection API of this type, without an instance. Reading metadata works;
+    /// anything needing an object -- get, set, unset, is-set, listeners -- throws.
+    /// </summary>
+    public IReflect Reflect()
+    {
+        var self = VmfTypeRegistry.Lookup(Name) ?? this;
+        var reflect = (ReflectImpl)self.Prototype().Vmf().Reflect();
+        reflect.SetStaticOnly(true);
+        return reflect;
+    }
+
+    /// <summary>
+    /// Returns the super types of this type. Empty for anything that is not a model type,
+    /// including list types whatever their element type.
     /// </summary>
     public IReadOnlyList<VmfType> SuperTypes()
     {
-        _superTypes ??= [];
+        if (_superTypes != null) return _superTypes;
+
+        _superTypes = [];
+
+        if (IsModelType && !IsListType)
+        {
+            // A type reached through a property carries only a name -- VmfProperty builds it from
+            // the parent's metadata -- so resolve through the registry to get the registered type
+            // with its prototype factory. Java resolves the same way, via Class.forName.
+            var self = VmfTypeRegistry.Lookup(Name) ?? this;
+
+            foreach (var name in ((IVObjectInternal)self.Prototype()).GetSuperTypeNames())
+            {
+                _superTypes.Add(VmfTypeRegistry.Lookup(name) ?? Create(true, false, false, name));
+            }
+        }
+
         return _superTypes;
     }
 
-    internal void SetSuperTypes(List<VmfType> superTypes)
+    private IVObject Prototype()
     {
-        _superTypes = superTypes;
+        if (_prototype != null) return _prototype;
+
+        if (_prototypeFactory == null)
+        {
+            throw new InvalidOperationException(
+                $"Cannot reflect on type '{Name}' without an instance: it has no prototype " +
+                "factory. Interface-only and non-model types cannot be instantiated.");
+        }
+
+        return _prototype = _prototypeFactory();
     }
 
     public bool Equals(VmfType? other)

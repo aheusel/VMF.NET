@@ -56,11 +56,17 @@ public sealed class VmfJsonSchemaGenerator
         }
         schema["properties"] = properties;
 
-        // Generate definitions for all model types
+        // Definitions describe the types this schema actually references, reached transitively
+        // from the root. Emitting one for every type in the model would mean an unrelated type --
+        // one carrying a malformed annotation, say -- breaks schema generation for every valid
+        // type beside it.
+        var reachable = ReachableModelTypeNames(reflect);
+
         var definitions = new Dictionary<string, object>();
         foreach (var type in reflect.AllTypes())
         {
             if (type.IsInterfaceOnly) continue;
+            if (!reachable.Contains(type.Name)) continue;
             var typeProto = CreatePrototype(type.Name);
             if (typeProto is null) continue;
 
@@ -365,6 +371,37 @@ public sealed class VmfJsonSchemaGenerator
         }
     }
 
+
+    /// <summary>
+    /// The names of the model types this schema refers to: everything reachable from the root
+    /// type through model-typed properties and model-typed list elements, transitively.
+    /// </summary>
+    private HashSet<string> ReachableModelTypeNames(VMF.NET.Runtime.IReflect root)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var queue = new Queue<VMF.NET.Runtime.IReflect>();
+        queue.Enqueue(root);
+
+        while (queue.Count > 0)
+        {
+            foreach (var prop in queue.Dequeue().Properties())
+            {
+                if (VmfTypeUtils.IsContainerProperty(prop)) continue;
+                if (!VmfTypeUtils.ShouldSerialize(prop)) continue;
+
+                string? name = prop.Type.IsListType ? prop.Type.GetElementTypeName()
+                             : prop.Type.IsModelType ? prop.Type.Name
+                             : null;
+
+                if (name is null || !seen.Add(name)) continue;
+
+                var proto = CreatePrototype(name);
+                if (proto is not null) queue.Enqueue(proto.Vmf().Reflect());
+            }
+        }
+
+        return seen;
+    }
     private IVObject? CreatePrototype(string typeName)
     {
         foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())

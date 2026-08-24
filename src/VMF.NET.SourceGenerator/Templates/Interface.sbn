@@ -23,6 +23,17 @@ namespace {{ ns }}
         /// <summary>Creates a new instance of this type.</summary>
         static {{ type.TypeName }} NewInstance() => new {{ type.ImplClassName }}();
 
+        /// <summary>
+        /// Returns the type object for this model type, which supports reflection without an
+        /// instance: <c>ModelType().Reflect()</c>.
+        /// <para>
+        /// Java calls this <c>type()</c>. C# cannot: a model is free to declare a property named
+        /// <c>Type</c> (several do), and a method may not share a name with a property on the same
+        /// interface. <c>ModelType</c> is the collision-free equivalent.
+        /// </para>
+        /// </summary>
+        static VmfType ModelType() => new {{ type.ImplClassName }}().GetVmfType();
+
         /// <summary>Typed deep clone.</summary>
         new {{ type.TypeName }} Clone();
 

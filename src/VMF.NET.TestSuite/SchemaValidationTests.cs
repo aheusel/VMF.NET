@@ -5,6 +5,7 @@
 
 using System.Text.Json;
 using VMF.NET.TestSuite.Models;
+using VMF.NET.TestSuite.Models.SchemaValidation;
 using VMF.NET.Json;
 using Xunit;
 
