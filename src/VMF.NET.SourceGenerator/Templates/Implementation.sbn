@@ -553,8 +553,12 @@ namespace {{ ns }}
 {{~ for prop in all_props ~}}
 {{~ if prop.DefaultValueAsString != null && prop.DefaultValueAsString != "" ~}}
                 case {{ prop.PropId }}: return {{ prop.DefaultValueAsString }};
+{{~ else if prop.IsCollectionType ~}}
+                case {{ prop.PropId }}: return null;
 {{~ else ~}}
-                case {{ prop.PropId }}: return default;
+{{~ # `return default` in an object?-returning method yields NULL even for a value type, which
+   # would make an untouched int look different from its own default. Name the type. ~}}
+                case {{ prop.PropId }}: return default({{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }});
 {{~ end ~}}
 {{~ end ~}}
                 default: return null;
@@ -572,10 +576,11 @@ namespace {{ ns }}
                 case {{ prop.PropId }}: return __vmf_container != null;
 {{~ else if prop.IsContainer && type.IsImmutable ~}}
                 case {{ prop.PropId }}: return false;
-{{~ else if (is_primitive prop) && !(is_nullable prop) ~}}
-                case {{ prop.PropId }}: return !EqualityComparer<{{ prop_type_name prop }}>.Default.Equals({{ field_name prop }}, default);
 {{~ else ~}}
-                case {{ prop.PropId }}: return {{ field_name prop }} != null;
+{{~ # "set" means differing from the property's DECLARED default, not from the type's default:
+   # an int property defaulting to 23 is UNSET while it still holds 23. Object.Equals handles
+   # both the null cases and the boxing. ~}}
+                case {{ prop.PropId }}: return !Equals({{ field_name prop }}, GetDefaultValueById({{ prop.PropId }}));
 {{~ end ~}}
 {{~ end ~}}
                 default: return false;
