@@ -31,7 +31,17 @@ public class UnparserModelTest
         Assert.Same(alternative, sre.ParentAlt);
         Assert.Contains(sre, alternative.Elements);
 
+        // Elements should contain sre
+        Assert.Contains(sre, alternative.Elements);
+
+        var a1 = IAlternative.NewInstance();
+        sre.Alternatives.Add(a1);
+
+        // Alternative a1 should have sre as parent
+        Assert.Same(sre, a1.ParentRule);
+
         // and detaching from the child side removes it from the parent's list
+        // (not in the Java fact -- it has no way to drive containment from the child)
         sre.ParentAlt = null;
 
         Assert.Null(sre.ParentAlt);
