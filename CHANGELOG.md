@@ -35,8 +35,23 @@ Notable changes per release. Earlier releases are listed on the
   property. It is reported to listeners on the child only, and is not recorded — the containment
   change belongs to the container and is recorded there.
 
+- **Nested builders may be passed unbuilt.** `With*` accepts `T.Builder` (and
+  `params T.Builder[]`) and builds them during `Build()`, so a builder handed over can still be
+  modified afterwards.
+- **Collection default values.** `[VmfDefaultValue]` now applies to collection properties; the
+  list is seeded from the expression on first access, and a list still holding exactly its
+  default reports `IsSet` as false.
+- **`VListChangeEvent.Source`** — the list a change happened on, so a listener can reach and
+  modify the list it is observing.
+
 ### Fixed
 
+- **`Clone()` and `DeepCopy()` collapsed distinct objects into one.** The identity map that keeps
+  a doubly-reached object from being copied twice compared keys with `Equals`, so under content
+  equality two *distinct* but content-equal objects were treated as the same key. Cloning a graph
+  containing content-equal siblings silently lost objects and shared what the original did not.
+- **Cross-reference lists accepted duplicates.** Adding the same element repeatedly left several
+  entries; a cross-reference holds one reference per element.
 - **`Vmf().Content()` iteration visited some objects more than once.** `Iterator()` and `Stream()`
   defaulted to `UniqueProperty`, which visits each *property* once and so emits a node once per
   reference to it — a 21-node tree streamed as 41 entries. Both now default to `UniqueNode`, each
@@ -63,6 +78,12 @@ Notable changes per release. Earlier releases are listed on the
 - `ReadOnly*Impl.Vmf().Changes()` no longer throws `InvalidOperationException`.
 - Reflection through a read-only view no longer throws "Cannot access property without an
   instance"; reads and listeners work, and writes throw "Cannot modify unmodifiable object".
+- **`ToString()` now renders Java's shape**: `{"@type":"Type", "prop": …}` with the type as a
+  member rather than a prefix, every scalar quoted, and `{skipping recursion}` as the cycle
+  marker. Properties are ordered by custom index or by name, independently of the reflection
+  order. Anything parsing the old format will need updating.
+- `IChangeInternal.IsCrossRefChange` and `IsContainmentChange` were removed — both unreachable,
+  on an internal interface, with no callers.
 - `IVObjectInternal` gained `GetChangesManager`, and `IVObjectInternalModifiable` lost
   `SetModelToChanges` — it was never called, and routing changes up the container chain makes it
   obsolete. This affects hand-written implementations of those internal contracts only.
