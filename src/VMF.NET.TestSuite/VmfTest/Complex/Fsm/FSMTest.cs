@@ -9,11 +9,10 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.Fsm;
 
 public class FSMTest
 {
-    [Fact]
-    public void FsmCreateAndCloneTest()
-    {
-        const int numTransitions = 10_000;
+    private const int NumTransitions = 10_000;
 
+    private static IFSM BuildFsm(int numTransitions)
+    {
         var fsm = IFSM.NewInstance();
         for (int i = 0; i < numTransitions; i++)
         {
@@ -40,10 +39,18 @@ public class FSMTest
         fsm.InitialState = fsm.OwnedState[0];
         fsm.FinalState.Add(fsm.OwnedState[fsm.OwnedState.Count - 1]);
 
+        return fsm;
+    }
+
+    [Fact]
+    public void FsmCreateAndCloneTest()
+    {
+        var fsm = BuildFsm(NumTransitions);
+
         var clone = fsm.Clone();
 
         Assert.Equal(fsm.OwnedState.Count, clone.OwnedState.Count);
-        Assert.Equal(numTransitions, fsm.OwnedState.Count);
+        Assert.Equal(NumTransitions, fsm.OwnedState.Count);
         Assert.Equal(fsm, clone);
     }
 
@@ -54,5 +61,13 @@ public class FSMTest
                  "identity hash, which previously made ToString unstable by construction).")]
     public void FsmCloneToStringMatchesOriginal()
     {
+        // Same graph as FsmCreateAndCloneTest, kept separate because the content comparison
+        // passes and the string comparison does not.
+        var fsm = BuildFsm(NumTransitions);
+
+        var clone = fsm.Clone();
+
+        Assert.Equal(fsm, clone);
+        Assert.Equal(fsm.ToString(), clone.ToString());
     }
 }

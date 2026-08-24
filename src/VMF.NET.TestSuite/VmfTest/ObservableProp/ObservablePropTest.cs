@@ -141,5 +141,22 @@ public class ObservablePropTest
                  "VMF.NET has no static entry point to a model type's reflection.")]
     public void ThrowExceptionIfRuntimeMethodsAreUsedForStaticReflection()
     {
+        // NEEDS a static entry point to a model type's reflection (Java:
+        // ObserveMyProperties.type().reflect()). VmfProperty already carries the machinery this
+        // fact exercises -- EnsureInstanceAccess throws when the property was built with
+        // staticOnly -- but nothing can construct one that way, so the body is commented out
+        // rather than omitted. SetDefault does not exist yet either; see ReflectionSetUnsetTest.
+        //
+        // var nameProperty = IObserveMyProperties.Type().Reflect().PropertyByName("Name");
+        // Assert.NotNull(nameProperty);
+        //
+        // // none of these may be used on a property that is not associated with an object
+        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.Get());
+        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.Set(null));
+        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.GetDefault());
+        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.SetDefault(null));
+        // Assert.ThrowsAny<System.Exception>(() => _ = nameProperty!.IsSet);
+        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.Unset());
+        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.AddChangeListener(c => { }));
     }
 }

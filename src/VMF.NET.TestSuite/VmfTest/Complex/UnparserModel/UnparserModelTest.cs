@@ -43,5 +43,33 @@ public class UnparserModelTest
                  "VListChangeEvent exposes Added/Removed/Index but not the source list.")]
     public void TestRemoveDuringAddEventTest()
     {
+        var cls = IRuleClass.NewBuilder().WithName("RC1").Build();
+
+        var pa1 = IProperty.NewBuilder().WithName("pa").Build();
+        var pa2 = IProperty.NewBuilder().WithName("pa").Build();
+
+        cls.Properties.AddRange([pa1, pa2]);
+        cls.Properties.AddRange([pa1, pa2]);
+
+        // NEEDS VListChangeEvent.Source (Java: evt.source()), so the listener can reach the
+        // list it is observing and mutate it. Commented out only because it does not compile.
+        //
+        // cls.Properties.AddChangeListener(evt =>
+        // {
+        //     // remove duplicate properties
+        //     foreach (IProperty p1 in evt.Added)
+        //     {
+        //         foreach (IProperty p2 in new List<IProperty>(evt.Source))
+        //         {
+        //             if (!ReferenceEquals(p1, p2) && p1.Name == p2.Name)
+        //             {
+        //                 evt.Source.Remove(p1);
+        //             }
+        //         }
+        //     }
+        // });
+
+        // Properties
+        Assert.Equal(new[] { pa1, pa2 }, cls.Properties);
     }
 }
