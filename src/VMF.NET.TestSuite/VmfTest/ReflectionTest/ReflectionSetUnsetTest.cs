@@ -8,13 +8,6 @@ namespace VMF.NET.TestSuite.VmfTest.ReflectionTest;
 
 public class ReflectionSetUnsetTest
 {
-    private const string NeedsSetDefault =
-        "Needs VmfProperty.SetDefault(value) -- per-instance default values. VMF.NET has no such " +
-        "method; IVObjectInternalModifiable.SetDefaultValueById exists, is generated with an " +
-        "empty body (\"not used currently\"), and is never called. This is the concrete answer to " +
-        "the roadmap's open 'wire or delete SetDefaultValueById' question: wire it, because the " +
-        "reference suite depends on it.";
-
     [Fact]
     public void TestReflectionSetUnsetPrimitiveWithCompiletimeDefault()
     {
@@ -30,7 +23,7 @@ public class ReflectionSetUnsetTest
         Assert.Equal(23, aReflectionTest.Id);
     }
 
-    [Fact(Skip = NeedsSetDefault)]
+    [Fact]
     public void TestReflectionSetUnsetPrimitiveWithRuntimeDefault()
     {
         var aReflectionTest = IReflectionTest.NewInstance();
@@ -50,17 +43,14 @@ public class ReflectionSetUnsetTest
         // ... it should not be set
         Assert.False(aReflectionTest.Vmf().Reflect().PropertyByName("Id2")!.IsSet);
 
-        // NEEDS SetDefault -- commented out only because the body must still compile; restore
-        // these four lines together with un-skipping this fact.
-        //
-        // // we should check per instance default values:
-        // aReflectionTest.Vmf().Reflect().PropertyByName("Id2")!.SetDefault("abc");
-        //
-        // // the default value should be updated, so it should not be set
-        // Assert.False(aReflectionTest.Vmf().Reflect().PropertyByName("Id2")!.IsSet);
-        //
-        // // ... but the value should be "abc" instead of "null"
-        // Assert.Equal("abc", aReflectionTest.Id2);
+        // we should check per instance default values:
+        aReflectionTest.Vmf().Reflect().PropertyByName("Id2")!.SetDefault("abc");
+
+        // the default value should be updated, so it should not be set
+        Assert.False(aReflectionTest.Vmf().Reflect().PropertyByName("Id2")!.IsSet);
+
+        // ... but the value should be "abc" instead of "null"
+        Assert.Equal("abc", aReflectionTest.Id2);
     }
 
     [Fact(Skip = "Needs collection default values. The Java model gives getValues() a default " +
@@ -78,7 +68,7 @@ public class ReflectionSetUnsetTest
         Assert.Equal(3, aReflectionTest.Values.Count);
     }
 
-    [Fact(Skip = NeedsSetDefault)]
+    [Fact]
     public void TestReflectionSetUnsetContainmentProperties()
     {
         var aNode = INode.NewInstance();
@@ -86,14 +76,12 @@ public class ReflectionSetUnsetTest
         // containment properties cannot be set. we expect unset as default:
         Assert.False(aNode.Vmf().Reflect().PropertyByName("Parent")!.IsSet);
 
-        // NEEDS SetDefault -- commented out only because the body must still compile.
-        //
-        // // containment properties cannot be set. we expect an exception (for default values):
-        // Assert.ThrowsAny<System.Exception>(
-        //     () => aNode.Vmf().Reflect().PropertyByName("Parent")!.SetDefault(aNode));
+        // containment properties cannot be set. we expect an exception (for default values):
+        Assert.ThrowsAny<System.Exception>(
+            () => aNode.Vmf().Reflect().PropertyByName("Parent")!.SetDefault(aNode));
     }
 
-    [Fact(Skip = NeedsSetDefault)]
+    [Fact]
     public void TestReflectionSetUnsetReadOnlyProperties()
     {
         var aReflectionTest = IReflectionTest.NewInstance();
@@ -105,11 +93,9 @@ public class ReflectionSetUnsetTest
         Assert.ThrowsAny<System.Exception>(
             () => aReflectionTestRO.Vmf().Reflect().PropertyByName("Id")!.Set(24));
 
-        // NEEDS SetDefault -- commented out only because the body must still compile.
-        //
-        // // read-only properties cannot be set. we expect an exception (also for default values):
-        // Assert.ThrowsAny<System.Exception>(
-        //     () => aReflectionTestRO.Vmf().Reflect().PropertyByName("Id")!.SetDefault(25));
+        // read-only properties cannot be set. we expect an exception (also for default values):
+        Assert.ThrowsAny<System.Exception>(
+            () => aReflectionTestRO.Vmf().Reflect().PropertyByName("Id")!.SetDefault(25));
     }
 
     [Fact]

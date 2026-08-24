@@ -82,6 +82,10 @@ namespace {{ ns }}
 {{~ end ~}}
 {{~ end ~}}
 
+        // Per-instance default values, as in Java's _VMF_DEFAULT_VALUES: null means "no override,
+        // use the compile-time default". Allocated only when SetDefaultValueById is first used.
+        private object?[]? __vmf_defaultOverrides;
+
         // Set while this object is updated as the opposite side of a cross-reference, so the
         // resulting change is classified as an echo. See IChangeInternal.IsCrossRefEchoChange.
         private bool __vmf_crossRefEcho;
@@ -554,6 +558,13 @@ namespace {{ ns }}
 
         public object? GetDefaultValueById(int id)
         {
+            // A per-instance default set through reflection wins over the compile-time one.
+            if (__vmf_defaultOverrides != null && id >= 0 && id < __vmf_defaultOverrides.Length
+                && __vmf_defaultOverrides[id] != null)
+            {
+                return __vmf_defaultOverrides[id];
+            }
+
             switch (id)
             {
 {{~ for prop in all_props ~}}
@@ -650,7 +661,27 @@ namespace {{ ns }}
             SetPropertyValueById(id, GetDefaultValueById(id));
         }
 
-        public void SetDefaultValueById(int id, object? value) { /* not used currently */ }
+        public void SetDefaultValueById(int id, object? value)
+        {
+{{~ for prop in all_props ~}}
+{{~ if prop.IsContainer ~}}
+            if (id == {{ prop.PropId }})
+            {
+                throw new InvalidOperationException(
+                    "Cannot set default value for property '{{ prop.Name }}' with id=" + id +
+                    ": property is a containment property and not writable.");
+            }
+{{~ end ~}}
+{{~ end ~}}
+            // If the property was following its old default, it must follow the new one too --
+            // so capture "was it set?" BEFORE the default moves, then unset if it was not.
+            bool wasSetBeforeDefaultUpdate = IsSetById(id);
+
+            __vmf_defaultOverrides ??= new object?[_VMF_PROPERTY_NAMES.Length];
+            if (id >= 0 && id < __vmf_defaultOverrides.Length) __vmf_defaultOverrides[id] = value;
+
+            if (!wasSetBeforeDefaultUpdate) UnsetById(id);
+        }
 
         public void SetContainer(IVObject? container)
         {

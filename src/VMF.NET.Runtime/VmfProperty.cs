@@ -119,6 +119,24 @@ public sealed class VmfProperty
     }
 
     /// <summary>
+    /// Sets this property's default value <em>for this object only</em>. If the property was
+    /// unset it stays unset and follows the new default, so its value changes too. A containment
+    /// property cannot have its default set.
+    /// </summary>
+    public void SetDefault(object? value)
+    {
+        EnsureInstanceAccess();
+        if (_parent is IVObjectInternalModifiable modifiable)
+        {
+            modifiable.SetDefaultValueById(_propertyId, value);
+        }
+        else
+        {
+            throw new InvalidOperationException("Cannot modify unmodifiable object.");
+        }
+    }
+
+    /// <summary>
     /// Returns the annotations on this property.
     /// </summary>
     public IReadOnlyList<IAnnotation> Annotations()

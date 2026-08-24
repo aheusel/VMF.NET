@@ -1,8 +1,4 @@
 // Ported from eu.mihosoft.vmftest.observableprop.ObservablePropTest
-//
-// One of the five facts is still Skip-ped, needing static type reflection (M5). The skip
-// reason names the missing capability, so the skip count is the parity gap for this area
-// rather than the fact quietly disappearing.
 
 using System.Collections.Generic;
 using VMF.NET.Runtime;
@@ -136,27 +132,22 @@ public class ObservablePropTest
         Assert.Equal(2, actualValues2[2].Count);
     }
 
-    [Fact(Skip = "Needs static type reflection (Java's Type.type().reflect()): a VmfProperty " +
-                 "obtained without an instance must throw on get/set/isSet/unset/listen. " +
-                 "VMF.NET has no static entry point to a model type's reflection.")]
+    [Fact]
     public void ThrowExceptionIfRuntimeMethodsAreUsedForStaticReflection()
     {
-        // NEEDS a static entry point to a model type's reflection (Java:
-        // ObserveMyProperties.type().reflect()). VmfProperty already carries the machinery this
-        // fact exercises -- EnsureInstanceAccess throws when the property was built with
-        // staticOnly -- but nothing can construct one that way, so the body is commented out
-        // rather than omitted. SetDefault does not exist yet either; see ReflectionSetUnsetTest.
-        //
-        // var nameProperty = IObserveMyProperties.Type().Reflect().PropertyByName("Name");
-        // Assert.NotNull(nameProperty);
-        //
-        // // none of these may be used on a property that is not associated with an object
-        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.Get());
-        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.Set(null));
-        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.GetDefault());
-        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.SetDefault(null));
-        // Assert.ThrowsAny<System.Exception>(() => _ = nameProperty!.IsSet);
-        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.Unset());
-        // Assert.ThrowsAny<System.Exception>(() => nameProperty!.AddChangeListener(c => { }));
+        // DEVIATION: Java's static entry point is ObserveMyProperties.type(); C# cannot use that
+        // name, because a model may declare a property called Type. See StaticReflectionTest.
+        var nameProperty = IObserveMyProperties.ModelType().Reflect().PropertyByName("Name");
+
+        Assert.NotNull(nameProperty);
+
+        // none of these may be used on a property that is not associated with an object
+        Assert.ThrowsAny<System.Exception>(() => nameProperty!.Get());
+        Assert.ThrowsAny<System.Exception>(() => nameProperty!.Set(null));
+        Assert.ThrowsAny<System.Exception>(() => nameProperty!.GetDefault());
+        Assert.ThrowsAny<System.Exception>(() => nameProperty!.SetDefault(null));
+        Assert.ThrowsAny<System.Exception>(() => _ = nameProperty!.IsSet);
+        Assert.ThrowsAny<System.Exception>(() => nameProperty!.Unset());
+        Assert.ThrowsAny<System.Exception>(() => nameProperty!.AddChangeListener(c => { }));
     }
 }
