@@ -131,11 +131,22 @@ public static class VmfTypeUtils
 
     private static IReadOnlyList<VmfProperty> GetPropertiesForType(IVObject context, VmfType type)
     {
-        // If the type matches our context object, use its reflect API directly
+        // The context object's own type needs no prototype.
         if (context.Vmf().Reflect().Type().Name == type.Name)
             return context.Vmf().Reflect().Properties();
 
-        // Otherwise return empty — we can't easily get properties without an instance
-        return Array.Empty<VmfProperty>();
+        // Any other type is reached through static reflection. This used to return empty, with
+        // the note that properties could not be had without an instance -- which quietly made
+        // IsPolymorphic approximate: a supertype used as a property type on some OTHER type went
+        // unseen, and the @vmf-type discriminator was then omitted where it was needed.
+        try
+        {
+            return type.Reflect().Properties();
+        }
+        catch (InvalidOperationException)
+        {
+            // No prototype factory: interface-only or otherwise not instantiable.
+            return Array.Empty<VmfProperty>();
+        }
     }
 }
