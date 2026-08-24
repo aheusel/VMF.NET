@@ -169,6 +169,26 @@ rather than of a bad port. So:
 Java's `println` calls assert nothing and are dropped. Java's assertion *messages* survive as
 trailing comments, since xUnit's `Assert.Equal` takes no message argument.
 
+### Verifying a port: read the two side by side
+
+**Counting does not work.** A sweep comparing assertions-per-file was tried and found nothing;
+reading the files afterwards found five damaged areas. It cannot work, for three separate
+reasons:
+
+- Weakening *raises* the count. `contains(a, b)` is one Java assertion; the (wrong)
+  `Assert.Contains` × 2 that replaced it is two.
+- Ports legitimately add assertions — several Java facts assert nothing at all, or only the
+  detach half — so a dropped statement nets out against an addition.
+- Excluding files that contain a skip, to avoid false positives, excludes exactly the files
+  most likely to be damaged.
+
+So the check is: open the Java fact and the C# fact together and read them statement by
+statement. There is no cheaper substitute, and the cost is small next to the alternative — a
+suite that reports green while asserting less than it appears to.
+
+**Recency is not safety.** The `UnparserModelTest` block was dropped days *after* these rules
+were written, by someone who knew them. Verify new ports too.
+
 ### Settable container properties
 
 Java generates a container setter automatically, so `child.setParent(p)` and
