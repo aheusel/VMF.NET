@@ -12,13 +12,6 @@ namespace VMF.NET.TestSuite.VmfTest.EventsUndoRedo;
 
 public class UndoRedoWithContainmentTest
 {
-    private const string NeedsContainerChangeEvent =
-        "Needs a change event when a child's container changes (M8). Attaching a child sets its " +
-        "container through SetContainer, which updates the backing field without firing a property " +
-        "change, and the generated container setter attaches by driving the OPPOSITE property, so " +
-        "nothing fires on the child's Parent property either. Only the numChangesProp assertion " +
-        "fails; every other assertion in this fact already passes.";
-
     [Fact]
     public void UnoRedoWithListContainmentTestViaListAdd()
     {
@@ -58,7 +51,7 @@ public class UndoRedoWithContainmentTest
         Assert.Equal(2, parent.Vmf().Changes().All().Count);
     }
 
-    [Fact(Skip = NeedsContainerChangeEvent)]
+    [Fact]
     public void UnoRedoWithListContainmentTestViaSetParent()
     {
         var parent = IParentListContainment.NewInstance();
@@ -95,7 +88,7 @@ public class UndoRedoWithContainmentTest
         Assert.Equal(2, parent.Vmf().Changes().All().Count);
     }
 
-    [Fact(Skip = NeedsContainerChangeEvent)]
+    [Fact]
     public void UnoRedoWithSingleContainmentTest1()
     {
         var parent = IParentSingleContainment.NewInstance();
@@ -132,7 +125,7 @@ public class UndoRedoWithContainmentTest
         Assert.Equal(2, parent.Vmf().Changes().All().Count);
     }
 
-    [Fact(Skip = NeedsContainerChangeEvent)]
+    [Fact]
     public void UnoRedoWithSingleContainmentTest2()
     {
         var parent = IParentSingleContainment.NewInstance();

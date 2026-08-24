@@ -103,11 +103,7 @@ public class VFlowTest
     /// <summary>
     /// Verifies <a href="https://github.com/miho/VMF/issues/36">issue 36</a>.
     /// </summary>
-    [Fact(Skip = "Needs a change event when a child's container changes. The fact counts " +
-                 "'parent' property changes on nodes as they are added to flow.Nodes; the " +
-                 "generated containment listener calls SetContainer(this), which updates the " +
-                 "backing field without firing a property change. The 'nodes' half already " +
-                 "passes.")]
+    [Fact]
     public void TestGlobalListener()
     {
         var flow = IVFlow.NewInstance();

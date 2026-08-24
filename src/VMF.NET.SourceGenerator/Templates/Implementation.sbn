@@ -230,8 +230,21 @@ namespace {{ ns }}
                                 if (added is IVObjectInternalModifiable mod)
                                 {
                                     mod.UnregisterFromContainers();
+                                    var oldContainer_ = mod.GetContainer();
                                     mod.SetContainer(this);
-                                    mod.SetContainerPropertyId({{ prop.PropId }});
+{{~ # The CHILD's container property id, not this list's -- Java stores
+   # valueInternal._vmf_getPropertyIdByName(oppositeName). Detach reads it back to name the
+   # property it fires on. ~}}
+{{~ if prop.Containment.OppositeProp != null ~}}
+                                    mod.SetContainerPropertyId({{ prop.Containment.OppositeProp.PropId }});
+                                    // The child's container changed; say so on the child.
+                                    ChangeNotification.FireProperty(
+                                        (IVObject)mod, "{{ prop.Containment.OppositeProp.Name }}",
+                                        {{ prop.Containment.OppositeProp.PropId }}, oldContainer_, this,
+                                        "vmf:change:type:containment");
+{{~ else ~}}
+                                    mod.SetContainerPropertyId(-1);
+{{~ end ~}}
                                 }
                             }
                         }
@@ -378,8 +391,18 @@ namespace {{ ns }}
                 if (value is IVObjectInternalModifiable newMod)
                 {
                     newMod.UnregisterFromContainers();
+                    var oldContainer_{{ prop.PropId }} = newMod.GetContainer();
                     newMod.SetContainer(this);
-                    newMod.SetContainerPropertyId({{ prop.PropId }});
+{{~ if prop.Containment.OppositeProp != null ~}}
+                    newMod.SetContainerPropertyId({{ prop.Containment.OppositeProp.PropId }});
+                    // The child's container changed; say so on the child.
+                    ChangeNotification.FireProperty(
+                        (IVObject)newMod, "{{ prop.Containment.OppositeProp.Name }}",
+                        {{ prop.Containment.OppositeProp.PropId }}, oldContainer_{{ prop.PropId }}, this,
+                        "vmf:change:type:containment");
+{{~ else ~}}
+                    newMod.SetContainerPropertyId(-1);
+{{~ end ~}}
                 }
 {{~ end ~}}
                 // Assign BEFORE the cross-reference sync below: that sets the opposite,
@@ -715,8 +738,20 @@ namespace {{ ns }}
 {{~ end ~}}
             }
 {{~ end ~}}
+            // Capture before clearing: the event names the container property by its id.
+            var oldContainer_ = __vmf_container;
+            int oldContainerPropId_ = __vmf_container_prop_id;
+
             __vmf_container = null;
             __vmf_container_prop_id = -1;
+
+            if (oldContainer_ != null && oldContainerPropId_ >= 0
+                && oldContainerPropId_ < _VMF_PROPERTY_NAMES.Length)
+            {
+                ChangeNotification.FireProperty(
+                    this, _VMF_PROPERTY_NAMES[oldContainerPropId_], oldContainerPropId_,
+                    oldContainer_, null, "vmf:change:type:containment");
+            }
         }
 
         public bool IsCrossRefEcho

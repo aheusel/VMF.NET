@@ -38,13 +38,36 @@ public static class ChangeNotification
         object? newValue,
         string internalChangeInfo = "")
     {
-        var managers = Collect(source);
+        // A change to the object's own CONTAINER property is the echo of a containment change
+        // that belongs to the container, so it is reported only where it happened. Java arrives
+        // at the same place by ordering -- it fires before the child joins the parent's listener
+        // graph -- and its fact records the outcome as "fired only locally in child".
+        var managers = IsContainerProperty(source, propertyId) ? Own(source) : Collect(source);
         if (managers == null) return;
 
         for (int i = 0; i < managers.Count; i++)
         {
             managers[i].FirePropertyChange(source, propertyName, propertyId, oldValue, newValue, internalChangeInfo);
         }
+    }
+
+    /// <summary>True if <paramref name="propertyId"/> is one of the object's container properties.</summary>
+    internal static bool IsContainerProperty(IVObject source, int propertyId)
+    {
+        if (propertyId < 0 || source is not IVObjectInternal internalObj) return false;
+
+        foreach (int id in internalObj.GetParentIndices())
+        {
+            if (id == propertyId) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Just the object's own manager, if it has one.</summary>
+    private static List<ChangesManager>? Own(IVObject source)
+    {
+        var manager = (source as IVObjectInternal)?.GetChangesManager();
+        return manager == null ? null : [manager];
     }
 
     /// <summary>Reports a list change to every manager that can see it.</summary>

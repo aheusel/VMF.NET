@@ -131,7 +131,14 @@ public sealed class ChangesManager : IChanges
         // change happened, and it belongs to the object it was initiated on.
         bool isEcho = IChangeInternal.IsCrossRefEchoChange(change);
 
-        if (_recording && !isEcho)
+        // Java skips recording a change to a CONTAINER property too (its "foundParent" check):
+        // the containment change belongs to the container, and is recorded there. This only
+        // shows when the child itself is recording, which no ported fact does -- but leaving it
+        // out would diverge from Java for anyone who does.
+        bool isContainerChange = change.PropertyChange is not null
+            && ChangeNotification.IsContainerProperty(change.Object, PropertyIdOf(change));
+
+        if (_recording && !isEcho && !isContainerChange)
         {
             _allChanges?.Add(change);
             _versionNumber++;
@@ -157,6 +164,13 @@ public sealed class ChangesManager : IChanges
             if (!recursive && !isOwnChange) continue;
             listener(change);
         }
+    }
+
+    private static int PropertyIdOf(IChange change)
+    {
+        return change.Object is IVObjectInternal internalObj
+            ? internalObj.GetPropertyIdByName(change.PropertyName)
+            : -1;
     }
 
     private sealed class Subscription(Action unsubscribe) : IDisposable
