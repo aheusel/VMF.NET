@@ -136,9 +136,34 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 | JUnit `@Test` | xUnit `[Fact]` |
 | `assertThat(actual, equalTo(expected))` | `Assert.Equal(expected, actual)` — **argument order flips** |
 | `Assert.assertTrue(x)` | `Assert.True(x)` |
+| `contains(a, b)` | `Assert.Equal(new[] { a, b }, list)` — **exactly these, in this order** |
+| `hasItem(a)` / `hasItems(a, b)` | `Assert.Contains(a, list)` — membership only |
+| `not(hasItem(a))` | `Assert.DoesNotContain(a, list)` |
 
 The model interface is `partial` — the generator adds `NewInstance`, `NewBuilder`, `Clone`,
 `AsReadOnly` and the `Builder` type to it.
+
+### Fidelity rules
+
+A port is a translation, not a rewrite. Deviating silently makes the suite claim coverage it
+does not have, so:
+
+- **Port every statement.** Including ones that look redundant. `HorsesTest.horseTest` originally
+  lost its last seven lines — the second tournament, and the assertion that a horse attends two
+  of them, which is the point of tournaments being references rather than containment. Nothing
+  failed; it was simply dropped, and the suite reported green.
+- **Preserve assertion strength.** Hamcrest `contains(...)` asserts the exact sequence;
+  translating it to a couple of `Assert.Contains` calls silently drops both the ordering and the
+  count. Use the table above.
+- **Preserve literals**, including non-ASCII ones. "Horst Müller" is not "Horst Mueller".
+- **Give a skipped fact a real body.** `[Fact(Skip = "…")]` over an empty body is not a ported
+  fact — it is a note. Write the body as it will run, then add the skip, so that un-skipping is
+  a one-line change and the fact has been shown to be expressible at all.
+- **Where a deviation is unavoidable, say so at the top of the file** with a `DEVIATION:` note
+  giving the reason, as the model ports do.
+
+Java's `println` calls assert nothing and are dropped. Java's assertion *messages* survive as
+trailing comments, since xUnit's `Assert.Equal` takes no message argument.
 
 ### Settable container properties
 
