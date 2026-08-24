@@ -142,6 +142,12 @@ public sealed class DelegationSymbolData
 
     /// <summary>Custom documentation.</summary>
     public string? Documentation { get; set; }
+
+    /// <summary>
+    /// The <c>T</c> of the <c>IDelegatedBehavior&lt;T&gt;</c> the delegate class declares.
+    /// See <see cref="DelegationInfo.CallerTypeName"/>.
+    /// </summary>
+    public string CallerTypeName { get; set; } = "";
 }
 
 /// <summary>[VmfModel] attribute data.</summary>

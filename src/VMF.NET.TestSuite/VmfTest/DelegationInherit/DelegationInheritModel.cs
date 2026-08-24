@@ -1,10 +1,11 @@
-// Ported from eu.mihosoft.vmftest.delegationinherit.vmfmodel.DelegationInherit
+// Ported from eu.mihosoft.vmftest.delegationinherit.vmfmodel.DelegationInherit,
+// DeviceDelegate and CircuitDeviceDelegate.
 //
-// DEVIATION: Java's CircuitDevice leaves process()/consume() without a method-level
-// @DelegateTo and relies on the type-level (constructor) delegation to supply them.
-// VMF.NET generates method bodies only from method-level [DelegateTo], so the two
-// methods carry an explicit attribute here. The type-level [DelegateTo] is kept so the
-// constructor-delegation path is still exercised.
+// A compile-only model, as in Java: it has no test class. What it pins is that ICircuitDevice's
+// Process()/Consume() take their delegate from the TYPE-level [DelegateTo] -- the Java source
+// comments those two lines "uses constructor delegation info" -- while Produce() names it itself.
+//
+// The `new` keywords are C#: re-declaring an inherited interface method otherwise warns CS0108.
 
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
@@ -49,10 +50,10 @@ public partial interface IDevice : IProcessor
 [DelegateTo(typeof(CircuitDeviceDelegate))]
 public partial interface ICircuitDevice : IDevice
 {
-    [DelegateTo(typeof(CircuitDeviceDelegate))]
+    // uses constructor delegation info
     new void Process();
 
-    [DelegateTo(typeof(CircuitDeviceDelegate))]
+    // uses constructor delegation info
     new void Consume();
 
     [DelegateTo(typeof(CircuitDeviceDelegate))]
@@ -61,28 +62,18 @@ public partial interface ICircuitDevice : IDevice
 
 public sealed class DeviceDelegate : IDelegatedBehavior<IDevice>
 {
-    private IDevice? _caller;
-    public void SetCaller(IDevice caller) => _caller = caller;
-
-    public int ProduceCount { get; private set; }
-    public int ConsumeCount { get; private set; }
-    public int ProcessCount { get; private set; }
-
-    public void Produce() => ProduceCount++;
-    public void Consume() => ConsumeCount++;
-    public void Process() => ProcessCount++;
+    public void Consume() { }
+    public void Produce() { }
+    public void Process() { }
 }
 
-public sealed class CircuitDeviceDelegate : IDelegatedBehavior<ICircuitDevice>
+public sealed class CircuitDeviceDelegate : IDelegatedBehavior<IDevice>
 {
-    private ICircuitDevice? _caller;
-    public void SetCaller(ICircuitDevice caller) => _caller = caller;
+    public void OnCircuitDeviceInstantiated()
+    {
+    }
 
-    public int ProduceCount { get; private set; }
-    public int ConsumeCount { get; private set; }
-    public int ProcessCount { get; private set; }
-
-    public void Produce() => ProduceCount++;
-    public void Consume() => ConsumeCount++;
-    public void Process() => ProcessCount++;
+    public void Consume() { }
+    public void Produce() { }
+    public void Process() { }
 }

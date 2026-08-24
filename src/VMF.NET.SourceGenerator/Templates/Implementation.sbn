@@ -110,13 +110,24 @@ namespace {{ ns }}
         public event PropertyChangedEventHandler? PropertyChanged;
 {{~ end ~}}
 
+        // --- Delegates ---
+        // One field per delegate class: the constructor hook and every delegated method share an
+        // instance, so a delegate that keeps state between calls sees a single caller.
+{{~ for del in type.DelegationsOneForEachType ~}}
+        private {{ del.FullTypeName }}? {{ del.VariableName }};
+{{~ end ~}}
+
         // --- Constructor ---
         {{ if type.IsImmutable }}internal{{ else }}public{{ end }} {{ type.ImplClassName }}()
         {
 {{~ for del in type.ConstructorDelegations ~}}
-            // Constructor delegation
-            var __ctorDelegate = new {{ del.FullTypeName }}();
-            ((IDelegatedBehavior<{{ type.TypeName }}>)__ctorDelegate).SetCaller(this);
+            // Type-level [DelegateTo]: the model's hook for running code at instantiation.
+            if ({{ del.VariableName }} == null)
+            {
+                {{ del.VariableName }} = new {{ del.FullTypeName }}();
+                ((IDelegatedBehavior<{{ del.CallerTypeName }}>){{ del.VariableName }}).SetCaller(this);
+            }
+            {{ del.VariableName }}.{{ del.MethodName }}();
 {{~ end ~}}
         }
 
@@ -505,13 +516,17 @@ namespace {{ ns }}
 
 {{~ # --- Delegation methods --- ~}}
 {{~ for del in type.MethodDelegations ~}}
-        private {{ del.FullTypeName }}? {{ del.VariableName }};
+{{~ if !del.IsExclusivelyForInterfaceOnlyTypes ~}}
         public {{ del.ReturnType }} {{ del.MethodName }}({{ for i in 0..(del.ParamTypes.size - 1) }}{{ if i > 0 }}, {{ end }}{{ del.ParamTypes[i] }} {{ del.ParamNames[i] }}{{ end }})
         {
-            {{ del.VariableName }} ??= new {{ del.FullTypeName }}();
-            ((IDelegatedBehavior<{{ type.TypeName }}>){{ del.VariableName }}).SetCaller(this);
+            if ({{ del.VariableName }} == null)
+            {
+                {{ del.VariableName }} = new {{ del.FullTypeName }}();
+                ((IDelegatedBehavior<{{ del.CallerTypeName }}>){{ del.VariableName }}).SetCaller(this);
+            }
             {{ if del.ReturnType != "void" }}return {{ end }}{{ del.VariableName }}.{{ del.MethodName }}({{ for i in 0..(del.ParamNames.size - 1) }}{{ if i > 0 }}, {{ end }}{{ del.ParamNames[i] }}{{ end }});
         }
+{{~ end ~}}
 {{~ end ~}}
 
         // --- IVObject ---

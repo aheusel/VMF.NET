@@ -424,6 +424,133 @@ public class ModelAnalyzerTests
         Assert.True(t.ConstructorDelegations[0].IsConstructorDelegation);
     }
 
+    // --- Delegation inheritance (M6) ---
+    //
+    // Java's ModelType holds only what a type DECLARES; Implementation is where a supertype's
+    // delegations are appended and reduced to one per signature. These pin that reduction, which
+    // no ported fact asserts directly.
+
+    private static DelegationSymbolData MakeMethodDelegation(string behavior, string method) =>
+        new()
+        {
+            FullTypeName = behavior,
+            MethodName = method,
+            ReturnType = "void",
+            CallerTypeName = "Test.Models.IBase",
+        };
+
+    [Fact]
+    public void MethodDelegation_IsInheritedBySubtype()
+    {
+        var baseSym = MakeInterface("IBase");
+        baseSym.MethodDelegations.Add(MakeMethodDelegation("Test.BaseBehavior", "DoSomething"));
+
+        var derived = MakeInterface("IDerived");
+        derived.BaseTypeNames.Add($"{Ns}.IBase");
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { baseSym, derived });
+        Assert.False(model.HasErrors);
+
+        var t = model.Types.First(x => x.TypeName == "IDerived");
+        Assert.Single(t.MethodDelegations);
+        Assert.Equal("DoSomething", t.MethodDelegations[0].MethodName);
+        Assert.Equal("Test.BaseBehavior", t.MethodDelegations[0].FullTypeName);
+    }
+
+    [Fact]
+    public void MethodDelegation_OwnDeclarationOverridesInherited()
+    {
+        var baseSym = MakeInterface("IBase");
+        baseSym.MethodDelegations.Add(MakeMethodDelegation("Test.BaseBehavior", "DoSomething"));
+
+        var derived = MakeInterface("IDerived");
+        derived.BaseTypeNames.Add($"{Ns}.IBase");
+        derived.MethodDelegations.Add(MakeMethodDelegation("Test.DerivedBehavior", "DoSomething"));
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { baseSym, derived });
+        Assert.False(model.HasErrors);
+
+        var t = model.Types.First(x => x.TypeName == "IDerived");
+        Assert.Single(t.MethodDelegations);
+        Assert.Equal("Test.DerivedBehavior", t.MethodDelegations[0].FullTypeName);
+    }
+
+    [Fact]
+    public void MethodDelegation_OverloadsAreKeptApart()
+    {
+        // The signature includes the parameter types, so two overloads are two delegations.
+        var baseSym = MakeInterface("IBase");
+        var noArgs = MakeMethodDelegation("Test.BaseBehavior", "DoSomething");
+        var oneArg = MakeMethodDelegation("Test.BaseBehavior", "DoSomething");
+        oneArg.ParamTypes = new List<string> { "int" };
+        oneArg.ParamNames = new List<string> { "count" };
+        baseSym.MethodDelegations.Add(noArgs);
+        baseSym.MethodDelegations.Add(oneArg);
+
+        var derived = MakeInterface("IDerived");
+        derived.BaseTypeNames.Add($"{Ns}.IBase");
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { baseSym, derived });
+        Assert.False(model.HasErrors);
+
+        Assert.Equal(2, model.Types.First(x => x.TypeName == "IDerived").MethodDelegations.Count);
+    }
+
+    [Fact]
+    public void ConstructorDelegation_IsInheritedAndOnlyTheNearestSurvives()
+    {
+        // Every constructor delegation shares the signature "constructor-()", so a type inheriting
+        // two of them keeps one -- its own, or failing that the nearest supertype's.
+        var grandParent = MakeInterface("IBase");
+        grandParent.ConstructorDelegation = new DelegationSymbolData
+        {
+            FullTypeName = "Test.BaseInit",
+            MethodName = "OnBaseInstantiated",
+        };
+
+        var parent = MakeInterface("IMiddle");
+        parent.BaseTypeNames.Add($"{Ns}.IBase");
+        parent.ConstructorDelegation = new DelegationSymbolData
+        {
+            FullTypeName = "Test.MiddleInit",
+            MethodName = "OnMiddleInstantiated",
+        };
+
+        var derived = MakeInterface("IDerived");
+        derived.BaseTypeNames.Add($"{Ns}.IMiddle");
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { grandParent, parent, derived });
+        Assert.False(model.HasErrors);
+
+        var t = model.Types.First(x => x.TypeName == "IDerived");
+        Assert.Single(t.ConstructorDelegations);
+        Assert.Equal("OnMiddleInstantiated", t.ConstructorDelegations[0].MethodName);
+    }
+
+    [Fact]
+    public void Delegations_OneFieldPerBehaviorClass()
+    {
+        // Two methods on the same behaviour class share one field, so the object holds one
+        // delegate instance -- what lets a delegate keep state between calls.
+        var sym = MakeInterface("IFoo");
+        sym.MethodDelegations.Add(MakeMethodDelegation("Test.FooBehavior", "First"));
+        sym.MethodDelegations.Add(MakeMethodDelegation("Test.FooBehavior", "Second"));
+        sym.MethodDelegations.Add(MakeMethodDelegation("Test.OtherBehavior", "Third"));
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { sym });
+        Assert.False(model.HasErrors);
+
+        var t = model.Types[0];
+        Assert.Equal(3, t.MethodDelegations.Count);
+        Assert.Equal(2, t.DelegationsOneForEachType.Count);
+        Assert.Equal(
+            t.MethodDelegations[0].VariableName,
+            t.MethodDelegations[1].VariableName);
+        Assert.NotEqual(
+            t.MethodDelegations[0].VariableName,
+            t.MethodDelegations[2].VariableName);
+    }
+
     // --- Validation ---
 
     [Fact]

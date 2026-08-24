@@ -1,9 +1,8 @@
 // Ported from eu.mihosoft.vmftest.parentcontainment01.vmfmodel.ContainmentTest
+// and eu.mihosoft.vmftest.parentcontainment01.CodeEntityDelegate.
 //
-// DEVIATION: Java declares root() on the [InterfaceOnly] CodeEntity and relies on it being
-// inherited by every subtype. VMF.NET does not generate INHERITED [DelegateTo] methods, so
-// the concrete types re-declare it. CodeEntityDelegate therefore implements
-// IDelegatedBehavior<T> once per model type that delegates to it.
+// The model declares no containment at all: CodeEntity carries a type-level [DelegateTo], and the
+// delegate's instantiation hook registers the change listener that populates Parent.
 
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
@@ -32,41 +31,47 @@ public partial interface IOperatorExpression : IExpression
 {
     IExpression? Left { get; set; }
     IExpression? Right { get; set; }
-
-    [DelegateTo(typeof(CodeEntityDelegate))]
-    new ICodeEntity? Root();
 }
 
 [VmfModel]
 public partial interface INumberExpression : IExpression
 {
     double? Value { get; set; }
-
-    [DelegateTo(typeof(CodeEntityDelegate))]
-    new ICodeEntity? Root();
 }
 
-/// <summary>
-/// Walks up the <see cref="ICodeEntity.Parent"/> chain to the root entity.
-/// </summary>
-public sealed class CodeEntityDelegate
-    : IDelegatedBehavior<ICodeEntity>,
-      IDelegatedBehavior<IOperatorExpression>,
-      IDelegatedBehavior<INumberExpression>
+public sealed class CodeEntityDelegate : IDelegatedBehavior<ICodeEntity>
 {
-    private ICodeEntity? _caller;
+    private ICodeEntity? _codeEntity;
 
-    void IDelegatedBehavior<ICodeEntity>.SetCaller(ICodeEntity caller) => _caller = caller;
-    void IDelegatedBehavior<IOperatorExpression>.SetCaller(IOperatorExpression caller) => _caller = caller;
-    void IDelegatedBehavior<INumberExpression>.SetCaller(INumberExpression caller) => _caller = caller;
+    public void SetCaller(ICodeEntity caller) => _codeEntity = caller;
+
+    public void OnCodeEntityInstantiated()
+    {
+        _codeEntity!.Vmf().Changes().AddListener(l =>
+        {
+            if (l.Object != _codeEntity || "Parent" == l.PropertyName)
+            {
+                return;
+            }
+
+            object? o = l.PropertyChange!.NewValue;
+
+            if (o is ICodeEntity cE)
+            {
+                cE.Parent = _codeEntity;
+            }
+        }, false);
+    }
 
     public ICodeEntity? Root()
     {
-        var current = _caller;
-        while (current?.Parent is not null)
+        ICodeEntity? cE = _codeEntity;
+
+        while (cE!.Parent != null)
         {
-            current = current.Parent;
+            cE = cE.Parent;
         }
-        return current;
+
+        return cE;
     }
 }

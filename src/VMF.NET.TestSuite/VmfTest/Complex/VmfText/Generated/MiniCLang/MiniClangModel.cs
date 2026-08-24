@@ -4,10 +4,7 @@
 //  1. Covariant property narrowing (ConstExpression.getValue() -> Integer/Double/Boolean/
 //     String) has no C# equivalent on interfaces, so the const-expression types inherit
 //     Value from IConstExpression unchanged.
-//  2. Java's ControlFlowChildNode declares a delegated parentScopes() method inherited by
-//     every statement/expression type. VMF.NET does not generate INHERITED [DelegateTo]
-//     methods, which would force a re-declaration in ~40 types, so it is omitted here.
-//  3. Members inherited from two unrelated mixins (ArraySizes, VarName, Statements, Left,
+//  2. Members inherited from two unrelated mixins (ArraySizes, VarName, Statements, Left,
 //     Right, FunctionName, DeclType) are re-declared with `new` to resolve CS0229.
 
 using VMF.NET.Runtime;
@@ -38,7 +35,11 @@ public partial interface ICodeElement
 public partial interface IWithId : ICodeElement { int Id { get; set; } }
 
 [VmfModel][InterfaceOnly]
-public partial interface IControlFlowChildNode { }
+public partial interface IControlFlowChildNode
+{
+    [DelegateTo(typeof(ControlFlowChildNodeDelegate))]
+    VList<IControlFlowScope>? ParentScopes();
+}
 
 [VmfModel][InterfaceOnly]
 public partial interface IControlFlowScope : IWithId, IControlFlowChildNode
@@ -452,4 +453,18 @@ public partial interface IIntLiteral : ICodeElement
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] int? Value { get; set; }
+}
+
+/// <summary>
+/// Ported from eu.mihosoft.vmftest.complex.vmf_text.generated.miniclang
+/// .ControlFlowChildNodeDelegate. Declared at IVObject, as Java declares it at VObject, so the
+/// one delegate serves every type that inherits ParentScopes.
+/// </summary>
+public sealed class ControlFlowChildNodeDelegate : IDelegatedBehavior<IVObject>
+{
+    private IVObject? _obj;
+
+    public void SetCaller(IVObject caller) => _obj = caller;
+
+    public VList<IControlFlowScope>? ParentScopes() => null;
 }

@@ -160,6 +160,17 @@ public static class ModelAnalyzer
             ComputeAllInheritedTypes(type, type.AllInheritedTypes, new HashSet<string>());
         }
 
+        // --- PASS 6b: Inherit delegations from supertypes ---
+        // Snapshot first: every type reads its supertypes' DECLARED delegations, so nothing may
+        // observe a list that an earlier iteration has already extended.
+        var declaredDelegations = model.Types.ToDictionary(
+            t => t.FullTypeName,
+            t => new List<DelegationInfo>(t.Delegations));
+        foreach (var type in model.Types)
+        {
+            InheritDelegations(type, declaredDelegations);
+        }
+
         // --- PASS 7: Validation ---
         Validate(model);
 
@@ -262,7 +273,9 @@ public static class ModelAnalyzer
         if (symbol.ConstructorDelegation != null)
         {
             var cd = symbol.ConstructorDelegation;
-            var info = new DelegationInfo(cd.FullTypeName, "", "void", new(), new(), true, cd.Documentation);
+            var info = new DelegationInfo(
+                cd.FullTypeName, cd.MethodName, "void", new(), new(), true, cd.Documentation,
+                cd.CallerTypeName);
             typeInfo.Delegations.Add(info);
             typeInfo.ConstructorDelegations.Add(info);
         }
@@ -273,7 +286,7 @@ public static class ModelAnalyzer
             var info = new DelegationInfo(
                 del.FullTypeName, del.MethodName, del.ReturnType,
                 new List<string>(del.ParamTypes), new List<string>(del.ParamNames),
-                false, del.Documentation);
+                false, del.Documentation, del.CallerTypeName);
 
             if ((!string.IsNullOrEmpty(info.FullTypeName)) ||
                 (info.IsExclusivelyForInterfaceOnlyTypes && typeInfo.IsInterfaceOnly))
@@ -286,6 +299,53 @@ public static class ModelAnalyzer
                 model.AddError(
                     $"Custom method '{typeInfo.TypeName}.{del.MethodName}(...)' does not define a delegation class.");
             }
+        }
+    }
+
+    /// <summary>
+    /// Adds the delegations a type inherits from its supertypes, after its own, and reduces the
+    /// result to one entry per signature so the nearest declaration wins. Mirrors Java's
+    /// <c>Implementation.initPropertiesImportsAndDelegates</c>: <c>ModelType</c> holds only what a
+    /// type declares, and inheritance is applied when the implementation is built.
+    /// </summary>
+    private static void InheritDelegations(
+        ModelTypeInfo type, Dictionary<string, List<DelegationInfo>> declared)
+    {
+        var inherited = new List<DelegationInfo>();
+        CollectInheritedDelegations(type, declared, inherited);
+        if (inherited.Count == 0) return;
+
+        // Own first, so a redeclaration in this type overrides the inherited one. Every
+        // constructor delegation shares the signature "constructor-()", which is what leaves
+        // exactly one of those per implementation.
+        var all = new List<DelegationInfo>(type.Delegations);
+        all.AddRange(inherited);
+
+        var seen = new HashSet<string>();
+        type.Delegations.Clear();
+        type.MethodDelegations.Clear();
+        type.ConstructorDelegations.Clear();
+
+        foreach (var del in all)
+        {
+            if (!seen.Add(del.MethodSignature)) continue;
+
+            type.Delegations.Add(del);
+            if (del.IsConstructorDelegation) type.ConstructorDelegations.Add(del);
+            else type.MethodDelegations.Add(del);
+        }
+    }
+
+    private static void CollectInheritedDelegations(
+        ModelTypeInfo type, Dictionary<string, List<DelegationInfo>> declared, List<DelegationInfo> result)
+    {
+        foreach (var baseType in type.Implements)
+        {
+            if (declared.TryGetValue(baseType.FullTypeName, out var baseDelegations))
+            {
+                result.AddRange(baseDelegations);
+            }
+            CollectInheritedDelegations(baseType, declared, result);
         }
     }
 

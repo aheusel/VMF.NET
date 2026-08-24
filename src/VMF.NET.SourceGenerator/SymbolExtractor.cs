@@ -45,6 +45,14 @@ internal static class SymbolExtractor
             }
         }
 
+        // Constructor delegation — read first, because a type-level [DelegateTo] also supplies
+        // the behaviour class for methods on this type that carry no attribute of their own.
+        var ctorDelegation = GetConstructorDelegation(symbol);
+        if (ctorDelegation != null)
+        {
+            data.ConstructorDelegation = ctorDelegation;
+        }
+
         // Delegations
         foreach (var member in symbol.GetMembers())
         {
@@ -52,19 +60,12 @@ internal static class SymbolExtractor
                 && method.MethodKind == MethodKind.Ordinary
                 && !method.IsStatic)
             {
-                var delegation = ExtractDelegation(method);
+                var delegation = ExtractDelegation(method, symbol, ctorDelegation);
                 if (delegation != null)
                 {
                     data.MethodDelegations.Add(delegation);
                 }
             }
-        }
-
-        // Constructor delegation
-        var ctorDelegation = GetConstructorDelegation(symbol);
-        if (ctorDelegation != null)
-        {
-            data.ConstructorDelegation = ctorDelegation;
         }
 
         // Custom annotations
@@ -140,10 +141,28 @@ internal static class SymbolExtractor
         return data;
     }
 
-    private static DelegationSymbolData? ExtractDelegation(IMethodSymbol method)
+    private static DelegationSymbolData? ExtractDelegation(
+        IMethodSymbol method, INamedTypeSymbol modelType, DelegationSymbolData? constructorDelegation)
     {
         var attr = FindAttribute(method, "DelegateToAttribute");
-        if (attr == null) return null;
+
+        // No attribute of its own: fall back to the type-level one, as Java does. A method with
+        // neither is left alone -- in C# it may carry a default interface implementation.
+        if (attr == null)
+        {
+            if (constructorDelegation == null) return null;
+
+            return new DelegationSymbolData
+            {
+                FullTypeName = constructorDelegation.FullTypeName,
+                CallerTypeName = constructorDelegation.CallerTypeName,
+                MethodName = method.Name,
+                ReturnType = method.ReturnsVoid ? "void" : GetFullName(method.ReturnType),
+                ParamTypes = method.Parameters.Select(p => GetFullName(p.Type)).ToList(),
+                ParamNames = method.Parameters.Select(p => p.Name).ToList(),
+                Documentation = GetDocAttribute(method),
+            };
+        }
 
         var targetType = attr.ConstructorArguments.Length > 0
             ? attr.ConstructorArguments[0].Value as INamedTypeSymbol
@@ -152,6 +171,7 @@ internal static class SymbolExtractor
         return new DelegationSymbolData
         {
             FullTypeName = targetType != null ? GetFullName(targetType) : "",
+            CallerTypeName = ResolveCallerType(targetType, modelType),
             MethodName = method.Name,
             // GetFullName would yield "System.Void", which is not writable in C#; the
             // template also compares against the literal "void" to decide whether to return.
@@ -174,9 +194,43 @@ internal static class SymbolExtractor
         return new DelegationSymbolData
         {
             FullTypeName = targetType != null ? GetFullName(targetType) : "",
-            MethodName = "",
+            CallerTypeName = ResolveCallerType(targetType, type),
+            // Java calls "on" + simple name + "Instantiated" from the generated constructor; the
+            // model's only hook for running code at instantiation.
+            MethodName = "On" + ModelTypeInfo.StripInterfacePrefix(type.Name) + "Instantiated",
             ReturnType = "void",
         };
+    }
+
+    /// <summary>
+    /// Finds the <c>T</c> of the <c>IDelegatedBehavior&lt;T&gt;</c> that <paramref
+    /// name="delegateType"/> implements, so the generated code can cast to it before calling
+    /// <c>SetCaller</c>. Java gets this for free — the field's declared type carries the parameter
+    /// — so reading it off the delegate is what lets a delegate written for a supertype serve
+    /// every subtype, exactly as it does there.
+    /// <para>
+    /// A delegate implementing several picks the one <paramref name="modelType"/> satisfies; the
+    /// model type itself is the fallback, which turns an unusable delegate into a compile error at
+    /// the cast rather than a silently wrong one.
+    /// </para>
+    /// </summary>
+    private static string ResolveCallerType(INamedTypeSymbol? delegateType, INamedTypeSymbol modelType)
+    {
+        var fallback = GetFullName(modelType);
+        if (delegateType == null) return fallback;
+
+        var candidates = delegateType.AllInterfaces
+            .Where(i => i.Name == "IDelegatedBehavior" && i.TypeArguments.Length == 1)
+            .Select(i => i.TypeArguments[0])
+            .ToList();
+
+        if (candidates.Count == 0) return fallback;
+
+        var match = candidates.FirstOrDefault(t =>
+            SymbolEqualityComparer.Default.Equals(t, modelType)
+            || modelType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, t)));
+
+        return GetFullName(match ?? candidates[0]);
     }
 
     // --- Attribute helpers ---

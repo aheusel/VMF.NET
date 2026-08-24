@@ -10,14 +10,7 @@ namespace VMF.NET.TestSuite.VmfTest.ParentContainment01;
 
 public class ContainmentTest
 {
-    private const string NeedsTypeLevelDelegation =
-        "Needs type-level delegation to supply inherited members. The Java model declares no " +
-        "[Contains]/[Container] at all: CodeEntity is [InterfaceOnly] with a type-level " +
-        "@DelegateTo, and the delegate is what makes getParent()/root() work. VMF.NET generates " +
-        "bodies only from method-level [DelegateTo] on the type itself, so Parent stays an " +
-        "ordinary stored property and is never populated by setting Left/Right.";
-
-    [Fact(Skip = NeedsTypeLevelDelegation)]
+    [Fact]
     public void TestContainmentBehaviorGetParent()
     {
         var operatorExpression = IOperatorExpression.NewInstance();
@@ -37,7 +30,7 @@ public class ContainmentTest
         Assert.Same(operatorExpression, rightValue.Parent);
     }
 
-    [Fact(Skip = NeedsTypeLevelDelegation)]
+    [Fact]
     public void TestContainmentBehaviorFindRoot()
     {
         var root = IOperatorExpression.NewInstance();

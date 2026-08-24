@@ -80,6 +80,18 @@ public sealed class ModelTypeInfo
     /// <summary>Constructor delegations only.</summary>
     public List<DelegationInfo> ConstructorDelegations { get; } = new();
 
+    /// <summary>
+    /// One delegation per delegate class — the fields the implementation declares. An object holds
+    /// a single instance of each delegate class and shares it between the constructor hook and
+    /// every delegated method, as Java does.
+    /// </summary>
+    public List<DelegationInfo> DelegationsOneForEachType =>
+        Delegations
+            .Where(d => !d.IsExclusivelyForInterfaceOnlyTypes)
+            .GroupBy(d => d.FullTypeName)
+            .Select(g => g.First())
+            .ToList();
+
     // --- Annotations ---
 
     /// <summary>Custom annotations on this type.</summary>
@@ -146,46 +158,35 @@ public sealed class ModelTypeInfo
     private IEnumerable<DelegationInfo> AllDelegations => Delegations;
 
     /// <summary>
+    /// The type name without its interface prefix (e.g. "Parent" for "IParent"). This is the
+    /// name Java's model uses throughout, so it is also what derived names are built from.
+    /// </summary>
+    public string SimpleName => StripInterfacePrefix(TypeName);
+
+    /// <summary>
     /// The implementation class name (e.g. "ParentImpl").
     /// Strips leading "I" from interface name.
     /// </summary>
-    public string ImplClassName
-    {
-        get
-        {
-            var baseName = TypeName.StartsWith("I") && TypeName.Length > 1 && char.IsUpper(TypeName[1])
-                ? TypeName.Substring(1)
-                : TypeName;
-            return baseName + "Impl";
-        }
-    }
+    public string ImplClassName => SimpleName + "Impl";
 
     /// <summary>
     /// The read-only interface name (e.g. "IReadOnlyParent").
     /// </summary>
-    public string ReadOnlyInterfaceName
-    {
-        get
-        {
-            if (TypeName.StartsWith("I") && TypeName.Length > 1 && char.IsUpper(TypeName[1]))
-                return "IReadOnly" + TypeName.Substring(1);
-            return "IReadOnly" + TypeName;
-        }
-    }
+    public string ReadOnlyInterfaceName => "IReadOnly" + SimpleName;
 
     /// <summary>
     /// The read-only implementation class name (e.g. "ReadOnlyParentImpl").
     /// </summary>
-    public string ReadOnlyImplClassName
-    {
-        get
-        {
-            var baseName = TypeName.StartsWith("I") && TypeName.Length > 1 && char.IsUpper(TypeName[1])
-                ? TypeName.Substring(1)
-                : TypeName;
-            return "ReadOnly" + baseName + "Impl";
-        }
-    }
+    public string ReadOnlyImplClassName => "ReadOnly" + SimpleName + "Impl";
+
+    /// <summary>
+    /// Drops a leading "I" that is followed by another capital, so "IParent" becomes "Parent"
+    /// but "Item" is left alone.
+    /// </summary>
+    public static string StripInterfacePrefix(string typeName) =>
+        typeName.StartsWith("I") && typeName.Length > 1 && char.IsUpper(typeName[1])
+            ? typeName.Substring(1)
+            : typeName;
 
     public override string ToString() => FullTypeName;
 }

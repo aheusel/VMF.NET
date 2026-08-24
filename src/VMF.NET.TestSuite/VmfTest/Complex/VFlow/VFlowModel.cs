@@ -1,15 +1,16 @@
-// Ported from eu.mihosoft.vmftest.complex.vflow.vmfmodel.VFlow
+// Ported from eu.mihosoft.vmftest.complex.vflow.vmfmodel.VFlow and the four behaviour
+// delegates beside it.
 //
-// DEVIATIONS (two generator gaps, see the area README notes):
-//  1. Inherited [DelegateTo] methods are NOT generated in derived types -- only methods
-//     declared on the type itself are. Input/Output/VFlow therefore re-declare the
-//     delegated methods they inherit.
-//  2. A `new` redeclaration of a property leaves the BASE read-only interface member
+// DEVIATIONS:
+//  1. A `new` redeclaration of a property leaves the BASE read-only interface member
 //     unimplemented, so Parent/Connections are declared only on Input/Output, not on
-//     Connector as in Java.
-//  Because a delegate is cast to IDelegatedBehavior<DeclaringType>, the shared delegates
-//  implement that interface once per model type that uses them.
+//     Connector as in Java. That is also why OnConnectorInstantiated has to ask which of the
+//     two it is holding before it can reach Connections.
+//  2. ConnectorDelegate.TryConnect/Connect return null instead of Java's connection logic,
+//     which needs Connector.Parent -- unavailable here for the reason above. No ported fact
+//     calls either method.
 
+using System.Linq;
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
@@ -79,12 +80,6 @@ public partial interface IInput : IConnector
 
     [Contains("IConnection.Receiver")]
     VList<IConnection> Connections { get; }
-
-    [DelegateTo(typeof(ConnectorDelegate))]
-    new IConnectionResult? TryConnect(IConnector c);
-
-    [DelegateTo(typeof(ConnectorDelegate))]
-    new IConnectionResult? Connect(IConnector c);
 }
 
 [VmfModel]
@@ -95,12 +90,6 @@ public partial interface IOutput : IConnector
 
     [Contains("IConnection.Sender")]
     VList<IConnection> Connections { get; }
-
-    [DelegateTo(typeof(ConnectorDelegate))]
-    new IConnectionResult? TryConnect(IConnector c);
-
-    [DelegateTo(typeof(ConnectorDelegate))]
-    new IConnectionResult? Connect(IConnector c);
 }
 
 [VmfModel]
@@ -168,24 +157,39 @@ public partial interface IVFlow : IVNode
 
     [DelegateTo(typeof(VFlowDelegate))]
     IVFlow? NewSubFlow(object o);
-
-    // inherited from IVNode -- re-declared because inherited delegations are not generated
-    [DelegateTo(typeof(VNodeDelegate))]
-    new IInput? AddInput(string type);
-
-    [DelegateTo(typeof(VNodeDelegate))]
-    new IOutput? AddOutput(string type);
 }
 
 // --- behavior delegates ---
 
-public sealed class ConnectorDelegate
-    : IDelegatedBehavior<IConnector>, IDelegatedBehavior<IInput>, IDelegatedBehavior<IOutput>
+public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
 {
     private IConnector? _caller;
-    void IDelegatedBehavior<IConnector>.SetCaller(IConnector caller) => _caller = caller;
-    void IDelegatedBehavior<IInput>.SetCaller(IInput caller) => _caller = caller;
-    void IDelegatedBehavior<IOutput>.SetCaller(IOutput caller) => _caller = caller;
+    public void SetCaller(IConnector caller) => _caller = caller;
+
+    public void OnConnectorInstantiated()
+    {
+        // Connections lives on Input/Output here rather than on Connector -- see deviation 1.
+        var connections = _caller switch
+        {
+            IInput input => input.Connections,
+            IOutput output => output.Connections,
+            _ => null,
+        };
+
+        if (connections == null) return;
+
+        // prevent duplicates & set id
+        connections.AddChangeListener(evt =>
+        {
+            foreach (IConnection cnn in evt.Added.Cast<IConnection>())
+            {
+                if (connections.Count(cnn2 => ReferenceEquals(cnn, cnn2)) > 1)
+                {
+                    throw new System.InvalidOperationException("Duplicate connections added: " + cnn);
+                }
+            }
+        });
+    }
 
     public IConnectionResult? TryConnect(IConnector c) => null;
     public IConnectionResult? Connect(IConnector c) => null;
@@ -195,28 +199,43 @@ public sealed class ConnectionDelegate : IDelegatedBehavior<IConnection>
 {
     private IConnection? _caller;
     public void SetCaller(IConnection caller) => _caller = caller;
+
+    public void OnConnectionInstantiated()
+    {
+        // Java's changePermitted flag is omitted: the only code that reads it -- a guard
+        // rejecting manual writes to 'id' -- is commented out there.
+        _caller!.Vmf().Reflect().PropertyByName("Sender")?.AddChangeListener(_ => SyncId());
+        _caller!.Vmf().Reflect().PropertyByName("Receiver")?.AddChangeListener(_ => SyncId());
+    }
+
+    private void SyncId()
+    {
+        string senderId = "<none>";
+        if (_caller!.Sender != null && _caller.Sender.Id != null) senderId = _caller.Sender.Id;
+        string receiverId = "<none>";
+        if (_caller.Receiver != null && _caller.Receiver.Id != null) receiverId = _caller.Receiver.Id;
+
+        _caller.Id = senderId + " -> " + receiverId;
+    }
 }
 
-public sealed class VNodeDelegate : IDelegatedBehavior<IVNode>, IDelegatedBehavior<IVFlow>
+public sealed class VNodeDelegate : IDelegatedBehavior<IVNode>
 {
     private IVNode? _caller;
-    void IDelegatedBehavior<IVNode>.SetCaller(IVNode caller) => _caller = caller;
-    void IDelegatedBehavior<IVFlow>.SetCaller(IVFlow caller) => _caller = caller;
+    public void SetCaller(IVNode caller) => _caller = caller;
 
     public IInput? AddInput(string type)
     {
-        var input = IInput.NewInstance();
-        input.Type = type;
+        var input = IInput.NewBuilder().WithType(type).Build();
         _caller!.Inputs.Add(input);
         return input;
     }
 
     public IOutput? AddOutput(string type)
     {
-        var output = IOutput.NewInstance();
-        output.Type = type;
-        _caller!.Outputs.Add(output);
-        return output;
+        var outputs = IOutput.NewBuilder().WithType(type).Build();
+        _caller!.Outputs.Add(outputs);
+        return outputs;
     }
 }
 
@@ -224,6 +243,21 @@ public sealed class VFlowDelegate : IDelegatedBehavior<IVFlow>
 {
     private IVFlow? _caller;
     public void SetCaller(IVFlow caller) => _caller = caller;
+
+    public void OnVFlowInstantiated()
+    {
+        // prevent duplicates & set id
+        _caller!.Nodes.AddChangeListener(evt =>
+        {
+            foreach (IVNode n in evt.Added.Cast<IVNode>())
+            {
+                if (_caller.Nodes.Count(m => ReferenceEquals(n, m)) > 1)
+                {
+                    throw new System.InvalidOperationException("Duplicate nodes added: " + n);
+                }
+            }
+        });
+    }
 
     public IConnectionResult? Connect(IConnector c1, IConnector c2) => null;
     public IConnectionResult? TryConnect(IConnector c1, IConnector c2) => null;
