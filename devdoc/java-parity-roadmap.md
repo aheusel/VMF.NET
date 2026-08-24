@@ -138,16 +138,19 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 
 ### B. Missing capabilities
 
+**All closed.** Every row here blocked at least one fact, and the suite now skips none — so the
+skip count corroborates the table rather than relying on it.
+
 | Capability | Blocks | Milestone |
 |---|---|---|
 | ~~Inherited `[DelegateTo]` — only methods declared on the type itself get a body~~ | **DONE (M6).** 2 facts un-skipped, 5 models de-deviated | M6 |
 | ~~Covariant property narrowing~~ | **DONE (M7).** The last skipped fact un-skipped, 5 models de-deviated | M7 |
-| Collection default values | 1 fact | M9 |
-| Cross-reference lists accept duplicates (Java keeps one reference) | 1 fact | M9 |
-| Builder-accepting `With*` overloads (Java passes unbuilt nested builders) | 1 fact | M9 |
-| `VListChangeEvent.Source`, so a listener can mutate the list it observes | 1 fact | M9 |
-| `ToString` renders a different shape from Java's: Java puts the type in an `@type` member and orders properties alphabetically, VMF.NET puts the type outside the braces and orders them as declared | 1 fact | M9 (align with Java) |
-| Clone and original are content-equal but traverse differently, so they do not serialise identically | 1 fact | investigate |
+| ~~Collection default values~~ | **DONE (M9).** | M9 |
+| ~~Cross-reference lists accept duplicates (Java keeps one reference)~~ | **DONE (M9).** | M9 |
+| ~~Builder-accepting `With*` overloads (Java passes unbuilt nested builders)~~ | **DONE (M9).** | M9 |
+| ~~`VListChangeEvent.Source`, so a listener can mutate the list it observes~~ | **DONE (M9).** | M9 |
+| ~~`ToString` renders a different shape from Java's~~ | **DONE (M9).** Aligned with Java: `@type` member, alphabetical properties | M9 |
+| ~~Clone and original are content-equal but traverse differently~~ | **DONE (M9).** Never a traversal problem: `Clone`/`DeepCopy` used an `Equals`-keyed identity map, so content-equal siblings collapsed into one object | M9 |
 
 ### C. Resolved
 
