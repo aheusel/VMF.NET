@@ -23,19 +23,22 @@ public class AccountTest
         a2.AuthorizedSignatories.Add(c1);
         model.Customers.Add(c1);
 
-        Assert.Contains(c1, a1.AuthorizedSignatories);
+        // account 1 must contain our customer / has exactly one customer
+        Assert.Equal(new[] { c1 }, a1.AuthorizedSignatories);
         Assert.Single(a1.AuthorizedSignatories);
-        Assert.Contains(c1, a2.AuthorizedSignatories);
+        // account 2 must contain our customer / has exactly one customer
+        Assert.Equal(new[] { c1 }, a2.AuthorizedSignatories);
         Assert.Single(a2.AuthorizedSignatories);
 
-        // the customer sees both accounts through the opposite side
-        Assert.Contains(a1, c1.Accounts);
-        Assert.Contains(a2, c1.Accounts);
+        // our customer has both accounts, in that order / has exactly two accounts
+        Assert.Equal(new[] { a1, a2 }, c1.Accounts);
         Assert.Equal(2, c1.Accounts.Count);
 
         a1.AuthorizedSignatories.Remove(c1);
 
+        // after removing our customer from a1 our customer has exactly one account,
+        // and it is a2
         Assert.Single(c1.Accounts);
-        Assert.Contains(a2, c1.Accounts);
+        Assert.Equal(new[] { a2 }, c1.Accounts);
     }
 }

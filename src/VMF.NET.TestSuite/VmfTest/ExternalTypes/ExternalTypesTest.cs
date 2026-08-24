@@ -30,9 +30,10 @@ public class ExternalTypesTest
     {
         var model = IModel.NewInstance();
 
-        // the delegated method takes an external type as its parameter
-        model.RunAction(new MyAction { Name = "ran" });
+        // the delegated method takes an external functional type and applies it to the caller
+        model.RunAction(m => m.Entries.Add(new MyType()));
 
-        Assert.Equal("ran", model.Name);
+        // Expected exactly one list entry
+        Assert.Single(model.Entries);
     }
 }

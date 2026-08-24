@@ -94,7 +94,8 @@ public class CrossRefTest
 
             entityOneB.Ref = entityTwoB;
 
-            Assert.Contains(entityOneB, entityTwoB.Refs);
+            // opposite refs must contain ref (exactly, as Java's contains(...) asserts)
+            Assert.Equal(new[] { entityOneB }, entityTwoB.Refs);
             Assert.Equal(1, numEvtOneB.Value);
             Assert.Equal(1, numEvtTwoB.Value);
             Assert.Empty(entityTwoB.Vmf().Changes().All());
@@ -116,7 +117,8 @@ public class CrossRefTest
 
             entityOneC.Refs.Add(entityTwoC);
 
-            Assert.Contains(entityOneC, entityTwoC.Refs);
+            // opposite refs must contain ref (exactly)
+            Assert.Equal(new[] { entityOneC }, entityTwoC.Refs);
             Assert.Equal(1, numEvtOneC.Value);
             Assert.Equal(1, numEvtTwoC.Value);
             Assert.Empty(entityTwoC.Vmf().Changes().All());
@@ -132,7 +134,8 @@ public class CrossRefTest
 
             entityTwoC.Refs.Add(entityOneC);
 
-            Assert.Contains(entityTwoC, entityOneC.Refs);
+            // opposite refs must contain ref (exactly)
+            Assert.Equal(new[] { entityTwoC }, entityOneC.Refs);
             Assert.Equal(1, numEvtOneC.Value);
             Assert.Equal(1, numEvtTwoC.Value);
             Assert.Empty(entityOneC.Vmf().Changes().All());

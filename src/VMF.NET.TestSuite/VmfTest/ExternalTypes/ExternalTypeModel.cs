@@ -9,10 +9,12 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.ExternalTypes;
 
-public sealed class MyAction
-{
-    public string? Name { get; set; }
-}
+/// <summary>
+/// Java declares <c>MyAction extends Consumer&lt;Model&gt;</c> -- a functional interface applied
+/// to the caller. A delegate is the direct C# equivalent, so a lambda can be passed exactly as
+/// the Java fact does.
+/// </summary>
+public delegate void MyAction(IModel model);
 
 public sealed class MyType
 {
@@ -37,5 +39,5 @@ public sealed class ModelBehavior : IDelegatedBehavior<IModel>
 
     public void SetCaller(IModel caller) => _caller = caller;
 
-    public void RunAction(MyAction action) => _caller!.Name = action.Name;
+    public void RunAction(MyAction action) => action(_caller!);
 }

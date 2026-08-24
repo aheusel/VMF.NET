@@ -18,9 +18,13 @@ public class LibraryTest
         library.Authors.Add(w1);
         library.Books.Add(b1);
 
-        Assert.Contains(b1, library.Books);
-        Assert.Contains(w1, library.Authors);
-        Assert.Contains(w1, b1.Authors);
-        Assert.Contains(b1, w1.Books);
+        // Library must contain a book
+        Assert.Equal(new[] { b1 }, library.Books);
+        // Library must contain an author
+        Assert.Equal(new[] { w1 }, library.Authors);
+        // The book must reference its author
+        Assert.Equal(new[] { w1 }, b1.Authors);
+        // The author must reference his/her books
+        Assert.Equal(new[] { b1 }, w1.Books);
     }
 }
