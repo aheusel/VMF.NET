@@ -14,16 +14,6 @@ internal interface IChangeInternal : IChange
     /// </summary>
     string InternalChangeInfo { get; }
 
-    static bool IsCrossRefChange(IChange change)
-    {
-        return change is IChangeInternal ci && ci.InternalChangeInfo == ChangeTypeConstants.CrossRef;
-    }
-
-    static bool IsContainmentChange(IChange change)
-    {
-        return change is IChangeInternal ci && ci.InternalChangeInfo == ChangeTypeConstants.Containment;
-    }
-
     /// <summary>
     /// Whether this change is the induced (echo) side of a cross-reference update, and so
     /// should be reported to listeners but not recorded.

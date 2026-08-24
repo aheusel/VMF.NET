@@ -1,7 +1,8 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** port complete (M2″); M4a/M4b/M5/M8 done. **Last updated:** 2026-08-24.
+**Status:** port complete (M2″); M4a/M4b/M5/M8/M9 done. Only M6 and M7 remain.
+**Last updated:** 2026-08-24.
 
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
@@ -71,9 +72,9 @@ comes before further feature work.
 |---|---|---|
 | Model areas | 39 | **39 — all ported** |
 | Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
-| Facts | 104; **101 portable** | **97 in the TestSuite** (88 running, 9 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
+| Facts | 104; **101 portable** | **97 in the TestSuite** (94 running, 3 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
 
-Suite totals today: **300 passing**, 9 skipped, 0 failing (220 TestSuite + 80 Tests).
+Suite totals today: **309 passing**, 3 skipped, 0 failing (229 TestSuite + 80 Tests).
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -85,7 +86,7 @@ cross-reference regression facts guarding the recursion fix, the `FSMTest` clone
 split, `UnparserModelTest`'s from-the-child-side variant, and five `VList` batch-operation unit
 tests.
 
-### The parity gap: 9 facts
+### The parity gap: 3 facts
 
 Every one is a ported fact carrying `[Fact(Skip = "…")]` with the missing capability named, so
 **the skip count is the parity gap again** — the invariant M2″ set out to restore. Each skipped
@@ -105,12 +106,8 @@ abstraction with no .NET counterpart, commented out upstream) and `VMFGeneratorT
 
 | Waiting on | Facts | Areas |
 |---|---|---|
-| Builder ergonomics and VList API (M9) | 3 | builders (1), horses (1), unparsermodel (1) |
 | Delegation, type-level and inherited (M6) | 2 | parentcontainment01 (2) |
-| Collection default values (M9) | 1 | reflectiontest (1) |
-| `ToString` format (M9 — align with Java) | 1 | test2 (1) |
 | Covariant narrowing (M7) | 1 | propertyinheritance (1) |
-| Clone traversal order (needs investigation) | 1 | fsm (1) |
 
 A blocked fact is kept as `[Fact(Skip = "...")]` with the missing capability named **and its
 real body**, so the skip count is the parity gap and un-skipping is not a rewrite. Where the
@@ -128,9 +125,10 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 
 | Member | Consequence | Milestone |
 |---|---|---|
-| `IChangeInternal.IsContainmentChange` | implemented, still never called | M9 (wire or delete) |
-| `IChange.Apply(target)` | implemented, still never called. Undo turned out to be complete, so this is the redo/replay half and has no fact behind it | M9 (wire or delete) |
-| `GetContainerPropertyId`, `ITraversalListener.Traverse` | implemented/declared, unreachable | M9 (decide: wire or delete) |
+| `IChange.Apply(target)` | **Kept.** Java declares `Change.apply(VObject)` as public API and never calls it internally either, so this matches the reference. A coverage gap, not a wiring gap |
+| `GetContainerPropertyId` | **Kept and now load-bearing.** Java uses it in nine places, and M8's detach event names its property by this id |
+| `ITraversalListener.Traverse` | **Kept.** Java exposes `TraversalListener` as public API. Coverage gap |
+| ~~`IChangeInternal.IsCrossRefChange` / `IsContainmentChange`~~ | **Deleted.** Both were unreachable: `IChangeInternal` is `internal`, so they were not public API a consumer could reach, and nothing called them. Java has an `isCrossRefChange` but no containment equivalent. `IsCrossRefEchoChange`, which M4a wired, stays |
 
 ### B. Missing capabilities
 
@@ -152,6 +150,38 @@ scalar changes, list adds and list removes, and over a 19,681-node graph undone 
 unit tests now pin it. `IChange.Apply` remains uncalled and is the redo/replay half; no ported
 fact needs it, so it moves to M9's wire-or-delete list.
 
+## Parity statement
+
+What the suite proves, as of M9.
+
+**Every portable Java fact has a running counterpart except three.** 101 portable facts; 3 are
+skipped, each naming the capability it waits on and carrying its real body. The two remaining
+milestones are M6 (inherited and type-level `[DelegateTo]`) and M7 (covariant property
+narrowing) — both are C# language or generator limits rather than missing behaviour, and both
+also de-deviate ported models.
+
+**Deliberate, permanent differences.** These are forced by C# and will not close:
+
+| Difference | Why |
+|---|---|
+| `ModelType()` rather than Java's `type()` | a model may declare a property named `Type`, and a method cannot share a name with a property |
+| Covariant property narrowing unavailable | C# interfaces cannot override a property's type |
+| A member inherited from two unrelated interfaces must be re-declared | `CS0229` |
+| A settable `[Container]` needs `{ get; set; }` in the model | the model interface *is* the public API; a partial interface cannot add a setter |
+| `Name` rather than `name`, `IParent` rather than `Parent`, `[Contains]` rather than `@Contains` | surface convention, not behaviour |
+| Read-only write attempts fail at compile time, not at runtime | C# resolves members statically |
+
+**Known differences that are not forced**, and remain open questions rather than decisions:
+
+- `IsSet` on a collection with **no declared default**: ours reports an empty list as unset,
+  Java compares against null and would report it as set. Unverified against a real Java run.
+- `Annotations()` includes VMF.NET's own bookkeeping entries
+  (`vmf:property:containment-info`, `vmf:type:immutable`, `vmf:type:interface-only`), which Java
+  does not, so raw annotation counts differ.
+
+**Coverage gaps, not wiring gaps.** `IChange.Apply` and `ITraversalListener.Traverse` are public
+API that Java also exposes and also never calls internally. They have no ported fact behind them.
+
 ## Milestones
 
 | # | Milestone | Content | Done when |
@@ -165,7 +195,7 @@ fact needs it, so it moves to M9's wire-or-delete list.
 | **M6** | Inherited delegation | Generate bodies for inherited `[DelegateTo]`; type-level delegation | 4 models de-deviated |
 | **M7** | Covariant narrowing | Public property at the narrowest type + forwarding explicit implementations per declaring interface | 5 models de-deviated |
 | ~~M8~~ | ~~Undo/redo~~ | **DONE.** A change now fires when a child's container changes, reported locally and not recorded, as Java does; undo verified working and given tests; content iteration defaults to `UniqueNode` | `events_undo_redo` and vflow green |
-| **M9** | Tail + audit | Collection defaults; decide wire-or-delete on the dead members; negative models as compile-gates; parity audit table | documented parity statement |
+| ~~M9~~ | ~~Tail + audit~~ | **DONE.** `ToString` aligned with Java; clone identity fixed; cross-reference duplicates rejected; `VListChangeEvent.Source`; builder-accepting `With*`; collection defaults; wire-or-delete settled; parity statement written | documented parity statement |
 
 ### Sequencing rationale
 
