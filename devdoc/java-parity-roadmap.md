@@ -189,6 +189,64 @@ fact needs it, so it moves to M9's wire-or-delete list.
   which is M5 and M9 territory. Scoping those milestones before seeing what those facts actually
   assert would repeat the mistake this correction documents.
 
+## M9 plan — the tail
+
+Five blocked facts, four wire-or-delete decisions, and the parity statement.
+
+### 1. `ToString` format (1 fact, possibly 2)
+
+Java, from `impl/to-string.vm`:
+
+```
+{"@type":"Parent", "children": [{"@type":"Child", "name": "Luke"}], "elements": [], "name": "Father"}
+```
+
+- the type is a **member**, `{"@type":"Name"`, not a prefix outside the braces
+- every scalar is **quoted**, including numbers and nested model objects (which Java wraps in
+  quotes even though that is not valid JSON — reproduce it, it is the reference behaviour)
+- collections are bracketed and unquoted
+- container properties and `[IgnoreToString]` properties are skipped
+- the cycle marker is the constant **`{skipping recursion}`**
+
+That last point may also close the FSM clone fact, which is the one item in the inventory with
+no explanation. Our marker embeds the node's ordinal in traversal order, so if a clone traverses
+differently the strings differ — which is exactly the symptom. Java's constant marker cannot show
+a traversal-order difference at all. **Check this rather than assume it**: if FSM goes green, the
+underlying traversal difference is still there and should be recorded as a known difference
+rather than silently closed.
+
+Property **order** is the open question. Java's expected string reads `children, elements, name`
+for a `Parent extends Named`, which is neither our inherited-first order nor obviously anything
+else. It cannot be read off the Java repo — that area's code is generated at test time — so
+implement the format, run the fact, and decide from the diff.
+
+### 2. Cross-reference lists reject duplicates (1 fact)
+
+Adding the same element three times must leave one. The generated code already guards the
+opposite side; the list being added to does not.
+
+### 3. `VListChangeEvent.Source` (1 fact)
+
+Java's `evt.source()` gives the list back so a listener can mutate it while observing.
+
+### 4. Builder-accepting `With*` overloads (1 fact)
+
+Java passes UNBUILT nested builders and builds them lazily on `build()`.
+
+### 5. Collection default values (1 fact)
+
+Java expresses these as a Java expression evaluated at construction.
+
+### 6. Wire or delete
+
+`IChangeInternal.IsContainmentChange`, `GetContainerPropertyId`, `ITraversalListener.Traverse`,
+`IChange.Apply`. Each is implemented and unreachable. Decide per member against Java: wire it if
+Java's behaviour depends on it, delete it if it is ours alone. No fact rides on any of them.
+
+### 7. Parity statement
+
+A table of what the suite proves, what is deliberately different and why, and what remains.
+
 ## M5 design note — reflection metadata
 
 Read from Java's implementation (`runtime/.../core/Type.java`, `internal/ReflectImpl.java`) rather
