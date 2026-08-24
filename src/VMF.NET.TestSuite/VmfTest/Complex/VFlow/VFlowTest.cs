@@ -9,11 +9,7 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.VFlow;
 
 public class VFlowTest
 {
-    [Fact(Skip = "Needs undo. The fact collects changes().all() and calls Undo() on each in " +
-                 "reverse. IChange.Undo exists but nothing exercises it, and IChange.Apply is " +
-                 "implemented and never called -- see the undo/redo milestone. The two expected " +
-                 "counts are Java's; they follow from the model shape and must be re-derived " +
-                 "against the ported model before this is un-skipped.")]
+    [Fact]
     public void CreateAndUndoTest()
     {
         var flow = IVFlow.NewInstance();
