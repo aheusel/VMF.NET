@@ -58,7 +58,7 @@ public class VList<T> : ObservableCollection<T>
     protected override void InsertItem(int index, T item)
     {
         base.InsertItem(index, item);
-        var evt = VListChangeEvent.CreateAddEvent([item], index, _eventInfo);
+        var evt = VListChangeEvent.CreateAddEvent([item], index, _eventInfo, this);
         _onElementAdded?.Invoke(item, default);
         FireChangeEvent(evt);
     }
@@ -67,7 +67,7 @@ public class VList<T> : ObservableCollection<T>
     {
         var removed = this[index];
         base.RemoveItem(index);
-        var evt = VListChangeEvent.CreateRemoveEvent([removed], index, _eventInfo);
+        var evt = VListChangeEvent.CreateRemoveEvent([removed], index, _eventInfo, this);
         _onElementRemoved?.Invoke(removed, default);
         FireChangeEvent(evt);
     }
@@ -76,7 +76,7 @@ public class VList<T> : ObservableCollection<T>
     {
         var old = this[index];
         base.SetItem(index, item);
-        var evt = VListChangeEvent.CreateSetEvent(old, item, index, _eventInfo);
+        var evt = VListChangeEvent.CreateSetEvent(old, item, index, _eventInfo, this);
         if (old != null) _onElementRemoved?.Invoke(old, default);
         _onElementAdded?.Invoke(item, default);
         FireChangeEvent(evt);
@@ -88,7 +88,7 @@ public class VList<T> : ObservableCollection<T>
         base.ClearItems();
         for (int i = removed.Count - 1; i >= 0; i--)
         {
-            var evt = VListChangeEvent.CreateRemoveEvent([removed[i]], i, _eventInfo);
+            var evt = VListChangeEvent.CreateRemoveEvent([removed[i]], i, _eventInfo, this);
             _onElementRemoved?.Invoke(removed[i], default);
             FireChangeEvent(evt);
         }
@@ -121,7 +121,7 @@ public class VList<T> : ObservableCollection<T>
         }
 
         RaiseBatchCollectionChanged();
-        FireChangeEvent(VListChangeEvent.CreateAddEvent(elements, index, _eventInfo));
+        FireChangeEvent(VListChangeEvent.CreateAddEvent(elements, index, _eventInfo, this));
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public class VList<T> : ObservableCollection<T>
         }
 
         RaiseBatchCollectionChanged();
-        FireChangeEvent(VListChangeEvent.CreateRemoveEvent(removed, ordered[0], _eventInfo));
+        FireChangeEvent(VListChangeEvent.CreateRemoveEvent(removed, ordered[0], _eventInfo, this));
     }
 
     /// <summary>

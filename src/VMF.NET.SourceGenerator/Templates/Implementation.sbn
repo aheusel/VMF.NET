@@ -284,6 +284,24 @@ namespace {{ ns }}
                                     impl.{{ prop.Reference.OppositeProp.Name }}.EventInfo = null;
                                 }
 {{~ else ~}}
+{{~ # A cross-reference list holds one reference per element. Java's test: if the element
+   # already points back at us it was added before, so drop the duplicate occurrence. Checked
+   # BEFORE the opposite is (re)assigned, since assigning it is what would hide the evidence. ~}}
+                                if (added is {{ prop.Reference.OppositeType.IsInterfaceOnly ? prop.Reference.OppositeType.TypeName : prop.Reference.OppositeType.ImplClassName }} dup_{{ prop.PropId }}
+                                    && ReferenceEquals(dup_{{ prop.PropId }}.{{ prop.Reference.OppositeProp.Name }}, this))
+                                {
+                                    int occurrences_{{ prop.PropId }} = 0;
+                                    foreach (var x_{{ prop.PropId }} in {{ field_name prop }}!)
+                                    {
+                                        if (ReferenceEquals(x_{{ prop.PropId }}, added)) occurrences_{{ prop.PropId }}++;
+                                    }
+                                    if (occurrences_{{ prop.PropId }} > 1)
+                                    {
+                                        {{ field_name prop }}!.Remove(({{ prop.GenericModelType.TypeName }})added);
+                                        continue;
+                                    }
+                                }
+
                                 if (added is IVObjectInternalModifiable mod)
                                 {
                                     mod.IsCrossRefEcho = true;

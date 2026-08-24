@@ -81,11 +81,7 @@ public class HorsesTest
         Assert.Equal(new[] { tournament1, tournament2 }, horse1.Tournaments);
     }
 
-    [Fact(Skip = "Cross-reference lists do not reject duplicates. Adding the same element three " +
-                 "times leaves three entries; Java keeps one, because a cross-reference is a set " +
-                 "of references rather than a bag. The generated code already guards the OPPOSITE " +
-                 "side (if (!impl.X.Contains(this)) impl.X.Add(...)) but the list being added to " +
-                 "accepts duplicates -- VList would need to know the property is a cross-ref.")]
+    [Fact]
     public void CrossRefTestForLists()
     {
         var owner = IOwner.NewBuilder().WithName("Larry Smith").Build();

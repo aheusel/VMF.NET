@@ -1,5 +1,7 @@
 // Ported from eu.mihosoft.vmftest.complex.unparsermodel.UnparserModelTest
 
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel;
@@ -48,9 +50,7 @@ public class UnparserModelTest
         Assert.DoesNotContain(sre, alternative.Elements);
     }
 
-    [Fact(Skip = "Needs VListChangeEvent.Source (Java evt.source()) so a change listener can " +
-                 "mutate the list it is observing, plus AddRange/addAll raising a single event. " +
-                 "VListChangeEvent exposes Added/Removed/Index but not the source list.")]
+    [Fact]
     public void TestRemoveDuringAddEventTest()
     {
         var cls = IRuleClass.NewBuilder().WithName("RC1").Build();
@@ -61,23 +61,20 @@ public class UnparserModelTest
         cls.Properties.AddRange([pa1, pa2]);
         cls.Properties.AddRange([pa1, pa2]);
 
-        // NEEDS VListChangeEvent.Source (Java: evt.source()), so the listener can reach the
-        // list it is observing and mutate it. Commented out only because it does not compile.
-        //
-        // cls.Properties.AddChangeListener(evt =>
-        // {
-        //     // remove duplicate properties
-        //     foreach (IProperty p1 in evt.Added)
-        //     {
-        //         foreach (IProperty p2 in new List<IProperty>(evt.Source))
-        //         {
-        //             if (!ReferenceEquals(p1, p2) && p1.Name == p2.Name)
-        //             {
-        //                 evt.Source.Remove(p1);
-        //             }
-        //         }
-        //     }
-        // });
+        cls.Properties.AddChangeListener(evt =>
+        {
+            // remove duplicate properties
+            foreach (IProperty p1 in evt.Added)
+            {
+                foreach (IProperty p2 in new List<IProperty>(evt.Source!.Cast<IProperty>()))
+                {
+                    if (!ReferenceEquals(p1, p2) && p1.Name == p2.Name)
+                    {
+                        evt.Source!.Remove(p1);
+                    }
+                }
+            }
+        });
 
         // Properties
         Assert.Equal(new[] { pa1, pa2 }, cls.Properties);

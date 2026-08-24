@@ -27,13 +27,15 @@ public sealed class VListChangeEvent
         IReadOnlyList<object?> added,
         IReadOnlyList<object?> removed,
         int index,
-        string? eventInfo)
+        string? eventInfo,
+        System.Collections.IList? source)
     {
         ChangeType = changeType;
         Added = added;
         Removed = removed;
         Index = index;
         EventInfo = eventInfo;
+        Source = source;
     }
 
     /// <summary>The type of change.</summary>
@@ -51,6 +53,13 @@ public sealed class VListChangeEvent
     /// <summary>Optional event info metadata.</summary>
     public string? EventInfo { get; }
 
+    /// <summary>
+    /// The list this change happened on (Java's <c>evt.source()</c>), so a listener can reach the
+    /// list it is observing — including to modify it while handling the event. Null for an event
+    /// constructed without one.
+    /// </summary>
+    public System.Collections.IList? Source { get; }
+
     /// <summary>Whether elements were added.</summary>
     public bool WasAdded => ChangeType == VListChangeType.Add || ChangeType == VListChangeType.Set;
 
@@ -60,19 +69,22 @@ public sealed class VListChangeEvent
     /// <summary>Whether an element was replaced.</summary>
     public bool WasSet => ChangeType == VListChangeType.Set;
 
-    public static VListChangeEvent CreateAddEvent(IReadOnlyList<object?> added, int index, string? eventInfo = null)
+    public static VListChangeEvent CreateAddEvent(IReadOnlyList<object?> added, int index,
+        string? eventInfo = null, System.Collections.IList? source = null)
     {
-        return new VListChangeEvent(VListChangeType.Add, added, Array.Empty<object?>(), index, eventInfo);
+        return new VListChangeEvent(VListChangeType.Add, added, Array.Empty<object?>(), index, eventInfo, source);
     }
 
-    public static VListChangeEvent CreateRemoveEvent(IReadOnlyList<object?> removed, int index, string? eventInfo = null)
+    public static VListChangeEvent CreateRemoveEvent(IReadOnlyList<object?> removed, int index,
+        string? eventInfo = null, System.Collections.IList? source = null)
     {
-        return new VListChangeEvent(VListChangeType.Remove, Array.Empty<object?>(), removed, index, eventInfo);
+        return new VListChangeEvent(VListChangeType.Remove, Array.Empty<object?>(), removed, index, eventInfo, source);
     }
 
-    public static VListChangeEvent CreateSetEvent(object? oldValue, object? newValue, int index, string? eventInfo = null)
+    public static VListChangeEvent CreateSetEvent(object? oldValue, object? newValue, int index,
+        string? eventInfo = null, System.Collections.IList? source = null)
     {
-        return new VListChangeEvent(VListChangeType.Set, [newValue], [oldValue], index, eventInfo);
+        return new VListChangeEvent(VListChangeType.Set, [newValue], [oldValue], index, eventInfo, source);
     }
 
     public override string ToString()
