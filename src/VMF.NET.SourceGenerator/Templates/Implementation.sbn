@@ -348,7 +348,13 @@ namespace {{ ns }}
 
         private List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}> GetOrCreateRawList_{{ prop.Name }}()
         {
+{{~ if prop.DefaultValueAsString != null && prop.DefaultValueAsString != "" ~}}
+            // Seeded from the declared collection default, as Java evaluates its default
+            // expression on first access.
+            {{ raw_list_field_name prop }} ??= new({{ prop.DefaultValueAsString }});
+{{~ else ~}}
             {{ raw_list_field_name prop }} ??= new();
+{{~ end ~}}
             return {{ raw_list_field_name prop }};
         }
 
@@ -629,7 +635,16 @@ namespace {{ ns }}
             {
 {{~ for prop in all_props ~}}
 {{~ if prop.IsCollectionType ~}}
+{{~ if prop.DefaultValueAsString != null && prop.DefaultValueAsString != "" ~}}
+{{~ # "Set" means "differs from the declared default", the same rule as for scalars: a list
+   # still holding exactly its default is unset. ~}}
+                case {{ prop.PropId }}: return {{ raw_list_field_name prop }} != null
+                    && !System.Linq.Enumerable.SequenceEqual({{ raw_list_field_name prop }}, new List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>({{ prop.DefaultValueAsString }}));
+{{~ else ~}}
+{{~ # No declared default. Java compares against null here, which reports an EMPTY list as set;
+   # that reads oddly and is unverified against a real Java run, so the existing rule stands. ~}}
                 case {{ prop.PropId }}: return {{ raw_list_field_name prop }} != null && {{ raw_list_field_name prop }}.Count > 0;
+{{~ end ~}}
 {{~ else if prop.IsContainer && !type.IsImmutable ~}}
                 case {{ prop.PropId }}: return __vmf_container != null;
 {{~ else if prop.IsContainer && type.IsImmutable ~}}

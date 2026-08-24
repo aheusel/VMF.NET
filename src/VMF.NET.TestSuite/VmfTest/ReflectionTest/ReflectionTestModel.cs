@@ -1,8 +1,8 @@
 // Ported from eu.mihosoft.vmftests.reflectiontest.vmfmodel
 //
-// DEVIATION: Java gives ReflectionTest.getValues() a default value expressed as a Java
-// expression (VList.newInstance(Arrays.asList(...))). Collection defaults have no C#
-// equivalent in the generator, so the default is omitted here.
+// Java expresses ReflectionTest.getValues()'s default as a Java expression
+// (VList.newInstance(Arrays.asList("a","b","c"))); the C# equivalent is a collection
+// initialiser expression, evaluated on first access in the same way.
 
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
@@ -77,6 +77,7 @@ public partial interface IReflectionTest
     [VmfDefaultValue("23")]
     int Id { get; set; }
 
+    [VmfDefaultValue("new[] { \"a\", \"b\", \"c\" }")]
     VList<string> Values { get; }
 
     string? Id2 { get; set; }

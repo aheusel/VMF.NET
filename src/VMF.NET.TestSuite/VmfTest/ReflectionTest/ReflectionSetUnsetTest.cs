@@ -53,10 +53,7 @@ public class ReflectionSetUnsetTest
         Assert.Equal("abc", aReflectionTest.Id2);
     }
 
-    [Fact(Skip = "Needs collection default values. The Java model gives getValues() a default " +
-                 "expressed as a Java expression (VList.newInstance(Arrays.asList(\"a\",\"b\",\"c\"))); " +
-                 "VMF.NET's generator has no equivalent, so the ported model omits it and the " +
-                 "list starts empty rather than holding three elements.")]
+    [Fact]
     public void TestReflectionSetUnsetCollectionWithCompiletimeDefault()
     {
         var aReflectionTest = IReflectionTest.NewInstance();
