@@ -82,6 +82,16 @@ Notable changes per release. Earlier releases are listed on the
 
 ### Fixed
 
+- **Container properties were told apart by type instead of by identity.** An object is contained
+  through at most one container property, and which one is recorded in the container property id.
+  The generated getter tested the *container's runtime type* instead, so a type declaring two
+  container properties that name the same containing type could not tell them apart: both
+  reported the container, and only one of them was true. The detach path had the same flaw and
+  was worse — it removed the object from **every** containment of a matching type, including the
+  one it was being added to, so moving an object between two lists of the same container left it
+  in neither list while still reporting a container. Both now key on the property id, as Java
+  does, and reflection agrees with the getter.
+
 - **`Clone()` and `DeepCopy()` collapsed distinct objects into one.** The identity map that keeps
   a doubly-reached object from being copied twice compared keys with `Equals`, so under content
   equality two *distinct* but content-equal objects were treated as the same key. Cloning a graph

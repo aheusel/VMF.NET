@@ -45,6 +45,7 @@ leave open, such as what happens when you assign the default explicitly (still "
 | Cross-reference lists accept duplicates; Java keeps one reference | Defect (M9) |
 | `IsSet` on a **collection** uses `Count > 0`, where Java compares against the default | **Unverified.** Java returns `null` as the default for a collection without a declared one, which would make an empty list report *set* — that reads oddly enough that it needs a probe against a real Java run before being called either way |
 | A settable `[Container]` needs `{ get; set; }` in the model; Java always generates the setter | C#-forced: the model interface *is* the public API here, and a partial interface cannot add a setter to a property already declared `{ get; }` |
+| ~~Container properties were told apart by the container's runtime **type**, where Java uses the container property **id**~~ | **Fixed.** Found while porting VFlow's connect logic. Two container properties naming the same containing type were indistinguishable, and the detach path removed an object from every list of a matching type — including the one it was joining | 
 
 ## Correction, 2026-08-23
 
@@ -77,7 +78,7 @@ comes before further feature work.
 | Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
 | Facts | 104; **101 portable** | **97 in the TestSuite** (all running) **+ 5 validation facts in `VMF.NET.Tests`** |
 
-Suite totals today: **320 passing**, 0 skipped, 0 failing (232 TestSuite + 88 Tests).
+Suite totals today: **325 passing**, 0 skipped, 0 failing (237 TestSuite + 88 Tests).
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -87,8 +88,9 @@ compiled project.
 Some C# facts have no Java counterpart and are extra coverage rather than parity: four
 cross-reference regression facts guarding the recursion fix, the `FSMTest` clone/`ToString`
 split, `UnparserModelTest`'s from-the-child-side variant, five `VList` batch-operation unit tests,
-and eight `ModelAnalyzerTests` facts pinning the delegation-inheritance rules M6 introduced and
-the narrowing rules M7 introduced.
+eight `ModelAnalyzerTests` facts pinning the delegation-inheritance rules M6 introduced and the
+narrowing rules M7 introduced, and five `ContainerPropertyIdTests` facts guarding the
+container-property-identity fix.
 
 ### The parity gap: none
 
