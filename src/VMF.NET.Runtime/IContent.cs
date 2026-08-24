@@ -12,7 +12,7 @@ public interface IContent
 {
     /// <summary>
     /// Returns an iterator that traverses the object graph depth-first
-    /// using the <see cref="IterationStrategy.UniqueProperty"/> strategy.
+    /// using the <see cref="IterationStrategy.UniqueNode"/> strategy.
     /// </summary>
     VIterator Iterator();
 
@@ -24,7 +24,7 @@ public interface IContent
 
     /// <summary>
     /// Returns all elements of the object graph as an enumerable (depth-first)
-    /// using the <see cref="IterationStrategy.UniqueProperty"/> strategy.
+    /// using the <see cref="IterationStrategy.UniqueNode"/> strategy.
     /// </summary>
     IEnumerable<IVObject> Stream();
 

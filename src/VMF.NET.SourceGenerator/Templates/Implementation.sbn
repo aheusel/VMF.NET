@@ -1065,9 +1065,12 @@ namespace {{ ns }}
             private readonly {{ type.ImplClassName }} _obj;
             public ContentImpl({{ type.ImplClassName }} obj) { _obj = obj; }
 
-            public VIterator Iterator() => Iterator(IterationStrategy.UniqueProperty);
+            // UniqueNode, matching Java's content().iterator() -> VIterator.of(this).
+            // UniqueProperty visits each PROPERTY once, so a node reachable twice is emitted
+            // twice -- which is not what an unqualified "the content of this object" means.
+            public VIterator Iterator() => Iterator(IterationStrategy.UniqueNode);
             public VIterator Iterator(IterationStrategy strategy) => VIterator.Of(_obj, strategy);
-            public IEnumerable<IVObject> Stream() => Stream(IterationStrategy.UniqueProperty);
+            public IEnumerable<IVObject> Stream() => Stream(IterationStrategy.UniqueNode);
             public IEnumerable<IVObject> Stream(IterationStrategy strategy) => Iterator(strategy).AsEnumerable();
             public IEnumerable<T> Stream<T>() where T : IVObject => Stream().OfType<T>();
             public IEnumerable<T> Stream<T>(IterationStrategy strategy) where T : IVObject => Stream(strategy).OfType<T>();

@@ -146,7 +146,8 @@ namespace {{ ns }}
                 _mutable = mutable;
             }
 
-            public VIterator Iterator() => VIterator.Of(_ro, IterationStrategy.UniqueProperty);
+            // UniqueNode, matching Java -- see the note on the mutable ContentImpl.
+            public VIterator Iterator() => VIterator.Of(_ro, IterationStrategy.UniqueNode);
             public VIterator Iterator(IterationStrategy strategy) => VIterator.Of(_ro, strategy);
             public IEnumerable<IVObject> Stream() => Iterator().AsEnumerable();
             public IEnumerable<IVObject> Stream(IterationStrategy strategy) => Iterator(strategy).AsEnumerable();
