@@ -1,8 +1,7 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** **the port is complete** — every Java fact has a counterpart (M2″). M4a/M4b done.
-**Last updated:** 2026-08-24.
+**Status:** port complete (M2″); M4a/M4b/M5 done. **Last updated:** 2026-08-24.
 
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
@@ -72,9 +71,9 @@ comes before further feature work.
 |---|---|---|
 | Model areas | 39 | **39 — all ported** |
 | Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
-| Facts | 104; **101 portable** | **97 in the TestSuite** (75 running, 22 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
+| Facts | 104; **101 portable** | **97 in the TestSuite** (83 running, 14 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
 
-Suite totals today: **280 passing**, 22 skipped, 0 failing (200 TestSuite + 80 Tests).
+Suite totals today: **291 passing**, 14 skipped, 0 failing (211 TestSuite + 80 Tests).
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -86,7 +85,7 @@ cross-reference regression facts guarding the recursion fix, the `FSMTest` clone
 split, `UnparserModelTest`'s from-the-child-side variant, and five `VList` batch-operation unit
 tests.
 
-### The parity gap: 22 facts
+### The parity gap: 14 facts
 
 Every one is a ported fact carrying `[Fact(Skip = "…")]` with the missing capability named, so
 **the skip count is the parity gap again** — the invariant M2″ set out to restore. Each skipped
@@ -106,15 +105,13 @@ abstraction with no .NET counterpart, commented out upstream) and `VMFGeneratorT
 
 | Waiting on | Facts | Areas |
 |---|---|---|
-| Reflection metadata + static entry (M5) | 5 | annotations (3), staticreflection (1), observableprop (1) |
-| Per-instance default values — `VmfProperty.SetDefault` (M5) | 3 | reflectiontest (3) |
 | Container-change event (M8) | 4 | eventsundoredo (3), vflow (1) |
-| Delegation, type-level and inherited (M6) | 2 | parentcontainment01 (2) |
 | Builder ergonomics and VList API (M9) | 3 | builders (1), horses (1), unparsermodel (1) |
+| Delegation, type-level and inherited (M6) | 2 | parentcontainment01 (2) |
 | Collection default values (M9) | 1 | reflectiontest (1) |
 | Undo (M8) | 1 | vflow (1) |
 | `ToString` format (M9 — align with Java) | 1 | test2 (1) |
-| Covariant narrowing + static reflection (M7) | 1 | propertyinheritance (1) |
+| Covariant narrowing (M7) | 1 | propertyinheritance (1) |
 | Clone traversal order (needs investigation) | 1 | fsm (1) |
 
 A blocked fact is kept as `[Fact(Skip = "...")]` with the missing capability named **and its
@@ -134,19 +131,15 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 | Member | Consequence | Milestone |
 |---|---|---|
 | `IChangeInternal.IsContainmentChange` | implemented, still never called | M9 (wire or delete) |
-| `ReflectImpl.SetAnnotations` | `Reflect().Annotations()` always empty — the data (`_VMF_OBJECT_ANNOTATIONS`) is generated but never read | M5 |
-| `VmfType.SetSuperTypes` | `SuperTypes()` always empty — `_VMF_SUPER_TYPE_NAMES` likewise generated and never read | M5 |
 | `IChange.Apply(target)` | implemented, never called — suggests undo/redo is partly built rather than absent | M8 |
-| `SetDefaultValueById` | generated with an empty body and never called; `VmfProperty` exposes no `SetDefault` at all. **Decided: wire it** — three ported facts need per-instance defaults | M5 |
-| `GetContainerPropertyId`, `UnsetById`, `ITraversalListener.Traverse` | implemented/declared, unreachable | M9 (decide: wire or delete) |
+| `GetContainerPropertyId`, `ITraversalListener.Traverse` | implemented/declared, unreachable | M9 (decide: wire or delete) |
 
 ### B. Missing capabilities
 
 | Capability | Blocks | Milestone |
 |---|---|---|
-| Static type reflection (Java `Type.type().reflect()`) | 1 fact | M5 |
 | Inherited `[DelegateTo]` — only methods declared on the type itself get a body | ~5 facts, 4 deviated models | M6 |
-| Covariant property narrowing — C# interfaces cannot override a property type | ~3–6 facts, 5 deviated models | M7 |
+| Covariant property narrowing — C# interfaces cannot override a property type | 1 fact, 5 deviated models | M7 |
 | Collection default values | 1 fact | M9 |
 | Cross-reference lists accept duplicates (Java keeps one reference) | 1 fact | M9 |
 | Builder-accepting `With*` overloads (Java passes unbuilt nested builders) | 1 fact | M9 |
@@ -176,7 +169,7 @@ a much smaller and much less certain part of M8 than this section assumed.
 | ~~M4a~~ | ~~Cross-reference echo classification~~ | **DONE.** The induced side is marked with `IsCrossRefEcho` while it is updated, so its change is tagged `crossref-echo`; `ProcessChange` reports echoes but does not record them | all 3 cross_ref facts active |
 | ~~M4b~~ | ~~Change propagation~~ | **DONE.** Changes route up the container chain; recursive flag honoured; read-only observation; `AddRange`/`RemoveAll`; settable `[Container]` | `recursivelistener01`, `observableprop`, `unparsermodel` green |
 | ~~M2″~~ | ~~Close the port~~ | **DONE.** Ported `VMFGenerateRuns` (25, split behavioural/validation) and `UndoRedoWithContainmentTest` (5); measured the validation overlap (4 of 9 already covered, 5 added, all pass); gave all 13 empty skipped facts real bodies; restored fidelity in `HorsesTest` and wrote the porting rules down | every Java fact has a counterpart; skip count = parity gap again |
-| **M5** | Reflection metadata | Populate `AllTypes`/`SuperTypes`/`Annotations`; add a static entry point. Then retire the `IsPolymorphic` call-site workaround from 0.1.4 | `annotations`, `staticreflection` green |
+| ~~M5~~ | ~~Reflection metadata~~ | **DONE.** Type-level annotations read on demand; static reflection over a generated prototype plus a per-namespace type registry answering `AllTypes`/`SuperTypes`; per-instance default values; `IsPolymorphic` workaround retired, which fixed a missing `@vmf-type` discriminator | 8 facts un-skipped |
 | **M6** | Inherited delegation | Generate bodies for inherited `[DelegateTo]`; type-level delegation | 4 models de-deviated |
 | **M7** | Covariant narrowing | Public property at the narrowest type + forwarding explicit implementations per declaring interface | 5 models de-deviated |
 | **M8** | Undo/redo | Verify what exists, then finish. `IChange.Apply` is implemented and never called and `TransactionImpl.Undo` partly works, so scope this against the code, not against the API surface | `events_undo_redo` (5) and vflow (2) green |

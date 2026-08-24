@@ -18,6 +18,29 @@ Notable changes per release. Earlier releases are listed on the
 - **Settable `[Container]` properties.** A model can declare a container property
   `{ get; set; }`, letting containment be driven from the child (`child.Parent = p`, or `null`
   to detach). A `[Container]` with no declared opposite gets no setter.
+- **Reflection metadata is populated.** `Reflect().Annotations()` (and `AnnotationByKey` /
+  `AnnotationsByKey`) return the type's annotations instead of always being empty;
+  `Reflect().AllTypes()` returns every model type instead of just the one asked about; and
+  `VmfType.SuperTypes()` is populated.
+- **Static type reflection.** Every generated model interface gains `static VmfType ModelType()`,
+  and `VmfType.Reflect()` gives reflection without an instance. Reading metadata works; anything
+  needing an object — `Get`, `Set`, `Unset`, `IsSet`, listeners — throws. (Java calls this
+  `type()`; C# cannot, because a model may declare a property named `Type`.)
+- **Per-instance default values.** `VmfProperty.SetDefault(value)` sets a property's default for
+  one object. A property that was unset stays unset and follows the new default, so its value
+  changes with it. Containment properties refuse it.
+
+### Fixed
+
+- **A missing `@vmf-type` discriminator.** Whether to write the discriminator depends on any
+  supertype of the serialised type being used as a property type somewhere in the model, but the
+  check could not see the properties of any type other than the object's own, so it answered "no"
+  whenever the supertype was used on a *different* type. Values written that way could not be read
+  back into a slot typed as the supertype. Serialising a subtype standalone now carries the
+  discriminator.
+- **JSON schema generation no longer depends on unrelated types.** `definitions` covered every
+  model type, so one type carrying a malformed schema annotation broke schema generation for every
+  other type in the same namespace. It now covers only the types the schema actually references.
 
 ### Behaviour changes
 
