@@ -26,13 +26,10 @@ public sealed class ReflectImpl : IReflect
 
     public IReadOnlyList<IAnnotation> Annotations()
     {
-        // Annotations are populated by generated code
-        return _annotations ??= [];
-    }
-
-    internal void SetAnnotations(IReadOnlyList<IAnnotation> annotations)
-    {
-        _annotations = annotations;
+        // Read on demand from the generated type metadata, as Java's ReflectImpl does. There is
+        // deliberately no setter: an earlier SetAnnotations existed and nothing ever called it,
+        // which is why this returned empty for every type.
+        return _annotations ??= _parent.GetAnnotations();
     }
 
     public IAnnotation? AnnotationByKey(string key)

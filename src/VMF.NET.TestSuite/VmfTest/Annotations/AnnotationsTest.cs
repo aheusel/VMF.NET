@@ -1,8 +1,4 @@
 // Ported from eu.mihosoft.vmftest.annotations.AnnotationsTest
-//
-// Property-level annotations work; type-level ones are not wired up, so three of the four
-// facts are skipped. Their bodies are complete and compile -- the API exists, it is only
-// never populated -- so un-skipping is a one-line change.
 
 using System.Linq;
 using Xunit;
@@ -11,13 +7,13 @@ namespace VMF.NET.TestSuite.VmfTest.Annotations;
 
 public class AnnotationsTest
 {
-    private const string NeedsTypeLevelAnnotations =
-        "Needs type-level annotations. ReflectImpl.SetAnnotations is never called, so " +
-        "Reflect().Annotations() / AnnotationByKey / AnnotationsByKey always return empty even " +
-        "though the generated impl holds _VMF_OBJECT_ANNOTATIONS. PROPERTY-level annotations do " +
-        "work -- see AnnotationPropertyInheritanceTest.";
-
-    // DEVIATION: VMF.NET also exposes its own bookkeeping annotation
+    // DEVIATION: VMF.NET also exposes its own bookkeeping annotations -- per-property
+    // "vmf:property:containment-info", and per-type "vmf:type:immutable"/"vmf:type:interface-only"
+    // for those kinds of type -- through the public Annotations() lists. None of the types in
+    // this area is immutable or interface-only, so the type-level counts below match Java; the
+    // property-level ones need the filter.
+    //
+    // Original note: VMF.NET also exposes its own bookkeeping annotation
     // ("vmf:property:containment-info", emitted for EVERY property) through the public
     // Annotations() list, so a raw count differs from Java. That is deliberate here --
     // ShallowCopyAnnotationTests asserts the internal annotation IS visible -- so the ports
@@ -27,7 +23,7 @@ public class AnnotationsTest
         o.Vmf().Reflect().PropertyByName(propertyName)!.Annotations()
             .Where(a => !a.Key.StartsWith("vmf:")).ToList();
 
-    [Fact(Skip = NeedsTypeLevelAnnotations)]
+    [Fact]
     public void BasicAnnotationTest()
     {
         var annotatedModel = IAnnotatedModel.NewInstance();
@@ -51,7 +47,7 @@ public class AnnotationsTest
         Assert.Null(annotatedModel.Vmf().Reflect().AnnotationByKey("key 3"));
     }
 
-    [Fact(Skip = NeedsTypeLevelAnnotations)]
+    [Fact]
     public void MultipleAnnotationsPerKeyTest()
     {
         var annotatedObject = IMultipleAnnotationsPerKey.NewInstance();
@@ -70,7 +66,7 @@ public class AnnotationsTest
         Assert.Equal(2, key2.Count);
     }
 
-    [Fact(Skip = NeedsTypeLevelAnnotations)]
+    [Fact]
     public void AnnotationInheritanceTest()
     {
         var annotatedObjectParent = IAnnotationInheritance1Parent.NewInstance();
