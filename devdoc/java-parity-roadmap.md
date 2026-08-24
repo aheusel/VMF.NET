@@ -1,7 +1,7 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** port complete (M2″); M4a/M4b/M5/M8/M9 done. Only M6 and M7 remain.
+**Status:** port complete (M2″); M4a/M4b/M5/M6/M8/M9 done. Only M7 remains.
 **Last updated:** 2026-08-24.
 
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
@@ -72,9 +72,9 @@ comes before further feature work.
 |---|---|---|
 | Model areas | 39 | **39 — all ported** |
 | Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
-| Facts | 104; **101 portable** | **97 in the TestSuite** (94 running, 3 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
+| Facts | 104; **101 portable** | **97 in the TestSuite** (96 running, 1 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
 
-Suite totals today: **309 passing**, 3 skipped, 0 failing (229 TestSuite + 80 Tests).
+Suite totals today: **316 passing**, 1 skipped, 0 failing (231 TestSuite + 85 Tests).
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -83,14 +83,14 @@ compiled project.
 
 Some C# facts have no Java counterpart and are extra coverage rather than parity: four
 cross-reference regression facts guarding the recursion fix, the `FSMTest` clone/`ToString`
-split, `UnparserModelTest`'s from-the-child-side variant, and five `VList` batch-operation unit
-tests.
+split, `UnparserModelTest`'s from-the-child-side variant, five `VList` batch-operation unit tests,
+and five `ModelAnalyzerTests` facts pinning the delegation-inheritance rules M6 introduced.
 
-### The parity gap: 3 facts
+### The parity gap: 1 fact
 
-Every one is a ported fact carrying `[Fact(Skip = "…")]` with the missing capability named, so
-**the skip count is the parity gap again** — the invariant M2″ set out to restore. Each skipped
-fact also carries its real body; where it needs an API that does not exist yet, those calls are
+It is a ported fact carrying `[Fact(Skip = "…")]` with the missing capability named, so
+**the skip count is the parity gap again** — the invariant M2″ set out to restore. It also
+carries its real body; where a skipped fact needs an API that does not exist yet, those calls are
 commented out behind a `NEEDS` marker rather than the body being left empty.
 
 The `VMFGenerateRuns` overlap is now measured rather than estimated. Of its nine
@@ -106,7 +106,7 @@ abstraction with no .NET counterpart, commented out upstream) and `VMFGeneratorT
 
 | Waiting on | Facts | Areas |
 |---|---|---|
-| Delegation, type-level and inherited (M6) | 2 | parentcontainment01 (2) |
+| ~~Delegation, type-level and inherited (M6)~~ | ~~2~~ 0 | parentcontainment01 — both active |
 | Covariant narrowing (M7) | 1 | propertyinheritance (1) |
 
 A blocked fact is kept as `[Fact(Skip = "...")]` with the missing capability named **and its
@@ -134,7 +134,7 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 
 | Capability | Blocks | Milestone |
 |---|---|---|
-| Inherited `[DelegateTo]` — only methods declared on the type itself get a body | ~5 facts, 4 deviated models | M6 |
+| ~~Inherited `[DelegateTo]` — only methods declared on the type itself get a body~~ | **DONE (M6).** 2 facts un-skipped, 5 models de-deviated | M6 |
 | Covariant property narrowing — C# interfaces cannot override a property type | 1 fact, 5 deviated models | M7 |
 | Collection default values | 1 fact | M9 |
 | Cross-reference lists accept duplicates (Java keeps one reference) | 1 fact | M9 |
@@ -142,6 +142,7 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 | `VListChangeEvent.Source`, so a listener can mutate the list it observes | 1 fact | M9 |
 | `ToString` renders a different shape from Java's: Java puts the type in an `@type` member and orders properties alphabetically, VMF.NET puts the type outside the braces and orders them as declared | 1 fact | M9 (align with Java) |
 | Clone and original are content-equal but traverse differently, so they do not serialise identically | 1 fact | investigate |
+| `ConnectorDelegate.TryConnect`/`Connect` return null instead of Java's connection logic, which needs `Connector.Parent` — unavailable while a `new` property redeclaration leaves the base read-only member unimplemented | 0 facts (nothing calls either) | M7-adjacent |
 
 ### C. Resolved
 
@@ -152,13 +153,12 @@ fact needs it, so it moves to M9's wire-or-delete list.
 
 ## Parity statement
 
-What the suite proves, as of M9.
+What the suite proves, as of M6.
 
-**Every portable Java fact has a running counterpart except three.** 101 portable facts; 3 are
-skipped, each naming the capability it waits on and carrying its real body. The two remaining
-milestones are M6 (inherited and type-level `[DelegateTo]`) and M7 (covariant property
-narrowing) — both are C# language or generator limits rather than missing behaviour, and both
-also de-deviate ported models.
+**Every portable Java fact has a running counterpart except one.** 101 portable facts; 1 is
+skipped, naming the capability it waits on and carrying its real body. The one remaining
+milestone is M7 (covariant property narrowing) — a C# language limit rather than missing
+behaviour, which also de-deviates 5 ported models.
 
 **Deliberate, permanent differences.** These are forced by C# and will not close:
 
@@ -192,7 +192,7 @@ API that Java also exposes and also never calls internally. They have no ported 
 | ~~M4b~~ | ~~Change propagation~~ | **DONE.** Changes route up the container chain; recursive flag honoured; read-only observation; `AddRange`/`RemoveAll`; settable `[Container]` | `recursivelistener01`, `observableprop`, `unparsermodel` green |
 | ~~M2″~~ | ~~Close the port~~ | **DONE.** Ported `VMFGenerateRuns` (25, split behavioural/validation) and `UndoRedoWithContainmentTest` (5); measured the validation overlap (4 of 9 already covered, 5 added, all pass); gave all 13 empty skipped facts real bodies; restored fidelity in `HorsesTest` and wrote the porting rules down | every Java fact has a counterpart; skip count = parity gap again |
 | ~~M5~~ | ~~Reflection metadata~~ | **DONE.** Type-level annotations read on demand; static reflection over a generated prototype plus a per-namespace type registry answering `AllTypes`/`SuperTypes`; per-instance default values; `IsPolymorphic` workaround retired, which fixed a missing `@vmf-type` discriminator | 8 facts un-skipped |
-| **M6** | Inherited delegation | Generate bodies for inherited `[DelegateTo]`; type-level delegation | 4 models de-deviated |
+| ~~M6~~ | ~~Inherited delegation~~ | **DONE.** Type-level `[DelegateTo]` is a constructor delegation calling `On<Type>Instantiated()` and supplies the class for undecorated methods; delegations inherit, deduped by signature with own-first; the cast reads `T` off the delegate class; one delegate instance per class per object | 2 facts un-skipped, 5 models de-deviated |
 | **M7** | Covariant narrowing | Public property at the narrowest type + forwarding explicit implementations per declaring interface | 5 models de-deviated |
 | ~~M8~~ | ~~Undo/redo~~ | **DONE.** A change now fires when a child's container changes, reported locally and not recorded, as Java does; undo verified working and given tests; content iteration defaults to `UniqueNode` | `events_undo_redo` and vflow green |
 | ~~M9~~ | ~~Tail + audit~~ | **DONE.** `ToString` aligned with Java; clone identity fixed; cross-reference duplicates rejected; `VListChangeEvent.Source`; builder-accepting `With*`; collection defaults; wire-or-delete settled; parity statement written | documented parity statement |
@@ -334,6 +334,70 @@ Unblocks the 3 `reflectiontest` facts.
 walks `AllTypes()` and `SuperTypes()` — both currently degenerate (`AllTypes()` returns just the
 one type, `SuperTypes()` is always empty). Once 2 populates them, revisit it. Not fact-blocking;
 do it last and only if it genuinely simplifies.
+
+## M6 design note — delegation
+
+Read from Java's model layer (`core/.../ModelType.initDelegations`, `Implementation
+.initPropertiesImportsAndDelegates`, `DelegationInfo`) rather than from its tests, per the design
+goal. Four behaviours, three of them Java's and one that only exists because C# needs a cast.
+
+### 1. A type-level `[DelegateTo]` is a *constructor* delegation
+
+`DelegationInfo.newInstance(model, clazz)` turns `@DelegateTo` on the interface into a delegation
+whose method name is `"on" + SimpleName + "Instantiated"`. The generated constructor creates the
+delegate, calls `setCaller(this)`, and then calls that hook. It is the model's only chance to run
+code at instantiation, and `parentcontainment01` is built entirely on it: the hook registers a
+change listener, and *that listener* is what populates `parent`. Nothing else in that model
+mentions containment at all.
+
+VMF.NET names the hook `On<SimpleName>Instantiated`, where `SimpleName` is the model interface
+with its leading `I` stripped — the same rule `ImplClassName` already uses, and the same string
+Java produces (`ICodeEntity` → `OnCodeEntityInstantiated`).
+
+### 2. A type-level `[DelegateTo]` also supplies the class for undecorated methods
+
+`DelegationInfo.newInstance(model, m, cD)` falls back to `cD.fullTypeName` whenever the method
+itself carries no annotation. `delegationinherit`'s `CircuitDevice.process()` and `consume()`
+depend on exactly this — the Java source even comments the two lines "uses constructor delegation
+info". A method that has neither its own attribute nor a type-level one is left alone; Java raises
+an error there, but in C# an interface method may carry a default implementation, so silence is
+the correct .NET reading.
+
+### 3. Delegations are inherited
+
+`ModelType` collects only *declared* members — which is why reading it alone suggested there was
+nothing to inherit. `Implementation` is where inheritance happens: it appends every supertype's
+delegations after the type's own, then keeps one entry per **signature**
+(`name(t1;t2)`, or `constructor-()` for the hook). Own-first plus first-wins means a redeclaration
+in the concrete type overrides the inherited one, and — because every constructor delegation
+shares the signature `constructor-()` — **exactly one survives per implementation**, the nearest
+in the hierarchy.
+
+### 4. The `IDelegatedBehavior<T>` cast reads `T` off the delegate class
+
+Ours alone. Java needs no cast: the field is declared at the delegate's own type, and
+`setCaller`'s parameter type comes with it — so the delegate picks `T`, and any caller that
+satisfies it works. VMF.NET has to cast, and it was casting to the type being *generated*, which
+inverts the relationship: an inherited delegate then had to implement `IDelegatedBehavior<T>` once
+per concrete subtype. That is why four ported models carried a delegate with two or three
+redundant interface implementations.
+
+The declaring type looks like the obvious replacement and is still wrong. Java's own delegates
+prove it: `CircuitDeviceDelegate` is a `DelegatedBehavior<Device>` while the `@DelegateTo` sits on
+`CircuitDevice`, and `ControlFlowChildNodeDelegate` is a `DelegatedBehavior<VObject>` — the root
+interface. So the generator reads `T` from the delegate class's own `IDelegatedBehavior<T>`
+(`SymbolExtractor.ResolveCallerType`) and casts to that. Statically resolved, no runtime
+reflection, and the same delegate sources compile.
+
+A cast rather than an unqualified `field.SetCaller(this)` because `SetCaller` has a default
+interface implementation: a delegate that does not override it — as
+`CircuitDeviceDelegate` does not — is only reachable through the interface in C#.
+
+One consequence worth stating: **one field per delegate class, not per method.** Java's `varName`
+indexes the delegate *type*, so the constructor hook and every delegated method on an object share
+a single delegate instance, and `setCaller` runs once at creation. A delegate that keeps state
+between calls — which `parentcontainment01`'s does, holding its caller for the listener, and which
+`delegationtest`'s `constructorCalled()` reads back — depends on that.
 
 ## M4b design note — notify *up* the container chain
 

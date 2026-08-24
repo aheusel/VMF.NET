@@ -133,6 +133,8 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 | `@GetterOnly` / `@IgnoreEquals` / `@IgnoreToString` | `[GetterOnly]` / `[IgnoreEquals]` / `[IgnoreToString]` |
 | `@Immutable` / `@InterfaceOnly` / `@ExternalType` | `[Immutable]` / `[InterfaceOnly]` / `[ExternalType]` |
 | `@DelegateTo(className="…")` | `[DelegateTo(typeof(…))]` |
+| a delegate's `on<Type>Instantiated()` hook | `On<Type>Instantiated()` — same name, `I` stripped from the interface |
+| `implements DelegatedBehavior<Foo>` | `: IDelegatedBehavior<IFoo>` — declare it **once**, at whichever model type suits it |
 | JUnit `@Test` | xUnit `[Fact]` |
 | `assertThat(actual, equalTo(expected))` | `Assert.Equal(expected, actual)` — **argument order flips** |
 | `Assert.assertTrue(x)` | `Assert.True(x)` |
@@ -205,6 +207,28 @@ The generated setter detaches from the current container and then attaches by dr
 **opposite** property, so containment is established in exactly one place regardless of which
 side the caller used. Setting it to `null` detaches. A `[Container]` with no declared opposite
 gets no setter — there is nothing to drive.
+
+### Porting a behaviour delegate
+
+Delegates translate almost literally. Three things to know:
+
+**Declare `IDelegatedBehavior<T>` once.** Pick the same `T` Java's delegate picks — a supertype,
+or `IVObject`, is fine, and the generator casts to whatever the class declares. Before M6 a
+delegate had to implement the interface once per model type that used it; that is no longer
+needed, and a port carrying several is stale.
+
+**A type-level `[DelegateTo]` requires the hook.** `[DelegateTo]` on the interface makes the
+generated constructor call `On<Type>Instantiated()`, so the delegate must declare it or the
+generated code will not compile. `ICodeEntity` calls `OnCodeEntityInstantiated` — Java's exact
+string, with the interface's leading `I` dropped. The hook is where Java's models register
+change listeners, and it is often the only reason a model behaves as its test expects.
+
+**One instance per delegate class per object.** The constructor hook and every delegated method
+share it, so state a delegate stores in the hook is still there when a method reads it.
+
+Methods on an interface carrying a type-level `[DelegateTo]` need no attribute of their own —
+they inherit that behaviour class. Delegations also inherit: a subtype gets a body for a
+supertype's delegated method without re-declaring it, and a re-declaration overrides.
 
 ## Porting the tests
 

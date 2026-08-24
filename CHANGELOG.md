@@ -43,6 +43,30 @@ Notable changes per release. Earlier releases are listed on the
   default reports `IsSet` as false.
 - **`VListChangeEvent.Source`** — the list a change happened on, so a listener can reach and
   modify the list it is observing.
+- **A type-level `[DelegateTo]` now runs an instantiation hook.** Placing `[DelegateTo]` on the
+  model interface makes the generated constructor create the delegate and call
+  `On<TypeName>Instantiated()` on it — where `TypeName` is the interface with its leading `I`
+  stripped, so `ICodeEntity` calls `OnCodeEntityInstantiated`. This is the model's hook for
+  running code at instantiation, such as registering a change listener. A type-level
+  `[DelegateTo]` also supplies the behaviour class for methods on that interface that carry no
+  `[DelegateTo]` of their own.
+
+  **This is a breaking change for models that already carry a type-level `[DelegateTo]`:** the
+  delegate class must now declare the hook method, or the generated code will not compile.
+
+### Changed
+
+- **`[DelegateTo]` is inherited.** A subtype now gets a body for a delegated method declared on
+  a supertype, instead of the method having to be re-declared with its own attribute on every
+  concrete type. Where both declare one, the subtype's wins. Type-level delegations inherit the
+  same way, and exactly one survives per type — the nearest in the hierarchy.
+- **One delegate instance per behaviour class per object**, rather than one per delegated method,
+  so a delegate can keep state between calls and the constructor hook shares it with the methods.
+  `SetCaller` is called once, when the delegate is created.
+- **The `IDelegatedBehavior<T>` cast now reads `T` from the delegate class** rather than assuming
+  the type being generated. A delegate written against a supertype — or against `IVObject` —
+  serves every subtype, so it no longer has to implement `IDelegatedBehavior<T>` once per model
+  type that uses it.
 
 ### Fixed
 
