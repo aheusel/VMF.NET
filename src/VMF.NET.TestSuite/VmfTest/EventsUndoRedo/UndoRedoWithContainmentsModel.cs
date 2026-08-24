@@ -15,8 +15,9 @@ public partial interface IParentListContainment
 [VmfModel]
 public partial interface IChildListContainment
 {
+    // settable: the Java facts drive containment from the child with setParent(parent)
     [Container("IParentListContainment.Children")]
-    IParentListContainment? Parent { get; }
+    IParentListContainment? Parent { get; set; }
 
     string? Name { get; set; }
 }
@@ -31,8 +32,9 @@ public partial interface IParentSingleContainment
 [VmfModel]
 public partial interface IChildSingleContainment
 {
+    // settable: the Java facts drive containment from the child with setParent(parent)
     [Container("IParentSingleContainment.Child")]
-    IParentSingleContainment? Parent { get; }
+    IParentSingleContainment? Parent { get; set; }
 
     string? Name { get; set; }
 }
