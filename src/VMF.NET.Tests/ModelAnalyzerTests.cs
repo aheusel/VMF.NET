@@ -424,6 +424,70 @@ public class ModelAnalyzerTests
         Assert.True(t.ConstructorDelegations[0].IsConstructorDelegation);
     }
 
+    // --- Covariant property narrowing (M7) ---
+    //
+    // Java resolves a narrowed property by taking the MOST DERIVED declaration -- own properties
+    // first, inherited ones only when the name is not already present -- never by comparing types.
+    // It does not have to: javac has already rejected an override that widens.
+
+    [Fact]
+    public void NarrowedProperty_MostDerivedDeclarationWins()
+    {
+        var baseType = MakeInterface("IBase", MakeProp("Value", $"{Ns}.IWide", "IWide", Ns));
+        var derived = MakeInterface("IDerived", MakeProp("Value", $"{Ns}.INarrow", "INarrow", Ns));
+        derived.BaseTypeNames.Add($"{Ns}.IBase");
+
+        var wide = MakeInterface("IWide");
+        var narrow = MakeInterface("INarrow");
+        narrow.BaseTypeNames.Add($"{Ns}.IWide");
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { wide, narrow, baseType, derived });
+        Assert.False(model.HasErrors);
+
+        var d = model.Types.First(t => t.TypeName == "IDerived");
+        var value = Assert.Single(d.AllProperties, p => p.Name == "Value");
+        Assert.Equal($"{Ns}.INarrow", value.TypeName);
+
+        // ... and the base still reports its own declaration, which is what the forwarding
+        // explicit implementation has to be written at.
+        var b = model.Types.First(t => t.TypeName == "IBase");
+        Assert.Equal($"{Ns}.IWide", b.AllProperties.First(p => p.Name == "Value").TypeName);
+    }
+
+    [Fact]
+    public void NarrowedCollectionProperty_IsRejected()
+    {
+        // VList<T> is invariant, so no forwarding implementation can exist. Java allows this only
+        // because its properties are arrays.
+        var baseType = MakeInterface("IBase", MakeCollectionProp("Items", "IWide", Ns));
+        var derived = MakeInterface("IDerived", MakeCollectionProp("Items", "INarrow", Ns));
+        derived.BaseTypeNames.Add($"{Ns}.IBase");
+
+        var wide = MakeInterface("IWide");
+        var narrow = MakeInterface("INarrow");
+        narrow.BaseTypeNames.Add($"{Ns}.IWide");
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { wide, narrow, baseType, derived });
+
+        Assert.True(model.HasErrors);
+        Assert.Contains(model.Diagnostics, d => d.Message.Contains("cannot be narrowed"));
+    }
+
+    [Fact]
+    public void RedeclaredCollectionProperty_AtTheSameTypeIsFine()
+    {
+        // Re-declaring without changing the type is how a model resolves CS0229 or restates
+        // [PropertyOrder]; only a CHANGE of collection type is rejected.
+        var baseType = MakeInterface("IBase", MakeCollectionProp("Items", "IElement", Ns));
+        var derived = MakeInterface("IDerived", MakeCollectionProp("Items", "IElement", Ns));
+        derived.BaseTypeNames.Add($"{Ns}.IBase");
+
+        var element = MakeInterface("IElement");
+
+        var model = ModelAnalyzer.Analyze(Ns, new[] { element, baseType, derived });
+        Assert.False(model.HasErrors);
+    }
+
     // --- Delegation inheritance (M6) ---
     //
     // Java's ModelType holds only what a type DECLARES; Implementation is where a supertype's

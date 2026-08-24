@@ -1,10 +1,4 @@
 // Ported from eu.mihosoft.vmftest.propertyorder.vmfmodel.DefaultOrder
-//
-// DEVIATION: Java's BaseClass/Inherited pair redeclares getValue() changing the type from
-// Object to Integer. C# interfaces cannot narrow a property type on redeclaration without
-// hiding it, and the generator emits a single implementation, so the base member would be
-// left unimplemented. The type is kept as object? on both here; the redeclared-order
-// scenario (the point of the pair) is preserved.
 
 using VMF.NET.Runtime.Attributes;
 
@@ -94,7 +88,13 @@ public partial interface IBaseClass
 [VmfModel]
 public partial interface IInherited : IBaseClass
 {
-    // Java narrows this to Integer; see the DEVIATION note at the top of the file.
+    // this should be allowed
+    // -> until v0.2.6.1 it wasn't
+    //    because of the property type change
+    //    which is 'object' in the getter-only
+    //    and 'int' here. that's where
+    //    VMF checks for redeclared property
+    //    order failed
     [PropertyOrder(0)]
-    new object? Value { get; set; }
+    new int? Value { get; set; }
 }

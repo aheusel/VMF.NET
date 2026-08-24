@@ -534,10 +534,41 @@ public static class ModelAnalyzer
         }
     }
 
+    /// <summary>
+    /// A property re-declared at a different type narrows it covariantly. That works for a scalar:
+    /// the implementation carries the narrowed member and satisfies each base with a forwarding
+    /// explicit implementation. It cannot work for a collection, because <c>VList&lt;T&gt;</c> is
+    /// invariant and no forwarding implementation can exist — Java allows it only because its
+    /// properties are arrays, which are covariant.
+    /// </summary>
+    private static void ValidateNarrowedProperties(ModelInfo model, ModelTypeInfo type)
+    {
+        foreach (var own in type.Properties)
+        {
+            if (!own.IsCollectionType) continue;
+
+            foreach (var baseType in type.AllInheritedTypes)
+            {
+                var declared = baseType.Properties.FirstOrDefault(p => p.Name == own.Name);
+                if (declared == null || declared.TypeName == own.TypeName) continue;
+
+                model.AddError(
+                    $"Property '{type.TypeName}.{own.Name}' re-declares "
+                    + $"'{baseType.TypeName}.{own.Name}' with a different collection type "
+                    + $"('{declared.TypeName}' -> '{own.TypeName}'). A collection property cannot "
+                    + "be narrowed: VList<T> is invariant, so the base declaration cannot be "
+                    + "implemented. Declare both at the same element type.",
+                    type.FullTypeName);
+            }
+        }
+    }
+
     private static void Validate(ModelInfo model)
     {
         foreach (var type in model.Types)
         {
+            ValidateNarrowedProperties(model, type);
+
             // Equals/hashCode delegation consistency
             if (type.IsEqualsMethodDelegated != type.IsHashCodeMethodDelegated)
             {

@@ -1,10 +1,7 @@
 // Ported from eu.mihosoft.vmftest.complex.vmf_text.generated.miniclang.vmfmodel.MiniClangModel
 //
 // DEVIATIONS:
-//  1. Covariant property narrowing (ConstExpression.getValue() -> Integer/Double/Boolean/
-//     String) has no C# equivalent on interfaces, so the const-expression types inherit
-//     Value from IConstExpression unchanged.
-//  2. Members inherited from two unrelated mixins (ArraySizes, VarName, Statements, Left,
+//  1. Members inherited from two unrelated mixins (ArraySizes, VarName, Statements, Left,
 //     Right, FunctionName, DeclType) are re-declared with `new` to resolve CS0229.
 
 using VMF.NET.Runtime;
@@ -407,16 +404,32 @@ public partial interface IIdentifierExpression : IExpression, IWithVarName
 }
 
 [VmfModel]
-public partial interface IIntExpression : IExpression, IConstExpression { }
+public partial interface IIntExpression : IExpression, IConstExpression
+{
+    [VmfDefaultValue("null")]
+    [PropertyOrder(0)] new int? Value { get; set; }
+}
 
 [VmfModel]
-public partial interface IDoubleExpression : IExpression, IConstExpression { }
+public partial interface IDoubleExpression : IExpression, IConstExpression
+{
+    [VmfDefaultValue("null")]
+    [PropertyOrder(0)] new double? Value { get; set; }
+}
 
 [VmfModel]
-public partial interface IBooleanExpression : IExpression, IConstExpression { }
+public partial interface IBooleanExpression : IExpression, IConstExpression
+{
+    [VmfDefaultValue("null")]
+    [PropertyOrder(0)] new bool? Value { get; set; }
+}
 
 [VmfModel]
-public partial interface IStringExpression : IExpression, IConstExpression { }
+public partial interface IStringExpression : IExpression, IConstExpression
+{
+    [VmfDefaultValue("null")]
+    [PropertyOrder(0)] new string? Value { get; set; }
+}
 
 [VmfModel]
 public partial interface IParenExpression : IExpression

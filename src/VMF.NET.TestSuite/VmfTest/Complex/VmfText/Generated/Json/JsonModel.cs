@@ -1,10 +1,7 @@
 // Ported from eu.mihosoft.vmftest.complex.vmf_text.generated.json.vmfmodel.JsonModel
 //
-// DEVIATION: Java narrows Val.getValue() in every subtype (String / Double / Obj / Array /
-// Boolean / Object). C# interfaces cannot override a property type covariantly, and the
-// generator emits a single implementation, so the subtypes inherit Value from IVal
-// unchanged. The discriminated-union shape (Val + one interface per JSON value kind) is
-// preserved, which is what the model is for.
+// The `new` keywords are C#: narrowing a property on redeclaration hides the base member
+// rather than overriding it, so the compiler asks for the intent to be stated.
 
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
@@ -88,29 +85,38 @@ public partial interface IVal : ICodeElement
 [VmfModel]
 public partial interface IStringValue : IVal
 {
+    [VmfDefaultValue("null")]
+    [PropertyOrder(0)] new string? Value { get; set; }
 }
 
 [VmfModel]
 public partial interface INumberValue : IVal
 {
+    [VmfDefaultValue("null")]
+    [PropertyOrder(0)] new double? Value { get; set; }
 }
 
 [VmfModel]
 public partial interface IObjectValue : IVal
 {
+    [PropertyOrder(0)] new IObj? Value { get; set; }
 }
 
 [VmfModel]
 public partial interface IArrayValue : IVal
 {
+    [PropertyOrder(0)] new IArray? Value { get; set; }
 }
 
 [VmfModel]
 public partial interface IBooleanValue : IVal
 {
+    [VmfDefaultValue("null")]
+    [PropertyOrder(0)] new bool? Value { get; set; }
 }
 
 [VmfModel]
 public partial interface INullValue : IVal
 {
+    [PropertyOrder(0)] new object? Value { get; set; }
 }

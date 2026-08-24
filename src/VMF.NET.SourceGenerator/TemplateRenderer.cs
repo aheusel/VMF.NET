@@ -216,12 +216,18 @@ public sealed class TemplateRenderer
 
         scriptObject.Add("to_string_props", toStringProps);
 
-        // Read-only explicit interface implementations.
+        // Explicit interface implementations.
         // A property may be declared by several interfaces in the hierarchy: the type itself
         // (when it re-declares/hides an inherited member with `new`) AND one or more bases.
         // Every declaring read-only interface needs its own explicit implementation, otherwise
         // the base member is left unimplemented (CS0738).
-        var roImpls = new List<ReadOnlyPropImpl>();
+        //
+        // Each is typed from the interface that DECLARES it, not from the property that won.
+        // Those differ exactly when the model narrows the property covariantly down the chain
+        // (M7): the public member sits at the narrowed type, and the wider declarations are
+        // satisfied by forwarding to it.
+        var roImpls = new List<PropImpl>();
+        var narrowedImpls = new List<PropImpl>();
         var roSeen = new HashSet<string>();
         foreach (var p in allProps)
         {
@@ -235,13 +241,24 @@ public sealed class TemplateRenderer
 
             foreach (var d in declaring)
             {
+                var declared = d.Properties.FirstOrDefault(x => x.Name == p.Name) ?? p;
+
                 if (roSeen.Add(d.ReadOnlyInterfaceName + "|" + p.Name))
                 {
-                    roImpls.Add(new ReadOnlyPropImpl(d.ReadOnlyInterfaceName, p));
+                    roImpls.Add(new PropImpl(d.ReadOnlyInterfaceName, p, declared));
+                }
+
+                // The mutable side needs one only where the declared type differs: otherwise the
+                // public member already satisfies the interface, and an explicit implementation
+                // would be a duplicate.
+                if (declared.TypeName != p.TypeName)
+                {
+                    narrowedImpls.Add(new PropImpl(d.TypeName, p, declared));
                 }
             }
         }
         scriptObject.Add("readonly_prop_impls", roImpls);
+        scriptObject.Add("narrowed_prop_impls", narrowedImpls);
 
         // Types that contain this type (for UnregisterFromContainers)
         var containingPropsWithOpposite = model.FindAllPropsThatContainType(type, true);
@@ -257,22 +274,32 @@ public sealed class TemplateRenderer
 }
 
 /// <summary>
-/// One read-only explicit interface implementation to emit: the declaring read-only
-/// interface plus the property it declares.
+/// One explicit interface implementation to emit: the declaring interface, the property the
+/// implementation reads from, and the property as that interface declares it.
 /// </summary>
-public sealed class ReadOnlyPropImpl
+public sealed class PropImpl
 {
-    public ReadOnlyPropImpl(string ifaceName, PropertyInfo prop)
+    public PropImpl(string ifaceName, PropertyInfo prop, PropertyInfo declaredProp)
     {
         IfaceName = ifaceName;
         Prop = prop;
+        DeclaredProp = declaredProp;
     }
 
-    /// <summary>Name of the read-only interface that declares the property.</summary>
+    /// <summary>Name of the interface that declares the property.</summary>
     public string IfaceName { get; }
 
-    /// <summary>The property to implement.</summary>
+    /// <summary>
+    /// The property that won for this type — the backing member the implementation forwards to.
+    /// </summary>
     public PropertyInfo Prop { get; }
+
+    /// <summary>
+    /// The property as <see cref="IfaceName"/> declares it. Its type is what the explicit
+    /// implementation must be written at, and it differs from <see cref="Prop"/>'s only where the
+    /// model narrows the property covariantly.
+    /// </summary>
+    public PropertyInfo DeclaredProp { get; }
 }
 
 /// <summary>

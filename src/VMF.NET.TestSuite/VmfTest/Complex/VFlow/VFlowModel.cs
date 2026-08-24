@@ -1,14 +1,8 @@
 // Ported from eu.mihosoft.vmftest.complex.vflow.vmfmodel.VFlow and the four behaviour
 // delegates beside it.
 //
-// DEVIATIONS:
-//  1. A `new` redeclaration of a property leaves the BASE read-only interface member
-//     unimplemented, so Parent/Connections are declared only on Input/Output, not on
-//     Connector as in Java. That is also why OnConnectorInstantiated has to ask which of the
-//     two it is holding before it can reach Connections.
-//  2. ConnectorDelegate.TryConnect/Connect return null instead of Java's connection logic,
-//     which needs Connector.Parent -- unavailable here for the reason above. No ported fact
-//     calls either method.
+// The `new` keywords are C#: Input/Output re-declare Connector's Parent and Connections to
+// attach [Container]/[Contains], which hides the base member rather than overriding it.
 
 using System.Linq;
 using VMF.NET.Runtime;
@@ -65,6 +59,10 @@ public partial interface IWithValue
 [DelegateTo(typeof(ConnectorDelegate))]
 public partial interface IConnector : IWithId, IWithType, IWithValue
 {
+    [GetterOnly] IVNode? Parent { get; }
+
+    [GetterOnly] VList<IConnection> Connections { get; }
+
     [DelegateTo(typeof(ConnectorDelegate))]
     IConnectionResult? TryConnect(IConnector c);
 
@@ -76,31 +74,33 @@ public partial interface IConnector : IWithId, IWithType, IWithValue
 public partial interface IInput : IConnector
 {
     [Container("IVNode.Inputs")]
-    IVNode? Parent { get; }
+    new IVNode? Parent { get; }
 
     [Contains("IConnection.Receiver")]
-    VList<IConnection> Connections { get; }
+    new VList<IConnection> Connections { get; }
 }
 
 [VmfModel]
 public partial interface IOutput : IConnector
 {
     [Container("IVNode.Outputs")]
-    IVNode? Parent { get; }
+    new IVNode? Parent { get; }
 
     [Contains("IConnection.Sender")]
-    VList<IConnection> Connections { get; }
+    new VList<IConnection> Connections { get; }
 }
 
 [VmfModel]
 [DelegateTo(typeof(ConnectionDelegate))]
 public partial interface IConnection : IWithId, IWithType
 {
+    // Settable, because ConnectorDelegate.Connect assigns them. Java generates a container
+    // setter automatically; here a model opts in by declaring the property `{ get; set; }`.
     [Container("IOutput.Connections")]
-    IOutput? Sender { get; }
+    IOutput? Sender { get; set; }
 
     [Container("IInput.Connections")]
-    IInput? Receiver { get; }
+    IInput? Receiver { get; set; }
 
     [Container("IVFlow.Connections")]
     IVFlow? Flow { get; }
@@ -168,22 +168,12 @@ public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
 
     public void OnConnectorInstantiated()
     {
-        // Connections lives on Input/Output here rather than on Connector -- see deviation 1.
-        var connections = _caller switch
-        {
-            IInput input => input.Connections,
-            IOutput output => output.Connections,
-            _ => null,
-        };
-
-        if (connections == null) return;
-
         // prevent duplicates & set id
-        connections.AddChangeListener(evt =>
+        _caller!.Connections.AddChangeListener(evt =>
         {
             foreach (IConnection cnn in evt.Added.Cast<IConnection>())
             {
-                if (connections.Count(cnn2 => ReferenceEquals(cnn, cnn2)) > 1)
+                if (_caller.Connections.Count(cnn2 => ReferenceEquals(cnn, cnn2)) > 1)
                 {
                     throw new System.InvalidOperationException("Duplicate connections added: " + cnn);
                 }
@@ -191,8 +181,126 @@ public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
         });
     }
 
-    public IConnectionResult? TryConnect(IConnector c) => null;
-    public IConnectionResult? Connect(IConnector c) => null;
+    private sealed class ConnectorTuple
+    {
+        public IInput? Input;
+        public IOutput? Output;
+
+        public ConnectorTuple(IInput? input, IOutput? output)
+        {
+            Input = input;
+            Output = output;
+        }
+    }
+
+    private ConnectorTuple Sort(IConnector? c1, IConnector? c2)
+    {
+        IInput? input = null;
+        IOutput? output = null;
+
+        if (c1 is IInput && c2 is IOutput)
+        {
+            input = (IInput)c1;
+            output = (IOutput)c2;
+        }
+        else if (c1 is IOutput && c2 is IInput)
+        {
+            input = (IInput)c2;
+            output = (IOutput)c1;
+        }
+
+        return new ConnectorTuple(input, output);
+    }
+
+    public IConnectionResult? Connect(IConnector c2)
+    {
+        IConnector? c1 = _caller;
+
+        var result = TryConnect(c2)!;
+
+        if (!result.Successful)
+        {
+            return result;
+        }
+
+        var connectors = Sort(c1, c2);
+
+        IInput input = connectors.Input!;
+        IOutput output = connectors.Output!;
+
+        string connectionType = input.Type!;
+        var connection = IConnection.NewBuilder().WithType(connectionType).Build();
+
+        connection.Sender = output;
+        connection.Receiver = input;
+
+        input.Parent!.Parent!.Connections.Add(connection);
+
+        return result;
+    }
+
+    public IConnectionResult? TryConnect(IConnector c2)
+    {
+        IConnector? c1 = _caller;
+
+        var result = IConnectionResult.NewInstance();
+        result.Successful = true;
+
+        if (c1 == null || c2 == null)
+        {
+            result.Successful = false;
+            result.Message = "cannot establish connection between 'null' connectors";
+            return result;
+        }
+
+        if (c1.Parent == null || c2.Parent == null)
+        {
+            result.Successful = false;
+            result.Message = "cannot establish connection between connectors without parent node";
+            return result;
+        }
+
+        // Java repeats the check above verbatim here; kept so the two read alike.
+        if (c1.Parent == null || c2.Parent == null)
+        {
+            result.Successful = false;
+            result.Message = "cannot establish connection between connectors without parent node";
+            return result;
+        }
+
+        if (c1.Parent.Parent == null || c2.Parent.Parent == null)
+        {
+            result.Successful = false;
+            result.Message = "cannot establish connection between nodes that don't belong to a flow object";
+            return result;
+        }
+
+        result.Successful = true;
+
+        IInput? input = null;
+        IOutput? output = null;
+
+        var connectors = Sort(c1, c2);
+        input = connectors.Input;
+        output = connectors.Output;
+
+        if (input == null || output == null)
+        {
+            result.Successful = false;
+            result.Message = "cannot establish a connection between two outputs or two inputs";
+            return result;
+        }
+
+        if (result.Successful && !Equals(c1.Type, c2.Type))
+        {
+            result.Successful = false;
+            result.Message = "cannot establish a connection between connectors of incompatible types "
+                + "[ input-type: " + input.Type + ", output-type: " + output.Type + "]";
+            return result;
+        }
+
+        return result;
+    }
 }
 
 public sealed class ConnectionDelegate : IDelegatedBehavior<IConnection>

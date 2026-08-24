@@ -40,13 +40,16 @@ namespace {{ ns }}
 {{~ end ~}}
 {{~ end ~}}
 
-{{~ # explicit members for every read-only interface that declares the property ~}}
+{{~ # explicit members for every read-only interface that declares the property, each typed from
+   # the interface that DECLARES it so a covariantly narrowed property still satisfies its bases ~}}
 {{~ for impl in readonly_prop_impls ~}}
 {{~ prop = impl.Prop ~}}
-{{~ if prop.IsContainer ~}}
+{{~ if impl.DeclaredProp.IsContainer ~}}
         IVObject? {{ impl.IfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }}?.AsReadOnly();
-{{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ impl.IfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject)_mutable.{{ prop.Name }}).AsReadOnly() : null;
+{{~ else if impl.DeclaredProp.IsModelType ~}}
+        {{ impl.DeclaredProp.ModelType.ReadOnlyInterfaceName }}? {{ impl.IfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }} != null ? ({{ impl.DeclaredProp.ModelType.ReadOnlyInterfaceName }})((IVObject)_mutable.{{ prop.Name }}).AsReadOnly() : null;
+{{~ else if impl.DeclaredProp.TypeName != prop.TypeName ~}}
+        {{ prop_type_name impl.DeclaredProp }}{{ if (is_nullable impl.DeclaredProp) }}?{{ end }} {{ impl.IfaceName }}.{{ prop.Name }} => _mutable.{{ prop.Name }};
 {{~ end ~}}
 {{~ end ~}}
 

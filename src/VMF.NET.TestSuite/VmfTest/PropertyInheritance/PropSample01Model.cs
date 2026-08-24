@@ -1,11 +1,10 @@
 // Ported from eu.mihosoft.vmftest.propertyinheritance.vmfmodel.PropSample01
 //
-// DEVIATION: Java narrows getLocation() covariantly down the WithLocation chain
-// (Location -> LocationX -> LocationY -> LocationXY). C# interfaces have no covariant
-// property overriding: a narrowed redeclaration only hides the base member, and the
-// generator emits one implementation, leaving the base member unimplemented. The chain
-// therefore keeps ILocation as the property type; the inheritance shape (diamonds via
-// WithXY / LocationXY / WithLocationXY) is preserved, which is what the area exercises.
+// Location is narrowed down the WithLocation chain (Location -> LocationX / LocationY ->
+// LocationXY), which is what this area is for. The `new` keywords are C#: narrowing a property
+// on redeclaration hides the base member rather than overriding it, so the compiler asks for
+// the intent to be stated. The generated implementation carries the narrowed member and
+// satisfies each base interface with a forwarding explicit implementation.
 
 using VMF.NET.Runtime.Attributes;
 
@@ -62,18 +61,21 @@ public partial interface IWithLocation
 [InterfaceOnly]
 public partial interface IWithLocationX : IWithLocation
 {
+    [GetterOnly] new ILocationX? Location { get; }
 }
 
 [VmfModel]
 [InterfaceOnly]
 public partial interface IWithLocationY : IWithLocation
 {
+    [GetterOnly] new ILocationY? Location { get; }
 }
 
 [VmfModel]
 [InterfaceOnly]
 public partial interface IWithLocationXY : IWithLocationX, IWithLocationY
 {
+    [GetterOnly] new ILocationXY? Location { get; }
 }
 
 [VmfModel]
@@ -88,19 +90,23 @@ public partial interface IPropSample01
 [VmfModel]
 public partial interface IGCode1 : IWithLocationXY
 {
+    new ILocationXY? Location { get; set; }
 }
 
 [VmfModel]
 public partial interface IGCode2 : IWithLocationX
 {
+    new ILocationX? Location { get; set; }
 }
 
 [VmfModel]
 public partial interface IGCode3 : IWithLocationY
 {
+    new ILocationY? Location { get; set; }
 }
 
 [VmfModel]
 public partial interface IGCode4 : IWithLocation
 {
+    new ILocation? Location { get; set; }
 }

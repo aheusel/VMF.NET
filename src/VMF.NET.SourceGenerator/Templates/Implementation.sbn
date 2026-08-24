@@ -506,11 +506,39 @@ namespace {{ ns }}
             get => (IReadOnlyList<{{ prop.GenericTypeName ?? "object" }}>){{ prop.Name }};
 {{~ end ~}}
         }
-{{~ else if prop.IsContainer ~}}
-        IVObject? {{ impl.IfaceName }}.{{ prop.Name }} => __vmf_container?.AsReadOnly();
-{{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ impl.IfaceName }}.{{ prop.Name }} => {{ field_name prop }} != null ? ({{ prop.ModelType.ReadOnlyInterfaceName }})((IVObject){{ field_name prop }}).AsReadOnly() : null;
+{{~ else ~}}
+{{~ # Shaped by the DECLARING interface, not by the property that won: where the model narrows or
+   # re-declares, a base may declare this at a wider type -- or plainly, where the narrowed member
+   # is a [Container]. The value still comes from the winner, which is where it is stored. ~}}
+{{~ value_expr = prop.IsContainer ? "__vmf_container" : (field_name prop) ~}}
+{{~ if impl.DeclaredProp.IsContainer ~}}
+        IVObject? {{ impl.IfaceName }}.{{ prop.Name }} => {{ value_expr }}?.AsReadOnly();
+{{~ else if impl.DeclaredProp.IsModelType ~}}
+        {{ impl.DeclaredProp.ModelType.ReadOnlyInterfaceName }}? {{ impl.IfaceName }}.{{ prop.Name }} => {{ value_expr }} != null ? ({{ impl.DeclaredProp.ModelType.ReadOnlyInterfaceName }})((IVObject){{ value_expr }}).AsReadOnly() : null;
+{{~ else if impl.DeclaredProp.TypeName != prop.TypeName ~}}
+        {{ prop_type_name impl.DeclaredProp }}{{ if (is_nullable impl.DeclaredProp) }}?{{ end }} {{ impl.IfaceName }}.{{ prop.Name }} => {{ prop.Name }};
 {{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+
+{{~ # --- Covariantly narrowed properties --- ~}}
+{{~ # The public member sits at the narrowest declared type. Every interface that declares the
+   # property wider is satisfied by forwarding to it: C# has no covariant override for an
+   # interface property, but an explicit implementation may be written at the base's own type. ~}}
+{{~ for impl in narrowed_prop_impls ~}}
+{{~ prop = impl.Prop ~}}
+{{~ declared = impl.DeclaredProp ~}}
+{{~ if declared.IsGetterOnly || prop.IsGetterOnly ~}}
+        {{ prop_type_name declared }}{{ if (is_nullable declared) }}?{{ end }} {{ impl.IfaceName }}.{{ prop.Name }} => {{ prop.Name }};
+{{~ else ~}}
+        {{ prop_type_name declared }}{{ if (is_nullable declared) }}?{{ end }} {{ impl.IfaceName }}.{{ prop.Name }}
+        {
+            get => {{ prop.Name }};
+            {{ # A value that does not fit the narrowed type is rejected here; Java stores it and
+               # throws at the next narrowed read instead. }}
+            set => {{ prop.Name }} = ({{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }})value;
+        }
 {{~ end ~}}
 {{~ end ~}}
 
