@@ -1,7 +1,7 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** port complete (M2″); M4a/M4b/M5 done. **Last updated:** 2026-08-24.
+**Status:** port complete (M2″); M4a/M4b/M5/M8 done. **Last updated:** 2026-08-24.
 
 > Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
@@ -71,9 +71,9 @@ comes before further feature work.
 |---|---|---|
 | Model areas | 39 | **39 — all ported** |
 | Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
-| Facts | 104; **101 portable** | **97 in the TestSuite** (83 running, 14 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
+| Facts | 104; **101 portable** | **97 in the TestSuite** (88 running, 9 skipped) **+ 5 validation facts in `VMF.NET.Tests`** |
 
-Suite totals today: **291 passing**, 14 skipped, 0 failing (211 TestSuite + 80 Tests).
+Suite totals today: **300 passing**, 9 skipped, 0 failing (220 TestSuite + 80 Tests).
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -85,7 +85,7 @@ cross-reference regression facts guarding the recursion fix, the `FSMTest` clone
 split, `UnparserModelTest`'s from-the-child-side variant, and five `VList` batch-operation unit
 tests.
 
-### The parity gap: 14 facts
+### The parity gap: 9 facts
 
 Every one is a ported fact carrying `[Fact(Skip = "…")]` with the missing capability named, so
 **the skip count is the parity gap again** — the invariant M2″ set out to restore. Each skipped
@@ -105,11 +105,9 @@ abstraction with no .NET counterpart, commented out upstream) and `VMFGeneratorT
 
 | Waiting on | Facts | Areas |
 |---|---|---|
-| Container-change event (M8) | 4 | eventsundoredo (3), vflow (1) |
 | Builder ergonomics and VList API (M9) | 3 | builders (1), horses (1), unparsermodel (1) |
 | Delegation, type-level and inherited (M6) | 2 | parentcontainment01 (2) |
 | Collection default values (M9) | 1 | reflectiontest (1) |
-| Undo (M8) | 1 | vflow (1) |
 | `ToString` format (M9 — align with Java) | 1 | test2 (1) |
 | Covariant narrowing (M7) | 1 | propertyinheritance (1) |
 | Clone traversal order (needs investigation) | 1 | fsm (1) |
@@ -131,7 +129,7 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 | Member | Consequence | Milestone |
 |---|---|---|
 | `IChangeInternal.IsContainmentChange` | implemented, still never called | M9 (wire or delete) |
-| `IChange.Apply(target)` | implemented, never called — suggests undo/redo is partly built rather than absent | M8 |
+| `IChange.Apply(target)` | implemented, still never called. Undo turned out to be complete, so this is the redo/replay half and has no fact behind it | M9 (wire or delete) |
 | `GetContainerPropertyId`, `ITraversalListener.Traverse` | implemented/declared, unreachable | M9 (decide: wire or delete) |
 
 ### B. Missing capabilities
@@ -144,21 +142,15 @@ Declared, sometimes implemented, never called. This is the dominant pattern.
 | Cross-reference lists accept duplicates (Java keeps one reference) | 1 fact | M9 |
 | Builder-accepting `With*` overloads (Java passes unbuilt nested builders) | 1 fact | M9 |
 | `VListChangeEvent.Source`, so a listener can mutate the list it observes | 1 fact | M9 |
-| A change event when a child's container changes (`SetContainer` fires none) | 1 fact | M8 |
 | `ToString` renders a different shape from Java's: Java puts the type in an `@type` member and orders properties alphabetically, VMF.NET puts the type outside the braces and orders them as declared | 1 fact | M9 (align with Java) |
 | Clone and original are content-equal but traverse differently, so they do not serialise identically | 1 fact | investigate |
 
-### C. Unknown
+### C. Resolved
 
-Undo/redo has an API (`IChange.Undo`, `ITransaction.Undo`, `IsUndoable`) and **zero** tests.
-`TransactionImpl.Undo()` does call `_changes[i].Undo()`, so some of it is built. Verify before
-scoping.
-
-`events_undo_redo` is now ported, and it turns out **none of its five facts calls `undo()`** —
-they assert change *recording* across a containment boundary, which M4b's routing already
-satisfies. Two pass; the other three are blocked on the container-change event, not on undo.
-The only fact that genuinely needs undo is `vflow`'s `CreateAndUndoTest`. Undo/redo is therefore
-a much smaller and much less certain part of M8 than this section assumed.
+Undo/redo was listed here as unknown: an API with zero tests. Verified in M8 — **undo works**, on
+scalar changes, list adds and list removes, and over a 19,681-node graph undone in reverse. Four
+unit tests now pin it. `IChange.Apply` remains uncalled and is the redo/replay half; no ported
+fact needs it, so it moves to M9's wire-or-delete list.
 
 ## Milestones
 
@@ -172,7 +164,7 @@ a much smaller and much less certain part of M8 than this section assumed.
 | ~~M5~~ | ~~Reflection metadata~~ | **DONE.** Type-level annotations read on demand; static reflection over a generated prototype plus a per-namespace type registry answering `AllTypes`/`SuperTypes`; per-instance default values; `IsPolymorphic` workaround retired, which fixed a missing `@vmf-type` discriminator | 8 facts un-skipped |
 | **M6** | Inherited delegation | Generate bodies for inherited `[DelegateTo]`; type-level delegation | 4 models de-deviated |
 | **M7** | Covariant narrowing | Public property at the narrowest type + forwarding explicit implementations per declaring interface | 5 models de-deviated |
-| **M8** | Undo/redo | Verify what exists, then finish. `IChange.Apply` is implemented and never called and `TransactionImpl.Undo` partly works, so scope this against the code, not against the API surface | `events_undo_redo` (5) and vflow (2) green |
+| ~~M8~~ | ~~Undo/redo~~ | **DONE.** A change now fires when a child's container changes, reported locally and not recorded, as Java does; undo verified working and given tests; content iteration defaults to `UniqueNode` | `events_undo_redo` and vflow green |
 | **M9** | Tail + audit | Collection defaults; decide wire-or-delete on the dead members; negative models as compile-gates; parity audit table | documented parity statement |
 
 ### Sequencing rationale

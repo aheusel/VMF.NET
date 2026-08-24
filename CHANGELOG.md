@@ -30,8 +30,18 @@ Notable changes per release. Earlier releases are listed on the
   one object. A property that was unset stays unset and follows the new default, so its value
   changes with it. Containment properties refuse it.
 
+- **A change fires when a child's container changes.** Attaching a child to a containment
+  property, or detaching it, now raises a property change on the *child* naming its container
+  property. It is reported to listeners on the child only, and is not recorded — the containment
+  change belongs to the container and is recorded there.
+
 ### Fixed
 
+- **`Vmf().Content()` iteration visited some objects more than once.** `Iterator()` and `Stream()`
+  defaulted to `UniqueProperty`, which visits each *property* once and so emits a node once per
+  reference to it — a 21-node tree streamed as 41 entries. Both now default to `UniqueNode`, each
+  object exactly once, matching Java. Pass `IterationStrategy.UniqueProperty` explicitly for the
+  old behaviour.
 - **A missing `@vmf-type` discriminator.** Whether to write the discriminator depends on any
   supertype of the serialised type being used as a property type somewhere in the model, but the
   check could not see the properties of any type other than the object's own, so it answered "no"
