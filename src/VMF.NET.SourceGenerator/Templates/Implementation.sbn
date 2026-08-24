@@ -373,7 +373,12 @@ namespace {{ ns }}
 {{~ else if prop.IsContainer ~}}
         public {{ prop_type_name prop }}? {{ prop.Name }}
         {
-            get => __vmf_container as {{ prop_type_name prop }};
+{{~ # A type may declare several [Container] properties, and one object is contained through at
+   # most one of them. Which one is recorded in __vmf_container_prop_id, so a container property
+   # answers only when the object is contained through THAT property -- as Java's does. Testing
+   # the container's runtime type instead would answer for a sibling container property whenever
+   # the two happen to share a type. ~}}
+            get => __vmf_container_prop_id == {{ prop.PropId }} ? __vmf_container as {{ prop_type_name prop }} : null;
 {{~ if prop.Containment.OppositeProp != null ~}}
 {{~ # Settable so containment can be driven from the child side (child.Parent = p, or
    # child.Parent = null to detach). The model interface decides whether this is public API:
@@ -384,7 +389,10 @@ namespace {{ ns }}
    # establishes a link, so the two directions cannot drift apart. ~}}
             set
             {
-                if (ReferenceEquals(__vmf_container, value)) return;
+                // Both halves, as Java does: the same object reached through a DIFFERENT
+                // container property is a different containment and must not return early.
+                if (ReferenceEquals(__vmf_container, value)
+                    && __vmf_container_prop_id == {{ prop.PropId }}) return;
 
                 // Leave whatever contains us now; this is the whole job when value is null.
                 UnregisterFromContainers();
@@ -510,7 +518,9 @@ namespace {{ ns }}
 {{~ # Shaped by the DECLARING interface, not by the property that won: where the model narrows or
    # re-declares, a base may declare this at a wider type -- or plainly, where the narrowed member
    # is a [Container]. The value still comes from the winner, which is where it is stored. ~}}
-{{~ value_expr = prop.IsContainer ? "__vmf_container" : (field_name prop) ~}}
+{{~ # A container property reads through its public getter, which answers only when the object is
+   # contained through that property; every other property reads its backing field. ~}}
+{{~ value_expr = prop.IsContainer ? prop.Name : (field_name prop) ~}}
 {{~ if impl.DeclaredProp.IsContainer ~}}
         IVObject? {{ impl.IfaceName }}.{{ prop.Name }} => {{ value_expr }}?.AsReadOnly();
 {{~ else if impl.DeclaredProp.IsModelType ~}}
@@ -640,7 +650,10 @@ namespace {{ ns }}
             switch (id)
             {
 {{~ for prop in all_props ~}}
-                case {{ prop.PropId }}: return {{ if prop.IsCollectionType }}{{ prop.Name }}{{ else if prop.IsContainer }}{{ if type.IsImmutable }}null{{ else }}__vmf_container{{ end }}{{ else }}{{ field_name prop }}{{ end }};
+{{~ # Container properties go through the public getter, as Java's does, so reflection sees the
+   # same answer as a direct read -- including "null, because this object is contained through a
+   # different container property". ~}}
+                case {{ prop.PropId }}: return {{ if prop.IsCollectionType }}{{ prop.Name }}{{ else if prop.IsContainer }}{{ if type.IsImmutable }}null{{ else }}{{ prop.Name }}{{ end }}{{ else }}{{ field_name prop }}{{ end }};
 {{~ end ~}}
                 default: return null;
             }
@@ -689,7 +702,7 @@ namespace {{ ns }}
                 case {{ prop.PropId }}: return {{ raw_list_field_name prop }} != null && {{ raw_list_field_name prop }}.Count > 0;
 {{~ end ~}}
 {{~ else if prop.IsContainer && !type.IsImmutable ~}}
-                case {{ prop.PropId }}: return __vmf_container != null;
+                case {{ prop.PropId }}: return {{ prop.Name }} != null;
 {{~ else if prop.IsContainer && type.IsImmutable ~}}
                 case {{ prop.PropId }}: return false;
 {{~ else ~}}
@@ -793,9 +806,14 @@ namespace {{ ns }}
 
         public void UnregisterFromContainers()
         {
+{{~ # Where there is an opposite, ask THAT container property rather than testing the container's
+   # runtime type, as Java does (remove-containment-opposites-collection.vm reads
+   # e.get<Opposite>()). Only the property this object is actually contained through answers, so
+   # a sibling container property naming the same type is left alone -- including the one being
+   # attached to, which a type test would detach again straight after the attach. ~}}
 {{~ for cprop in containing_props_with_opposite ~}}
             // Contained by {{ cprop.Parent.TypeName }}.{{ cprop.Name }}
-            if (__vmf_container is {{ cprop.Parent.IsInterfaceOnly ? cprop.Parent.TypeName : cprop.Parent.ImplClassName }} container_{{ for.index }})
+            if ({{ cprop.Containment.OppositeProp.Name }} is {{ cprop.Parent.IsInterfaceOnly ? cprop.Parent.TypeName : cprop.Parent.ImplClassName }} container_{{ for.index }})
             {
 {{~ if cprop.IsCollectionType ~}}
                 container_{{ for.index }}.{{ cprop.Name }}.Remove(({{ cprop.GenericModelType?.TypeName ?? type.TypeName }})this);
