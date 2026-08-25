@@ -8,13 +8,15 @@ For generator-level tests that do *not* need generated code (model analysis, tem
 compile-gates over model source text), see **`VMF.NET.Tests`** instead — that is the counterpart
 of Java's `core/src/test` plus `VMFGeneratorTest`.
 
-> **The port is not complete.** Two Java test classes have no counterpart here:
-> `vmf/VMFGenerateRuns` (25 facts) and `events_undo_redo/UndoRedoWithContainmentTest` (5). Both
-> belong in *this* project — they are behavioural, not generator-level. Their model areas are
-> already ported, so `VmfTest/EventsUndoRedo/`, `VmfTest/Test1/`, `VmfTest/Test2/`,
-> `VmfTest/ReflectionTest/`, `VmfTest/DelegationTest/`, `VmfTest/NoPropertiesTest/` and
-> `VmfTest/CompletePropertyOrderTest/` currently hold models with no tests. See M2″ in
-> [`../../devdoc/java-parity-roadmap.md`](../../devdoc/java-parity-roadmap.md).
+> **The port is complete.** Every portable Java fact has a running counterpart and nothing is
+> skipped. `vmf/VMFGenerateRuns` splits across five classes here — four behavioural ones in this
+> project, plus `VMFGenerateRunsValidationTests` in `VMF.NET.Tests`, because a model VMF must
+> *reject* cannot sit in a compiled project.
+>
+> Two area folders hold a model and no test: `VmfTest/NoPropertiesTest/` and
+> `VmfTest/CompletePropertyOrderTest/`. That matches Java, where both live under the models-only
+> `vmftests` root and are exercised through `VMFGenerateRuns` rather than by a test class of their
+> own. See [`../../devdoc/java-parity-roadmap.md`](../../devdoc/java-parity-roadmap.md).
 
 ## Layout
 
@@ -267,6 +269,11 @@ Test classes live in the same area folder and namespace as the model, named afte
 class (`ContainmentTest.cs`). `VmfTest/Containment/` is the worked reference.
 
 ### JUnit/hamcrest -> xUnit
+
+> API-shape differences — `Optional<T>` versus a nullable reference, getters versus
+> properties, `type()` versus `ModelType()` — are catalogued in
+> [`../../devdoc/differences-to-java.md`](../../devdoc/differences-to-java.md). They explain
+> why a ported assertion is sometimes shorter than its Java original.
 
 | Java | C# |
 |---|---|

@@ -4,7 +4,9 @@
 **Status:** port complete (M2″); every milestone done. **0 skipped facts.**
 **Last updated:** 2026-08-24.
 
-> Companion doc: [`source-generator-dependencies.md`](source-generator-dependencies.md).
+> Companion docs: [`source-generator-dependencies.md`](source-generator-dependencies.md),
+> and [`differences-to-java.md`](differences-to-java.md) — the reader's catalogue of what
+> differs from Java and what to write instead.
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
 
 ## Design goal: behavioural identity with Java VMF
