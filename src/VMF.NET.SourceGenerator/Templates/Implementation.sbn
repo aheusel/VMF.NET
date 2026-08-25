@@ -97,8 +97,8 @@ namespace {{ ns }}
         // resulting change is classified as an echo. See IChangeInternal.IsCrossRefEchoChange.
         private bool __vmf_crossRefEcho;
 
-        // VMF API facade. Memoised: Changes() stores its ChangesManager on this instance,
-        // so a fresh VmfImpl per Vmf() call would create a new manager each time and orphan
+        // VMF API facade. Memoised: Changes stores its ChangesManager on this instance,
+        // so a fresh VmfImpl per VMF access would create a new manager each time and orphan
         // every listener registered through an earlier call.
         private VmfImpl? __vmf_vmfImpl;
 
@@ -578,7 +578,7 @@ namespace {{ ns }}
 {{~ end ~}}
 
         // --- IVObject ---
-        public IVmf Vmf() => __vmf_vmfImpl ??= new VmfImpl(this);
+        public IVmf VMF => __vmf_vmfImpl ??= new VmfImpl(this);
         IVObject IVObject.Clone() => Clone();
         IVObject IVObject.AsReadOnly() => AsReadOnly();
 
@@ -879,7 +879,7 @@ namespace {{ ns }}
 
         // --- Equals / HashCode / ToString ---
 {{~ # Content-based comparison is ALWAYS generated, independent of the declared strategy.
-   # A type using EqualsType.Instance still needs it for Vmf().Content().ContentEquals(),
+   # A type using EqualsType.Instance still needs it for VMF.Content.ContentEquals(),
    # which compares content no matter how Equals() behaves. ~}}
         public bool VmfContentEquals(object? other, HashSet<long> visited)
         {
@@ -957,7 +957,7 @@ namespace {{ ns }}
         public int VmfHashCode(HashSet<object> visited) => VmfContentHashCode(visited);
 {{~ else ~}}
         // Declared strategy is EqualsType.Instance: Equals() is identity, while the content
-        // comparison above stays reachable through Vmf().Content()
+        // comparison above stays reachable through VMF.Content
         public bool VmfEquals(object? other, HashSet<long> visited)
         {
 {{~ if !type.IsImmutable ~}}
@@ -1209,21 +1209,27 @@ namespace {{ ns }}
 
             public VmfImpl({{ type.ImplClassName }} obj) { _obj = obj; }
 
-            public IContent Content() => new ContentImpl(_obj);
+            public IContent Content => new ContentImpl(_obj);
 {{~ if type.IsImmutable ~}}
-            public IChanges Changes() => throw new InvalidOperationException("Immutable types do not support change tracking.");
+            public IChanges Changes => throw new InvalidOperationException("Immutable types do not support change tracking.");
 {{~ else ~}}
-            public IChanges Changes()
+            public IChanges Changes
             {
-                _changes ??= new ChangesManager(_obj);
-                _obj.__vmf_changes = _changes;
-                return _changes;
+                get
+                {
+                    _changes ??= new ChangesManager(_obj);
+                    _obj.__vmf_changes = _changes;
+                    return _changes;
+                }
             }
 {{~ end ~}}
-            public IReflect Reflect()
+            public IReflect Reflect
             {
-                _reflect ??= new ReflectImpl(_obj);
-                return _reflect;
+                get
+                {
+                    _reflect ??= new ReflectImpl(_obj);
+                    return _reflect;
+                }
             }
             public IBehavior<T> Behavior<T>() where T : IVObject => throw new NotSupportedException("Behavior API not yet implemented.");
         }

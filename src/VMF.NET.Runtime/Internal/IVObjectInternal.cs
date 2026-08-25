@@ -82,7 +82,7 @@ public interface IVObjectInternal : IVObject
     /// <summary>
     /// Content-based equality, independent of the declared equality strategy. A type using
     /// <c>EqualsType.Instance</c> compares by identity in <c>Equals</c> but still compares
-    /// content here, which is what <c>Vmf().Content().ContentEquals</c> relies on.
+    /// content here, which is what <c>VMF.Content.ContentEquals</c> relies on.
     /// </summary>
     bool VmfContentEquals(object? other, HashSet<long> visited);
 

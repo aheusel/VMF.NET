@@ -104,8 +104,8 @@ Assert.assertFalse(annotatedModel.vmf().reflect().annotationByKey("key 3").isPre
 
 ```csharp
 // VMF.NET
-Assert.NotNull(annotatedModel.Vmf().Reflect().AnnotationByKey("key 1"));
-Assert.Null(annotatedModel.Vmf().Reflect().AnnotationByKey("key 3"));
+Assert.NotNull(annotatedModel.VMF.Reflect.AnnotationByKey("key 1"));
+Assert.Null(annotatedModel.VMF.Reflect.AnnotationByKey("key 3"));
 ```
 
 Same question, same strength — and marginally stronger, since `Assert.NotNull` would also catch a

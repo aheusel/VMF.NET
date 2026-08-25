@@ -13,7 +13,7 @@ public class UndoTests
 {
     private static List<IChange> RecordedInReverse(INode root)
     {
-        var changes = new List<IChange>(root.Vmf().Changes().All());
+        var changes = new List<IChange>(root.VMF.Changes.All());
         changes.Reverse();
         return changes;
     }
@@ -24,12 +24,12 @@ public class UndoTests
         var node = INode.NewInstance();
         node.Name = "before";
 
-        node.Vmf().Changes().Start();
+        node.VMF.Changes.Start();
         node.Name = "after";
 
-        Assert.Single(node.Vmf().Changes().All());
+        Assert.Single(node.VMF.Changes.All());
 
-        node.Vmf().Changes().All()[0].Undo();
+        node.VMF.Changes.All()[0].Undo();
 
         Assert.Equal("before", node.Name);
     }
@@ -39,12 +39,12 @@ public class UndoTests
     {
         var root = INode.NewInstance();
 
-        root.Vmf().Changes().Start();
+        root.VMF.Changes.Start();
         root.Children.Add(INode.NewInstance());
 
         Assert.Single(root.Children);
 
-        root.Vmf().Changes().All()[0].Undo();
+        root.VMF.Changes.All()[0].Undo();
 
         Assert.Empty(root.Children);
     }
@@ -57,12 +57,12 @@ public class UndoTests
         child.Name = "c";
         root.Children.Add(child);
 
-        root.Vmf().Changes().Start();
+        root.VMF.Changes.Start();
         root.Children.Remove(child);
 
         Assert.Empty(root.Children);
 
-        root.Vmf().Changes().All()[0].Undo();
+        root.VMF.Changes.All()[0].Undo();
 
         Assert.Single(root.Children);
         Assert.Equal("c", root.Children[0].Name);
@@ -73,7 +73,7 @@ public class UndoTests
     {
         // the shape the VFlow fact relies on: record a build-up, then undo every change back
         var root = INode.NewInstance();
-        root.Vmf().Changes().Start();
+        root.VMF.Changes.Start();
 
         for (int i = 0; i < 5; i++)
         {
@@ -91,7 +91,7 @@ public class UndoTests
 
         Assert.Equal(5, root.Children.Count);
         // 1 root + 5 children + 15 grandchildren, each visited once (UniqueNode)
-        Assert.Equal(21, root.Vmf().Content().Stream<INode>().Count());
+        Assert.Equal(21, root.VMF.Content.Stream<INode>().Count());
 
         foreach (var change in RecordedInReverse(root))
         {
@@ -99,6 +99,6 @@ public class UndoTests
         }
 
         Assert.Empty(root.Children);
-        Assert.Single(root.Vmf().Content().Stream<INode>());
+        Assert.Single(root.VMF.Content.Stream<INode>());
     }
 }

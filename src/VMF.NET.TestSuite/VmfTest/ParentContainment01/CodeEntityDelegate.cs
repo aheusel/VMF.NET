@@ -16,7 +16,7 @@ public sealed class CodeEntityDelegate : IDelegatedBehavior<ICodeEntity>
 
     public void OnCodeEntityInstantiated()
     {
-        _codeEntity!.Vmf().Changes().AddListener(l =>
+        _codeEntity!.VMF.Changes.AddListener(l =>
         {
             if (l.Object != _codeEntity || "Parent" == l.PropertyName)
             {

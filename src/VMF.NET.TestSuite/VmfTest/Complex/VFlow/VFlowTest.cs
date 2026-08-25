@@ -13,19 +13,19 @@ public class VFlowTest
     public void CreateAndUndoTest()
     {
         var flow = IVFlow.NewInstance();
-        flow.Vmf().Changes().Start();
+        flow.VMF.Changes.Start();
 
         WorkflowTest(flow, 8, 6);
 
-        var numNodes = flow.Vmf().Content().Stream<IVNode>().Count();
-        var numObjects = flow.Vmf().Content().Stream().Count();
+        var numNodes = flow.VMF.Content.Stream<IVNode>().Count();
+        var numObjects = flow.VMF.Content.Stream().Count();
 
         // we expect a certain number of nodes
         Assert.Equal(19681, numNodes);
         // we expect a certain number of objects
         Assert.Equal(236161, numObjects);
 
-        var changesToRevert = new List<VMF.NET.Runtime.IChange>(flow.Vmf().Changes().All());
+        var changesToRevert = new List<VMF.NET.Runtime.IChange>(flow.VMF.Changes.All());
         changesToRevert.Reverse();
 
         // ... and undo all changes
@@ -34,8 +34,8 @@ public class VFlowTest
             ch.Undo();
         }
 
-        numNodes = flow.Vmf().Content().Stream<IVNode>().Count();
-        numObjects = flow.Vmf().Content().Stream().Count();
+        numNodes = flow.VMF.Content.Stream<IVNode>().Count();
+        numObjects = flow.VMF.Content.Stream().Count();
 
         // after undo, we expect exactly one node
         Assert.Equal(1, numNodes);
@@ -107,7 +107,7 @@ public class VFlowTest
         int nodesEvtCounter = 0;
         int parentEvtCounter = 0;
 
-        flow.Vmf().Changes().AddListener(change =>
+        flow.VMF.Changes.AddListener(change =>
         {
             if (change.PropertyName == "Nodes") nodesEvtCounter++;
         });
@@ -116,17 +116,17 @@ public class VFlowTest
         var n2 = IVNode.NewBuilder().WithName("my-name 2").Build();
         var n3 = IVNode.NewBuilder().WithName("my-name 3").Build();
 
-        n1.Vmf().Changes().AddListener(change =>
+        n1.VMF.Changes.AddListener(change =>
         {
             if (change.PropertyName == "Parent") parentEvtCounter++;
         });
 
-        n2.Vmf().Changes().AddListener(change =>
+        n2.VMF.Changes.AddListener(change =>
         {
             if (change.PropertyName == "Parent") parentEvtCounter++;
         });
 
-        n3.Vmf().Changes().AddListener(change =>
+        n3.VMF.Changes.AddListener(change =>
         {
             if (change.PropertyName == "Parent") parentEvtCounter++;
         });

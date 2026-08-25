@@ -6,7 +6,7 @@ namespace VMF.NET.Runtime;
 
 /// <summary>
 /// Content API for object graph traversal, cloning, and equality.
-/// Accessed via <c>obj.Vmf().Content()</c>.
+/// Accessed via <c>obj.VMF.Content</c>.
 /// </summary>
 public interface IContent
 {

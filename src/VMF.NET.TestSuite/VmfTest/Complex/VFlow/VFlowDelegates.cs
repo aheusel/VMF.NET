@@ -159,8 +159,8 @@ public sealed class ConnectionDelegate : IDelegatedBehavior<IConnection>
     {
         // Java's changePermitted flag is omitted: the only code that reads it -- a guard
         // rejecting manual writes to 'id' -- is commented out there.
-        _caller!.Vmf().Reflect().PropertyByName("Sender")?.AddChangeListener(_ => SyncId());
-        _caller!.Vmf().Reflect().PropertyByName("Receiver")?.AddChangeListener(_ => SyncId());
+        _caller!.VMF.Reflect.PropertyByName("Sender")?.AddChangeListener(_ => SyncId());
+        _caller!.VMF.Reflect.PropertyByName("Receiver")?.AddChangeListener(_ => SyncId());
     }
 
     private void SyncId()

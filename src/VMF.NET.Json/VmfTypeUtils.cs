@@ -66,8 +66,8 @@ public static class VmfTypeUtils
     /// </summary>
     public static bool IsPolymorphic(IVObject obj)
     {
-        var type = obj.Vmf().Reflect().Type();
-        var allTypes = obj.Vmf().Reflect().AllTypes();
+        var type = obj.VMF.Reflect.Type();
+        var allTypes = obj.VMF.Reflect.AllTypes();
 
         // Collect all types used as property types
         var propTypes = new HashSet<string>();
@@ -132,8 +132,8 @@ public static class VmfTypeUtils
     private static IReadOnlyList<VmfProperty> GetPropertiesForType(IVObject context, VmfType type)
     {
         // The context object's own type needs no prototype.
-        if (context.Vmf().Reflect().Type().Name == type.Name)
-            return context.Vmf().Reflect().Properties();
+        if (context.VMF.Reflect.Type().Name == type.Name)
+            return context.VMF.Reflect.Properties();
 
         // Any other type is reached through static reflection. This used to return empty, with
         // the note that properties could not be had without an instance -- which quietly made

@@ -38,7 +38,7 @@ public sealed class VmfJsonSchemaGenerator
         if (prototype is null)
             throw new InvalidOperationException($"Cannot create prototype for type '{modelType.Name}'.");
 
-        var reflect = prototype.Vmf().Reflect();
+        var reflect = prototype.VMF.Reflect;
         var schema = new Dictionary<string, object>
         {
             ["$schema"] = "http://json-schema.org/draft-07/schema#",
@@ -72,7 +72,7 @@ public sealed class VmfJsonSchemaGenerator
 
             var typeDef = new Dictionary<string, object> { ["type"] = "object" };
             var typeProps = new Dictionary<string, object>();
-            foreach (var p in typeProto.Vmf().Reflect().Properties())
+            foreach (var p in typeProto.VMF.Reflect.Properties())
             {
                 if (VmfTypeUtils.IsContainerProperty(p)) continue;
                 if (!VmfTypeUtils.ShouldSerialize(p)) continue;
@@ -396,7 +396,7 @@ public sealed class VmfJsonSchemaGenerator
                 if (name is null || !seen.Add(name)) continue;
 
                 var proto = CreatePrototype(name);
-                if (proto is not null) queue.Enqueue(proto.Vmf().Reflect());
+                if (proto is not null) queue.Enqueue(proto.VMF.Reflect);
             }
         }
 

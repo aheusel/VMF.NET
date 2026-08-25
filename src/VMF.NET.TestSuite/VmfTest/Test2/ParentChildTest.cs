@@ -49,7 +49,7 @@ public class ParentChildTest
         aParent.Children.Add(aChild);
         aChild.Name = "Luke";
 
-        var aCloneParent = aParent.Vmf().Content().DeepCopy<IParent>();
+        var aCloneParent = aParent.VMF.Content.DeepCopy<IParent>();
 
         Assert.Equal(aParent, aCloneParent);
         Assert.Equal(aParent.ToString(), aCloneParent.ToString());

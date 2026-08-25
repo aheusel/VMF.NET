@@ -20,7 +20,7 @@ public class ShallowCopyAnnotationTests
         node.X = 10;
         node.Y = 20;
 
-        var copy = node.Vmf().Content().ShallowCopy<INode>();
+        var copy = node.VMF.Content.ShallowCopy<INode>();
 
         Assert.NotSame(node, copy);
         Assert.Equal("Original", copy.Name);
@@ -36,7 +36,7 @@ public class ShallowCopyAnnotationTests
         sender.Name = "S";
         conn.Sender = sender;
 
-        var copy = conn.Vmf().Content().ShallowCopy<IConnection>();
+        var copy = conn.VMF.Content.ShallowCopy<IConnection>();
 
         // Shallow copy shares the same Sender reference
         Assert.Same(sender, copy.Sender);
@@ -54,7 +54,7 @@ public class ShallowCopyAnnotationTests
         flow.Nodes.Add(n1);
         flow.Nodes.Add(n2);
 
-        var copy = flow.Vmf().Content().ShallowCopy<IFlow>();
+        var copy = flow.VMF.Content.ShallowCopy<IFlow>();
 
         Assert.NotSame(flow, copy);
         Assert.Equal("Test", copy.Title);
@@ -70,7 +70,7 @@ public class ShallowCopyAnnotationTests
         var node = INode.NewInstance();
         node.Name = "A";
 
-        var copy = node.Vmf().Content().ShallowCopy<INode>();
+        var copy = node.VMF.Content.ShallowCopy<INode>();
         copy.Name = "B";
 
         Assert.Equal("A", node.Name);
@@ -86,7 +86,7 @@ public class ShallowCopyAnnotationTests
         node.Name = "N1";
         flow.Nodes.Add(node);
 
-        var copy = flow.Vmf().Content().DeepCopy<IFlow>();
+        var copy = flow.VMF.Content.DeepCopy<IFlow>();
 
         Assert.NotSame(flow, copy);
         Assert.NotSame(node, copy.Nodes[0]);

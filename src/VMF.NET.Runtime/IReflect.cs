@@ -6,7 +6,7 @@ namespace VMF.NET.Runtime;
 
 /// <summary>
 /// Reflection API for runtime introspection of VMF types, properties, and annotations.
-/// Accessed via <c>obj.Vmf().Reflect()</c>.
+/// Accessed via <c>obj.VMF.Reflect</c>.
 /// </summary>
 public interface IReflect
 {

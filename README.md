@@ -87,7 +87,7 @@ parent.Children.Add(child);
 Console.WriteLine(child.Parent == parent); // True
 
 // Change listeners
-parent.Vmf().Changes().AddListener(change => {
+parent.VMF.Changes.AddListener(change => {
     Console.WriteLine($"Changed: {change.PropertyName}");
 });
 

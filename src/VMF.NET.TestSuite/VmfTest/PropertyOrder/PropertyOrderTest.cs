@@ -11,7 +11,7 @@ namespace VMF.NET.TestSuite.VmfTest.PropertyOrder;
 public class PropertyOrderTest
 {
     private static string[] OrderOf(VMF.NET.Runtime.IVObject o) =>
-        o.Vmf().Reflect().Properties().Select(p => p.Name).ToArray();
+        o.VMF.Reflect.Properties().Select(p => p.Name).ToArray();
 
     [Fact]
     public void PropertyDefaultOrderTest()

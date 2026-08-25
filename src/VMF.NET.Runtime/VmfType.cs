@@ -89,7 +89,7 @@ public sealed class VmfType : IEquatable<VmfType>
     public IReflect Reflect()
     {
         var self = VmfTypeRegistry.Lookup(Name) ?? this;
-        var reflect = (ReflectImpl)self.Prototype().Vmf().Reflect();
+        var reflect = (ReflectImpl)self.Prototype().VMF.Reflect;
         reflect.SetStaticOnly(true);
         return reflect;
     }

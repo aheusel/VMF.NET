@@ -14,7 +14,7 @@ public class CrossRefTest
     private static Counter CountChangeEvents(IVObject o)
     {
         var counter = new Counter();
-        o.Vmf().Changes().AddListener(_ => counter.Value++);
+        o.VMF.Changes.AddListener(_ => counter.Value++);
         return counter;
     }
 
@@ -32,17 +32,17 @@ public class CrossRefTest
             var entityTwoA = IEntityTwoA.NewInstance();
             var numEvtOneA = CountChangeEvents(entityOneA);
             var numEvtTwoA = CountChangeEvents(entityTwoA);
-            entityOneA.Vmf().Changes().Start();
-            entityTwoA.Vmf().Changes().Start();
+            entityOneA.VMF.Changes.Start();
+            entityTwoA.VMF.Changes.Start();
 
             entityOneA.Ref = entityTwoA;
 
             Assert.Same(entityOneA, entityTwoA.Ref);
-            Assert.Single(entityOneA.Vmf().Changes().All());
+            Assert.Single(entityOneA.VMF.Changes.All());
             Assert.Equal(1, numEvtOneA.Value);
             Assert.Equal(1, numEvtTwoA.Value);
             // recorded only on the initiating object
-            Assert.Empty(entityTwoA.Vmf().Changes().All());
+            Assert.Empty(entityTwoA.VMF.Changes.All());
         }
         // ...and symmetrically, initiated from the B side
         {
@@ -50,16 +50,16 @@ public class CrossRefTest
             var entityTwoA = IEntityTwoA.NewInstance();
             var numEvtOneA = CountChangeEvents(entityOneA);
             var numEvtTwoA = CountChangeEvents(entityTwoA);
-            entityOneA.Vmf().Changes().Start();
-            entityTwoA.Vmf().Changes().Start();
+            entityOneA.VMF.Changes.Start();
+            entityTwoA.VMF.Changes.Start();
 
             entityTwoA.Ref = entityOneA;
 
             Assert.Same(entityTwoA, entityOneA.Ref);
-            Assert.Single(entityTwoA.Vmf().Changes().All());
+            Assert.Single(entityTwoA.VMF.Changes.All());
             Assert.Equal(1, numEvtTwoA.Value);
             Assert.Equal(1, numEvtOneA.Value);
-            Assert.Empty(entityOneA.Vmf().Changes().All());
+            Assert.Empty(entityOneA.VMF.Changes.All());
         }
     }
 
@@ -72,16 +72,16 @@ public class CrossRefTest
             var entityTwoB = IEntityTwoB.NewInstance();
             var numEvtOneB = CountChangeEvents(entityOneB);
             var numEvtTwoB = CountChangeEvents(entityTwoB);
-            entityOneB.Vmf().Changes().Start();
-            entityTwoB.Vmf().Changes().Start();
+            entityOneB.VMF.Changes.Start();
+            entityTwoB.VMF.Changes.Start();
 
             entityTwoB.Refs.Add(entityOneB);
 
             Assert.Same(entityTwoB, entityOneB.Ref);
             Assert.Equal(1, numEvtOneB.Value);
             Assert.Equal(1, numEvtTwoB.Value);
-            Assert.Single(entityTwoB.Vmf().Changes().All());
-            Assert.Empty(entityOneB.Vmf().Changes().All());
+            Assert.Single(entityTwoB.VMF.Changes.All());
+            Assert.Empty(entityOneB.VMF.Changes.All());
         }
         // ...and from the single side
         {
@@ -89,8 +89,8 @@ public class CrossRefTest
             var entityTwoB = IEntityTwoB.NewInstance();
             var numEvtOneB = CountChangeEvents(entityOneB);
             var numEvtTwoB = CountChangeEvents(entityTwoB);
-            entityOneB.Vmf().Changes().Start();
-            entityTwoB.Vmf().Changes().Start();
+            entityOneB.VMF.Changes.Start();
+            entityTwoB.VMF.Changes.Start();
 
             entityOneB.Ref = entityTwoB;
 
@@ -98,8 +98,8 @@ public class CrossRefTest
             Assert.Equal(new[] { entityOneB }, entityTwoB.Refs);
             Assert.Equal(1, numEvtOneB.Value);
             Assert.Equal(1, numEvtTwoB.Value);
-            Assert.Empty(entityTwoB.Vmf().Changes().All());
-            Assert.Single(entityOneB.Vmf().Changes().All());
+            Assert.Empty(entityTwoB.VMF.Changes.All());
+            Assert.Single(entityOneB.VMF.Changes.All());
         }
     }
 
@@ -112,8 +112,8 @@ public class CrossRefTest
             var entityTwoC = IEntityTwoC.NewInstance();
             var numEvtOneC = CountChangeEvents(entityOneC);
             var numEvtTwoC = CountChangeEvents(entityTwoC);
-            entityOneC.Vmf().Changes().Start();
-            entityTwoC.Vmf().Changes().Start();
+            entityOneC.VMF.Changes.Start();
+            entityTwoC.VMF.Changes.Start();
 
             entityOneC.Refs.Add(entityTwoC);
 
@@ -121,16 +121,16 @@ public class CrossRefTest
             Assert.Equal(new[] { entityOneC }, entityTwoC.Refs);
             Assert.Equal(1, numEvtOneC.Value);
             Assert.Equal(1, numEvtTwoC.Value);
-            Assert.Empty(entityTwoC.Vmf().Changes().All());
-            Assert.Single(entityOneC.Vmf().Changes().All());
+            Assert.Empty(entityTwoC.VMF.Changes.All());
+            Assert.Single(entityOneC.VMF.Changes.All());
         }
         {
             var entityOneC = IEntityOneC.NewInstance();
             var entityTwoC = IEntityTwoC.NewInstance();
             var numEvtOneC = CountChangeEvents(entityOneC);
             var numEvtTwoC = CountChangeEvents(entityTwoC);
-            entityOneC.Vmf().Changes().Start();
-            entityTwoC.Vmf().Changes().Start();
+            entityOneC.VMF.Changes.Start();
+            entityTwoC.VMF.Changes.Start();
 
             entityTwoC.Refs.Add(entityOneC);
 
@@ -138,8 +138,8 @@ public class CrossRefTest
             Assert.Equal(new[] { entityTwoC }, entityOneC.Refs);
             Assert.Equal(1, numEvtOneC.Value);
             Assert.Equal(1, numEvtTwoC.Value);
-            Assert.Empty(entityOneC.Vmf().Changes().All());
-            Assert.Single(entityTwoC.Vmf().Changes().All());
+            Assert.Empty(entityOneC.VMF.Changes.All());
+            Assert.Single(entityTwoC.VMF.Changes.All());
         }
     }
 

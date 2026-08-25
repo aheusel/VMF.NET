@@ -159,7 +159,7 @@ public sealed class VmfProperty
     public IDisposable AddChangeListener(Action<IChange> listener)
     {
         EnsureInstanceAccess();
-        return ((IVObject)_parent).Vmf().Changes().AddListener(change =>
+        return ((IVObject)_parent).VMF.Changes.AddListener(change =>
         {
             if (string.Equals(Name, change.PropertyName))
             {

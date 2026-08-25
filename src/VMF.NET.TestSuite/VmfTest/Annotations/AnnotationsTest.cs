@@ -21,7 +21,7 @@ public class AnnotationsTest
     // filter lives here rather than in the runtime.
     private static System.Collections.Generic.List<VMF.NET.Runtime.IAnnotation> UserAnnotations(
         VMF.NET.Runtime.IVObject o, string propertyName) =>
-        o.Vmf().Reflect().PropertyByName(propertyName)!.Annotations()
+        o.VMF.Reflect.PropertyByName(propertyName)!.Annotations()
             .Where(a => !a.Key.StartsWith("vmf:")).ToList();
 
     [Fact]
@@ -29,7 +29,7 @@ public class AnnotationsTest
     {
         var annotatedModel = IAnnotatedModel.NewInstance();
 
-        var annotations = annotatedModel.Vmf().Reflect().Annotations();
+        var annotations = annotatedModel.VMF.Reflect.Annotations();
 
         Assert.Equal(2, annotations.Count);
         Assert.True(annotations[0].Equals("key 1", "my value 1"), $"Not as expected, got: {annotations[0]}");
@@ -43,9 +43,9 @@ public class AnnotationsTest
         Assert.True(propertyAnnotations[1].Equals("prop key 2", "my prop value 2"),
             $"Not as expected, got: {propertyAnnotations[1]}");
 
-        Assert.NotNull(annotatedModel.Vmf().Reflect().AnnotationByKey("key 1"));
-        Assert.NotNull(annotatedModel.Vmf().Reflect().AnnotationByKey("key 2"));
-        Assert.Null(annotatedModel.Vmf().Reflect().AnnotationByKey("key 3"));
+        Assert.NotNull(annotatedModel.VMF.Reflect.AnnotationByKey("key 1"));
+        Assert.NotNull(annotatedModel.VMF.Reflect.AnnotationByKey("key 2"));
+        Assert.Null(annotatedModel.VMF.Reflect.AnnotationByKey("key 3"));
     }
 
     [Fact]
@@ -53,15 +53,15 @@ public class AnnotationsTest
     {
         var annotatedObject = IMultipleAnnotationsPerKey.NewInstance();
 
-        var annotations = annotatedObject.Vmf().Reflect().Annotations();
+        var annotations = annotatedObject.VMF.Reflect.Annotations();
 
         Assert.Equal(3, annotations.Count);
         Assert.True(annotations[0].Equals("key 1", "my value 1"), $"Not as expected, got: {annotations[0]}");
         Assert.Equal("key 2", annotations[1].Key);
         Assert.Equal("key 2", annotations[2].Key);
 
-        var key1 = annotatedObject.Vmf().Reflect().AnnotationsByKey("key 1");
-        var key2 = annotatedObject.Vmf().Reflect().AnnotationsByKey("key 2");
+        var key1 = annotatedObject.VMF.Reflect.AnnotationsByKey("key 1");
+        var key2 = annotatedObject.VMF.Reflect.AnnotationsByKey("key 2");
 
         Assert.Single(key1);
         Assert.Equal(2, key2.Count);
@@ -72,7 +72,7 @@ public class AnnotationsTest
     {
         var annotatedObjectParent = IAnnotationInheritance1Parent.NewInstance();
 
-        var annotations = annotatedObjectParent.Vmf().Reflect().Annotations();
+        var annotations = annotatedObjectParent.VMF.Reflect.Annotations();
 
         Assert.Equal(2, annotations.Count);
         Assert.True(annotations[0].Equals("key 1", "my parent value 1"),
@@ -82,7 +82,7 @@ public class AnnotationsTest
 
         var annotatedObjectChild = IAnnotationInheritance1Child.NewInstance();
 
-        annotations = annotatedObjectChild.Vmf().Reflect().Annotations();
+        annotations = annotatedObjectChild.VMF.Reflect.Annotations();
 
         Assert.Equal(2, annotations.Count);
         Assert.True(annotations[0].Equals("key 1", "my child value 1"),

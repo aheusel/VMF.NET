@@ -102,7 +102,7 @@ public class ImmutableRequiredTests
     public void Immutable_Changes_Throws()
     {
         var point = IPoint.NewInstance();
-        Assert.Throws<InvalidOperationException>(() => point.Vmf().Changes());
+        Assert.Throws<InvalidOperationException>(() => point.VMF.Changes);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class ImmutableRequiredTests
     public void Immutable_Reflect_Works()
     {
         var point = IPoint.NewBuilder().WithX(1.0).WithY(2.0).Build();
-        var reflect = point.Vmf().Reflect();
+        var reflect = point.VMF.Reflect;
 
         Assert.Equal(2, reflect.Properties().Count);
         Assert.Contains(reflect.Properties(), p => p.Name == "X");
@@ -129,7 +129,7 @@ public class ImmutableRequiredTests
     public void Immutable_DeepCopy_ReturnsSelf()
     {
         var point = IPoint.NewBuilder().WithX(1.0).WithY(2.0).Build();
-        var copy = point.Vmf().Content().DeepCopy<IPoint>();
+        var copy = point.VMF.Content.DeepCopy<IPoint>();
 
         Assert.Same(point, copy);
     }

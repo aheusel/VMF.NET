@@ -49,7 +49,7 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
     {
         writer.WriteStartObject();
 
-        var reflect = obj.Vmf().Reflect();
+        var reflect = obj.VMF.Reflect;
         var type = reflect.Type();
 
         // Write the @vmf-type discriminator when the value's runtime type differs from the
@@ -335,7 +335,7 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
         if (prototype is null) return null;
 
         Dictionary<string, string>? map = null;
-        foreach (var prop in prototype.Vmf().Reflect().Properties())
+        foreach (var prop in prototype.VMF.Reflect.Properties())
         {
             var annotation = prop.AnnotationByKey(VmfJsonKeys.Name);
             if (annotation is not null)

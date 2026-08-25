@@ -14,7 +14,7 @@ public class PropertyOrderDocTests
     public void PropertyOrder_ReflectedInCorrectOrder()
     {
         var config = IConfig.NewInstance();
-        var reflect = config.Vmf().Reflect();
+        var reflect = config.VMF.Reflect;
         var props = reflect.Properties();
 
         Assert.Equal(3, props.Count);

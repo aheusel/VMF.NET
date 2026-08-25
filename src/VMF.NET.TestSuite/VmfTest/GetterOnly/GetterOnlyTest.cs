@@ -23,12 +23,12 @@ public class GetterOnlyTest
         Assert.Equal("mutable obj", withName2.Name);
 
         // setting the immutable property must fail
-        var immutableProp = immutableObj.Vmf().Reflect().PropertyByName("Name");
+        var immutableProp = immutableObj.VMF.Reflect.PropertyByName("Name");
         Assert.NotNull(immutableProp);
         Assert.ThrowsAny<Exception>(() => immutableProp!.Set("new name"));
 
         // setting the mutable property must work
-        var mutableProp = mutableObj.Vmf().Reflect().PropertyByName("Name");
+        var mutableProp = mutableObj.VMF.Reflect.PropertyByName("Name");
         Assert.NotNull(mutableProp);
         mutableProp!.Set("new name");
         Assert.Equal("new name", mutableObj.Name);

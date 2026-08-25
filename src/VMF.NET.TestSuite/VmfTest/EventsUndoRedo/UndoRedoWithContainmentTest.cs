@@ -19,17 +19,17 @@ public class UndoRedoWithContainmentTest
 
         // count total change events
         int numChanges = 0;
-        parent.Vmf().Changes().AddListener(change => numChanges++);
+        parent.VMF.Changes.AddListener(change => numChanges++);
 
         // start the change recording
-        parent.Vmf().Changes().Start();
+        parent.VMF.Changes.Start();
 
         // create child
         var child = IChildListContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
-        var parentProp = child.Vmf().Reflect().PropertyByName("Parent");
+        var parentProp = child.VMF.Reflect.PropertyByName("Parent");
         parentProp?.AddChangeListener(change => numChangesProp++);
 
         // add the child to the containment collection which sets the parent
@@ -40,7 +40,7 @@ public class UndoRedoWithContainmentTest
         // message says otherwise -- ported as written)
         Assert.Equal(1, numChanges);
         // there's exactly one undoable change
-        Assert.Equal(1, parent.Vmf().Changes().All().Count);
+        Assert.Equal(1, parent.VMF.Changes.All().Count);
         // there is one change in total (second is fired only locally in child)
         Assert.Equal(1, numChanges);
 
@@ -48,7 +48,7 @@ public class UndoRedoWithContainmentTest
         child.Name = "my new name";
 
         // there are exactly two undoable change in the list
-        Assert.Equal(2, parent.Vmf().Changes().All().Count);
+        Assert.Equal(2, parent.VMF.Changes.All().Count);
     }
 
     [Fact]
@@ -58,17 +58,17 @@ public class UndoRedoWithContainmentTest
 
         // count total change events
         int numChanges = 0;
-        parent.Vmf().Changes().AddListener(change => numChanges++);
+        parent.VMF.Changes.AddListener(change => numChanges++);
 
         // start the change recording
-        parent.Vmf().Changes().Start();
+        parent.VMF.Changes.Start();
 
         // create child
         var child = IChildListContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
-        var parentProp = child.Vmf().Reflect().PropertyByName("Parent");
+        var parentProp = child.VMF.Reflect.PropertyByName("Parent");
         parentProp?.AddChangeListener(change => numChangesProp++);
 
         // set the parent which adds the child to the containment collection
@@ -77,7 +77,7 @@ public class UndoRedoWithContainmentTest
         // there's exactly one property 'parent' change
         Assert.Equal(1, numChangesProp);
         // there's exactly one undoable change
-        Assert.Equal(1, parent.Vmf().Changes().All().Count);
+        Assert.Equal(1, parent.VMF.Changes.All().Count);
         // there is one changes in total (second is only fired locally in child)
         Assert.Equal(1, numChanges);
 
@@ -85,7 +85,7 @@ public class UndoRedoWithContainmentTest
         child.Name = "my new name";
 
         // there are exactly two undoable changes in the list
-        Assert.Equal(2, parent.Vmf().Changes().All().Count);
+        Assert.Equal(2, parent.VMF.Changes.All().Count);
     }
 
     [Fact]
@@ -95,17 +95,17 @@ public class UndoRedoWithContainmentTest
 
         // count total change events
         int numChanges = 0;
-        parent.Vmf().Changes().AddListener(change => numChanges++);
+        parent.VMF.Changes.AddListener(change => numChanges++);
 
         // start the change recording
-        parent.Vmf().Changes().Start();
+        parent.VMF.Changes.Start();
 
         // create child
         var child = IChildSingleContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
-        var parentProp = child.Vmf().Reflect().PropertyByName("Parent");
+        var parentProp = child.VMF.Reflect.PropertyByName("Parent");
         parentProp?.AddChangeListener(change => numChangesProp++);
 
         // set child which sets the opposite as well
@@ -114,7 +114,7 @@ public class UndoRedoWithContainmentTest
         // there's exactly one property 'parent' change
         Assert.Equal(1, numChangesProp);
         // there's exactly one undoable change
-        Assert.Equal(1, parent.Vmf().Changes().All().Count);
+        Assert.Equal(1, parent.VMF.Changes.All().Count);
         // there is one change in total (second is only fired locally in child)
         Assert.Equal(1, numChanges);
 
@@ -122,7 +122,7 @@ public class UndoRedoWithContainmentTest
         child.Name = "my new name";
 
         // there are exactly two undoable changes in the list
-        Assert.Equal(2, parent.Vmf().Changes().All().Count);
+        Assert.Equal(2, parent.VMF.Changes.All().Count);
     }
 
     [Fact]
@@ -132,17 +132,17 @@ public class UndoRedoWithContainmentTest
 
         // count total change events
         int numChanges = 0;
-        parent.Vmf().Changes().AddListener(change => numChanges++);
+        parent.VMF.Changes.AddListener(change => numChanges++);
 
         // start the change recording
-        parent.Vmf().Changes().Start();
+        parent.VMF.Changes.Start();
 
         // create child
         var child = IChildSingleContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
-        var parentProp = child.Vmf().Reflect().PropertyByName("Parent");
+        var parentProp = child.VMF.Reflect.PropertyByName("Parent");
         parentProp?.AddChangeListener(change => numChangesProp++);
 
         // set the parent which sets the opposite as well
@@ -151,7 +151,7 @@ public class UndoRedoWithContainmentTest
         // there's exactly one property 'parent' change
         Assert.Equal(1, numChangesProp);
         // there's exactly one undoable change
-        Assert.Equal(1, parent.Vmf().Changes().All().Count);
+        Assert.Equal(1, parent.VMF.Changes.All().Count);
         // there is one change in total (second is fired only locally in child)
         Assert.Equal(1, numChanges);
 
@@ -159,7 +159,7 @@ public class UndoRedoWithContainmentTest
         child.Name = "my new name";
 
         // there are exactly two undoable changes in the list
-        Assert.Equal(2, parent.Vmf().Changes().All().Count);
+        Assert.Equal(2, parent.VMF.Changes.All().Count);
     }
 
     [Fact]
@@ -169,10 +169,10 @@ public class UndoRedoWithContainmentTest
 
         // register non-recursive listener to reproduce issue #30
         // see https://github.com/miho/VMF/issues/30
-        parent.Vmf().Changes().AddListener(change => { }, recursive: false);
+        parent.VMF.Changes.AddListener(change => { }, recursive: false);
 
         // start the change recording
-        parent.Vmf().Changes().Start();
+        parent.VMF.Changes.Start();
 
         // create child
         var child = IChildSingleContainment.NewInstance();
@@ -181,12 +181,12 @@ public class UndoRedoWithContainmentTest
         child.Parent = parent;
 
         // there's exactly one undoable change
-        Assert.Equal(1, parent.Vmf().Changes().All().Count);
+        Assert.Equal(1, parent.VMF.Changes.All().Count);
 
         // set a child property and see if changes are recorded in parent
         child.Name = "my new name";
 
         // there are exactly two undoable changes in the list
-        Assert.Equal(2, parent.Vmf().Changes().All().Count);
+        Assert.Equal(2, parent.VMF.Changes.All().Count);
     }
 }

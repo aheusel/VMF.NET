@@ -12,14 +12,14 @@ public class ObservablePropTest
     public void ObserveSimplePropertyTest()
     {
         var observed = IObserveMyProperties.NewInstance();
-        var nameProperty = observed.Vmf().Reflect().PropertyByName("Name");
+        var nameProperty = observed.VMF.Reflect.PropertyByName("Name");
         Assert.NotNull(nameProperty);
 
         var expectedValues = new List<string?> { "ABC", "123", "", null };
         var actualValues1 = new List<string?>();
         var actualValues2 = new List<string?>();
 
-        observed.Vmf().Changes().AddListener(
+        observed.VMF.Changes.AddListener(
             change => actualValues1.Add((string?)change.PropertyChange!.NewValue));
 
         nameProperty!.AddChangeListener(
@@ -38,13 +38,13 @@ public class ObservablePropTest
     public void ObserveListPropertyTest()
     {
         var observed = IObserveMyProperties.NewInstance();
-        var values = observed.Vmf().Reflect().PropertyByName("Values");
+        var values = observed.VMF.Reflect.PropertyByName("Values");
         Assert.NotNull(values);
 
         var actualValues1 = new List<IReadOnlyList<object?>>();
         var actualValues2 = new List<IReadOnlyList<object?>>();
 
-        observed.Vmf().Changes().AddListener(change => Record(change, actualValues1));
+        observed.VMF.Changes.AddListener(change => Record(change, actualValues1));
         values!.AddChangeListener(change => Record(change, actualValues2));
 
         // three modifications -> three changes, whatever their element counts
@@ -80,14 +80,14 @@ public class ObservablePropTest
         var observed = IObserveMyProperties.NewInstance();
         IReadOnlyObserveMyProperties observedRO = observed.AsReadOnly();
 
-        var nameProperty = observedRO.Vmf().Reflect().PropertyByName("Name");
+        var nameProperty = observedRO.VMF.Reflect.PropertyByName("Name");
         Assert.NotNull(nameProperty);
 
         var expectedValues = new List<string?> { "ABC", "123", "", null };
         var actualValues1 = new List<string?>();
         var actualValues2 = new List<string?>();
 
-        observedRO.Vmf().Changes().AddListener(
+        observedRO.VMF.Changes.AddListener(
             change => actualValues1.Add((string?)change.PropertyChange!.NewValue));
 
         nameProperty!.AddChangeListener(
@@ -108,13 +108,13 @@ public class ObservablePropTest
         var observed = IObserveMyProperties.NewInstance();
         IReadOnlyObserveMyProperties observedRO = observed.AsReadOnly();
 
-        var values = observedRO.Vmf().Reflect().PropertyByName("Values");
+        var values = observedRO.VMF.Reflect.PropertyByName("Values");
         Assert.NotNull(values);
 
         var actualValues1 = new List<IReadOnlyList<object?>>();
         var actualValues2 = new List<IReadOnlyList<object?>>();
 
-        observedRO.Vmf().Changes().AddListener(change => Record(change, actualValues1));
+        observedRO.VMF.Changes.AddListener(change => Record(change, actualValues1));
         values!.AddChangeListener(change => Record(change, actualValues2));
 
         observed.Values.AddRange([1, 2, 3]);

@@ -12,7 +12,7 @@ public class PropertyInheritanceTest
     public void PropertyInheritanceTest01()
     {
         var gCode1 = IGCode1.NewInstance();
-        var p = gCode1.Vmf().Reflect().PropertyByName("Location");
+        var p = gCode1.VMF.Reflect.PropertyByName("Location");
         Assert.NotNull(p);
 
         // ensure the property uses the correct type

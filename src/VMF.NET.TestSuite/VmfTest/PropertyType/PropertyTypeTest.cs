@@ -17,10 +17,10 @@ public class PropertyTypeTest
         var e = IEntityWithProperties.NewInstance();
         var cE = IChildEntity.NewInstance();
 
-        var ids = e.Vmf().Reflect().PropertyByName("Ids");
-        var children = e.Vmf().Reflect().PropertyByName("Children");
-        var entity = e.Vmf().Reflect().PropertyByName("Entity");
-        var name = cE.Vmf().Reflect().PropertyByName("Name");
+        var ids = e.VMF.Reflect.PropertyByName("Ids");
+        var children = e.VMF.Reflect.PropertyByName("Children");
+        var entity = e.VMF.Reflect.PropertyByName("Entity");
+        var name = cE.VMF.Reflect.PropertyByName("Name");
 
         Assert.NotNull(ids);
         Assert.NotNull(children);

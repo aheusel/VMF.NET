@@ -6,7 +6,7 @@ namespace VMF.NET.Runtime;
 
 /// <summary>
 /// Change tracking API for recording, listening to, and undoing model changes.
-/// Accessed via <c>obj.Vmf().Changes()</c>.
+/// Accessed via <c>obj.VMF.Changes</c>.
 /// </summary>
 public interface IChanges
 {

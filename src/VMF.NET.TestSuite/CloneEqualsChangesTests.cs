@@ -94,7 +94,7 @@ public class CloneEqualsChangesTests
         var node = INode.NewInstance();
         var changes = new List<IChange>();
 
-        node.Vmf().Changes().AddListener(c => changes.Add(c));
+        node.VMF.Changes.AddListener(c => changes.Add(c));
         node.Name = "Hello";
 
         Assert.Single(changes);
@@ -110,7 +110,7 @@ public class CloneEqualsChangesTests
         var flow = IFlow.NewInstance();
         var changes = new List<IChange>();
 
-        flow.Vmf().Changes().AddListener(c => changes.Add(c));
+        flow.VMF.Changes.AddListener(c => changes.Add(c));
         var node = INode.NewInstance();
         flow.Nodes.Add(node);
 
@@ -122,7 +122,7 @@ public class CloneEqualsChangesTests
     public void Changes_Recording()
     {
         var flow = IFlow.NewInstance();
-        var ch = flow.Vmf().Changes();
+        var ch = flow.VMF.Changes;
         ch.Start();
 
         flow.Title = "A";

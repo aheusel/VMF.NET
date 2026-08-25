@@ -86,7 +86,7 @@ public class ContainerPropertyIdTests
         var book = IBook.NewInstance();
         shelf.Back.Add(book);
 
-        var reflect = book.Vmf().Reflect();
+        var reflect = book.VMF.Reflect;
 
         Assert.Same(shelf, reflect.PropertyByName("BackShelf")!.Get());
         Assert.Null(reflect.PropertyByName("FrontShelf")!.Get());

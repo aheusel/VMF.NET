@@ -35,10 +35,10 @@ public class RecursiveListenerTest
         }
 
         int nonRecursiveChanges = 0;
-        root.Vmf().Changes().AddListener(_ => nonRecursiveChanges++, recursive: false);
+        root.VMF.Changes.AddListener(_ => nonRecursiveChanges++, recursive: false);
 
         int recursiveChanges = 0;
-        root.Vmf().Changes().AddListener(_ => recursiveChanges++, recursive: true);
+        root.VMF.Changes.AddListener(_ => recursiveChanges++, recursive: true);
 
         // changes on the root itself are seen by both
         root.Name = "root";
@@ -71,7 +71,7 @@ public class RecursiveListenerTest
         int changeCounter = 0;
 
         var root = NoContainment.INodeNoContainment.NewInstance();
-        root.Vmf().Changes().AddListener(change =>
+        root.VMF.Changes.AddListener(change =>
         {
             if (change.PropertyName == "Name") changeCounter++;
         });

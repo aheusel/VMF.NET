@@ -5,7 +5,7 @@
 //                                                      containment parents ignored
 //   All                    -- everything, including cross-references
 //   Instance               -- reference identity; content equality still available through
-//                             Vmf().Content().ContentEquals(...)
+//                             VMF.Content.ContentEquals(...)
 
 using Xunit;
 
@@ -217,7 +217,7 @@ public class EqualsTest
             var model2 = IEqualsTestModelInstanceEq.NewBuilder().WithName("my name1").WithValue(3).Build();
             model2.Reference = IAReference.NewBuilder().WithName("ref name 2").Build();
 
-            Assert.True(model1.Vmf().Content().ContentEquals(model2));
+            Assert.True(model1.VMF.Content.ContentEquals(model2));
         }
     }
 
@@ -232,7 +232,7 @@ public class EqualsTest
                 IEqualsTestContainmentEqListChild.NewBuilder().WithName("Child 2").Build())
             .Build();
 
-        var model2 = model1.Vmf().Content().DeepCopy<IEqualsTestContainmentEqList>();
+        var model2 = model1.VMF.Content.DeepCopy<IEqualsTestContainmentEqList>();
 
         Assert.Equal(model1, model2);
     }
@@ -248,11 +248,11 @@ public class EqualsTest
                 IEqualsTestInstanceEqListChild.NewBuilder().WithName("Child 2").Build())
             .Build();
 
-        var model2 = model1.Vmf().Content().DeepCopy<IEqualsTestInstanceEqList>();
+        var model2 = model1.VMF.Content.DeepCopy<IEqualsTestInstanceEqList>();
 
         Assert.NotEqual(model1, model2);
 
         // ...but its content is identical
-        Assert.True(model1.Vmf().Content().ContentEquals(model2));
+        Assert.True(model1.VMF.Content.ContentEquals(model2));
     }
 }

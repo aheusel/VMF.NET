@@ -145,7 +145,7 @@ public class ChangesManagerTests
 /// </summary>
 internal class FakeVObject : IVObject
 {
-    public IVmf Vmf() => throw new NotImplementedException();
+    public IVmf VMF => throw new NotImplementedException();
     public IVObject Clone() => throw new NotImplementedException();
     public IVObject AsReadOnly() => throw new NotImplementedException();
 }

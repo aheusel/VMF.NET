@@ -64,7 +64,7 @@ public class CloneIdentityTests
     public void DeepCopy_ContentEqualButDistinctObjects_StayDistinct()
     {
         var fsm = BuildFsm(4);
-        var copy = fsm.Vmf().Content().DeepCopy<IFSM>();
+        var copy = fsm.VMF.Content.DeepCopy<IFSM>();
 
         Assert.Equal(DistinctActions(fsm), DistinctActions(copy));
     }

@@ -10,22 +10,25 @@ namespace VMF.NET.Runtime;
 public interface IVmf
 {
     /// <summary>
-    /// Returns the content API for object graph operations.
+    /// The content API for object graph operations.
     /// </summary>
-    IContent Content();
+    IContent Content { get; }
 
     /// <summary>
-    /// Returns the changes API for change tracking, undo/redo.
+    /// The changes API for change tracking, undo/redo.
     /// </summary>
-    IChanges Changes();
+    IChanges Changes { get; }
 
     /// <summary>
-    /// Returns the reflection API for runtime type introspection.
+    /// The reflection API for runtime type introspection.
     /// </summary>
-    IReflect Reflect();
+    IReflect Reflect { get; }
 
     /// <summary>
     /// Returns the behavior API for delegation support.
+    /// <para>
+    /// Stays a method, unlike its siblings above: a property cannot be generic.
+    /// </para>
     /// </summary>
     IBehavior<T> Behavior<T>() where T : IVObject;
 }

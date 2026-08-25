@@ -62,7 +62,7 @@ public class ReadOnlyReflectionTests
     public void Reflect_Properties()
     {
         var flow = IFlow.NewInstance();
-        var reflect = flow.Vmf().Reflect();
+        var reflect = flow.VMF.Reflect;
 
         var props = reflect.Properties();
         Assert.Contains(props, p => p.Name == "Title");
@@ -89,7 +89,7 @@ public class ReadOnlyReflectionTests
     public void Reflect_Type()
     {
         var flow = IFlow.NewInstance();
-        var reflect = flow.Vmf().Reflect();
+        var reflect = flow.VMF.Reflect;
 
         Assert.Contains("IFlow", reflect.Type().Name);
     }
@@ -105,7 +105,7 @@ public class ReadOnlyReflectionTests
         flow.Nodes.Add(n1);
         flow.Nodes.Add(n2);
 
-        var content = flow.Vmf().Content();
+        var content = flow.VMF.Content;
         var all = content.Stream().ToList();
 
         // Should contain the flow itself and both nodes
@@ -123,7 +123,7 @@ public class ReadOnlyReflectionTests
         flow.Nodes.Add(n1);
         flow.Connections.Add(conn);
 
-        var nodes = flow.Vmf().Content().Stream<INode>().ToList();
+        var nodes = flow.VMF.Content.Stream<INode>().ToList();
         Assert.Single(nodes);
         Assert.Same(n1, nodes[0]);
     }
@@ -137,7 +137,7 @@ public class ReadOnlyReflectionTests
         node.Name = "N";
         flow.Nodes.Add(node);
 
-        var copy = flow.Vmf().Content().DeepCopy<IFlow>();
+        var copy = flow.VMF.Content.DeepCopy<IFlow>();
 
         Assert.NotSame(flow, copy);
         Assert.Equal("Original", copy.Title);

@@ -40,6 +40,20 @@ the model's name **unless it already begins with `I` and a capital**, so a model
 still produces `IParent` and no consumer code moves. The ported test suite migrated this way
 without a single test file being edited.
 
+Two things must move out of the model file into the parent namespace: **behaviour delegate
+classes** and any **plain types the model references** (enums, .NET classes). They refer to the
+generated types, and Java keeps them in the generated-into package for the same reason.
+
+A model interface may now be written Java-style — `interface Parent` — and still produces
+`IParent`.
+
+- **`[VmfModel]` is no longer a marker.** It survives only as optional model-wide configuration
+  (`[VmfModel(Equality = …)]` sets the default for a whole namespace); delete every bare use.
+- **A settable `[Container]` no longer needs `{ get; set; }`.** The setter is generated whenever
+  the container has an opposite, as Java generates one unconditionally.
+- **Model interfaces are no longer `partial`** and need not be `public` — `internal`, C#'s default
+  at namespace scope, matches Java's package-private model interfaces.
+
 ### Changed — collections are declared as arrays (breaking)
 
 **A multi-valued property is now declared as an array, as in Java.** The generator produces the
@@ -65,6 +79,26 @@ as written, so a method returning a collection still says `VList<T>` — Java be
 Variance is unaffected: `VList<T>` is invariant, so a collection property still cannot be narrowed
 in a subtype.
 
+### Changed — `Vmf()` is the property `VMF` (breaking)
+
+**`obj.Vmf()` becomes `obj.VMF`**, and the three accessors it returns become properties too:
+
+```csharp
+// before                                  // after
+obj.Vmf().Reflect().PropertyByName("X")    obj.VMF.Reflect.PropertyByName("X")
+obj.Vmf().Changes().AddListener(f)         obj.VMF.Changes.AddListener(f)
+obj.Vmf().Content().ContentEquals(other)   obj.VMF.Content.ContentEquals(other)
+```
+
+All four read state and take no arguments, which is a property in C#. `IVmf.Behavior<T>()` stays
+a method, because a property cannot be generic; so does `VmfType.Reflect()`, which is a different
+member on a different type.
+
+The name does not collide with the `VMF` namespace: a qualified type name such as
+`VMF.NET.Runtime.IVmf` is resolved in type position, where member lookup is not consulted.
+A model declaring its own property named `Vmf`/`VMF` would collide with `IVObject.VMF`, the same
+way one named `Type` collides with `ModelType()`.
+
 ### Fixed — IntelliSense in projects that reference the generator by project reference
 
 A project feeding Scriban to the compiler from a target hooked `BeforeTargets="CoreCompile"` got no
@@ -72,20 +106,6 @@ IntelliSense in Visual Studio: design-time builds do not run `CoreCompile`, so t
 loaded without its dependency, failed, and produced no types — while `dotnet build` worked. The
 in-repo test suite did this; consumers using the NuGet package were never affected, since NuGet
 wires `analyzers/dotnet/cs` itself.
-
-Two things must move out of the model file into the parent namespace: **behaviour delegate
-classes** and any **plain types the model references** (enums, .NET classes). They refer to the
-generated types, and Java keeps them in the generated-into package for the same reason.
-
-A model interface may now be written Java-style — `interface Parent` — and still produces
-`IParent`.
-
-- **`[VmfModel]` is no longer a marker.** It survives only as optional model-wide configuration
-  (`[VmfModel(Equality = …)]` sets the default for a whole namespace); delete every bare use.
-- **A settable `[Container]` no longer needs `{ get; set; }`.** The setter is generated whenever
-  the container has an opposite, as Java generates one unconditionally.
-- **Model interfaces are no longer `partial`** and need not be `public` — `internal`, C#'s default
-  at namespace scope, matches Java's package-private model interfaces.
 
 ### Fixed — model discovery
 
@@ -112,7 +132,7 @@ A model interface may now be written Java-style — `interface Parent` — and s
 - **Recursive change listeners now work.** A listener registered on a root sees changes anywhere
   in the subtree that root contains. Previously a change on a contained object reached no
   listener at all.
-- **Read-only views can observe changes.** `readOnly.Vmf().Changes()` returns the wrapped
+- **Read-only views can observe changes.** `readOnly.VMF.Changes` returns the wrapped
   object's manager instead of throwing, and reflective access through a read-only view works —
   including `AddChangeListener` on a property obtained from it. Writes are still refused.
 - **`VList.AddRange(IEnumerable<T>)` and `VList.RemoveAll(params int[])`**, each raising a single
@@ -120,9 +140,9 @@ A model interface may now be written Java-style — `interface Parent` — and s
 - **Settable `[Container]` properties.** A model can declare a container property
   `{ get; set; }`, letting containment be driven from the child (`child.Parent = p`, or `null`
   to detach). A `[Container]` with no declared opposite gets no setter.
-- **Reflection metadata is populated.** `Reflect().Annotations()` (and `AnnotationByKey` /
+- **Reflection metadata is populated.** `Reflect.Annotations()` (and `AnnotationByKey` /
   `AnnotationsByKey`) return the type's annotations instead of always being empty;
-  `Reflect().AllTypes()` returns every model type instead of just the one asked about; and
+  `Reflect.AllTypes()` returns every model type instead of just the one asked about; and
   `VmfType.SuperTypes()` is populated.
 - **Static type reflection.** Every generated model interface gains `static VmfType ModelType()`,
   and `VmfType.Reflect()` gives reflection without an instance. Reading metadata works; anything
@@ -200,7 +220,7 @@ A model interface may now be written Java-style — `interface Parent` — and s
   containing content-equal siblings silently lost objects and shared what the original did not.
 - **Cross-reference lists accepted duplicates.** Adding the same element repeatedly left several
   entries; a cross-reference holds one reference per element.
-- **`Vmf().Content()` iteration visited some objects more than once.** `Iterator()` and `Stream()`
+- **`VMF.Content` iteration visited some objects more than once.** `Iterator()` and `Stream()`
   defaulted to `UniqueProperty`, which visits each *property* once and so emits a node once per
   reference to it — a 21-node tree streamed as 41 entries. Both now default to `UniqueNode`, each
   object exactly once, matching Java. Pass `IterationStrategy.UniqueProperty` explicitly for the
@@ -223,7 +243,7 @@ A model interface may now be written Java-style — `interface Parent` — and s
   now see less; the default (`AddListener(listener)`) is still recursive.
 - A listener on a root now receives changes from contained objects. Anything counting changes on
   a root of a non-trivial object graph will see more of them.
-- `ReadOnly*Impl.Vmf().Changes()` no longer throws `InvalidOperationException`.
+- `ReadOnly*Impl.VMF.Changes` no longer throws `InvalidOperationException`.
 - Reflection through a read-only view no longer throws "Cannot access property without an
   instance"; reads and listeners work, and writes throw "Cannot modify unmodifiable object".
 - **`ToString()` now renders Java's shape**: `{"@type":"Type", "prop": …}` with the type as a
