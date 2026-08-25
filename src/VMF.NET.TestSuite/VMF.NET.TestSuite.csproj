@@ -26,11 +26,28 @@
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <!-- Feed Scriban to the compiler so the generator can load it -->
-  <Target Name="_AddScribanAnalyzer" BeforeTargets="CoreCompile">
-    <ItemGroup>
-      <Analyzer Include="$(PkgScriban)\lib\netstandard2.0\Scriban.dll" />
-    </ItemGroup>
-  </Target>
+  <!--
+    Feed Scriban to the compiler so the generator can load it.
+
+    This MUST be a plain ItemGroup, NOT a target hooked BeforeTargets="CoreCompile".
+
+    Visual Studio's design-time build does not run CoreCompile, so the target-based version this
+    replaces never fired in the IDE. The generator was then handed to Roslyn without its Scriban
+    dependency, failed to load, and produced no types. Since C-6 the whole public API is
+    generated, so every reference to a generated interface went unresolved and IntelliSense died
+    across the project. `dotnet build` was unaffected, because there CoreCompile does run, which
+    is why the suite stayed green while the IDE showed a sea of red.
+
+    Verify with:
+      dotnet msbuild src/VMF.NET.TestSuite/VMF.NET.TestSuite.csproj -t:ResolveProjectReferences -getItem:Analyzer
+    Scriban.dll must appear WITHOUT CoreCompile in the target list.
+
+    $(PkgScriban) comes from GeneratePathProperty="true" on the PackageReference above; restore
+    writes it into obj/*.nuget.g.props, which is imported during evaluation. The condition keeps
+    a pre-restore evaluation from contributing a bogus path.
+  -->
+  <ItemGroup Condition="'$(PkgScriban)' != ''">
+    <Analyzer Include="$(PkgScriban)\lib\netstandard2.0\Scriban.dll" />
+  </ItemGroup>
 
 </Project>
