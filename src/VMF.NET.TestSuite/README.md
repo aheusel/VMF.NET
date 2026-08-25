@@ -23,24 +23,33 @@ of Java's `core/src/test` plus `VMFGeneratorTest`.
 ```
 VMF.NET.TestSuite/
   *Tests.cs           .NET-native tests (not ports)      namespace VMF.NET.TestSuite
-  Models/*.cs         models for those tests             namespace VMF.NET.TestSuite.Models
+  Models/*.cs         models for those tests             namespace VMF.NET.TestSuite.Models.VmfModel
   VmfTest/<Area>/     ports of the Java test-suite       namespace VMF.NET.TestSuite.VmfTest.<Area>
 ```
+
+**A model lives in a `.VmfModel` namespace**, mirroring Java's `vmfmodel` package; the generator
+emits the public API into the namespace above it. So `…VmfTest.Containment.VmfModel` declares the
+model and `…VmfTest.Containment` is where `IParent` lands — which is where the tests are.
 
 `VmfTest/` mirrors the Java package tree so it is obvious which parts have a Java equivalent.
 
 ### Inside an area folder
 
-Each area folder holds **both** the model interfaces and the tests, in the **same namespace**:
+Each area folder holds the model, the tests, and any behaviour delegates:
 
 ```
 VmfTest/Containment/
-  ContainmentModel.cs    namespace VMF.NET.TestSuite.VmfTest.Containment    <- [VmfModel] interfaces
-  ContainmentTest.cs     namespace VMF.NET.TestSuite.VmfTest.Containment    <- [Fact] tests
+  ContainmentModel.cs    namespace …VmfTest.Containment.VmfModel   <- the model: build input
+  ContainmentTest.cs     namespace …VmfTest.Containment            <- [Fact] tests
 ```
 
-Sharing the namespace means the tests need no `using` to see the model, and the area is one
-self-contained unit — which is what lets `IParent` here and `IParent` in another area coexist.
+The tests sit in the namespace the API is generated into, so they need no `using` to see it, and
+the area is one self-contained unit — which is what lets `IParent` here and `IParent` in another
+area coexist.
+
+Behaviour delegates and any plain types the model references (enums, .NET classes) go in a
+**separate file in the parent namespace** — `VFlowDelegates.cs`, `DevComTypes.cs` — because they
+reference the *generated* types. Java arranges it the same way.
 
 `VmfTest/Containment/ContainmentModel.cs`:
 
@@ -48,17 +57,17 @@ self-contained unit — which is what lets `IParent` here and `IParent` in anoth
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Containment;
+namespace VMF.NET.TestSuite.VmfTest.Containment.VmfModel;
 
-[VmfModel(Equality = EqualsType.All)]
-public partial interface IParent
+[VmfEquals(EqualsType.All)]
+interface IParent
 {
     string? Name { get; set; }
     [Contains("IChild.Parent")] VList<IChild> Children { get; }
 }
 
-[VmfModel(Equality = EqualsType.All)]
-public partial interface IChild
+[VmfEquals(EqualsType.All)]
+interface IChild
 {
     string? Name { get; set; }
     [Container("IParent.Children")] IParent? Parent { get; }
@@ -90,17 +99,11 @@ public class ContainmentTest
 }
 ```
 
-### Do not reproduce Java's `vmfmodel` sub-package
+### Folders do not matter; namespaces do
 
-In Java the model lives in `<area>.vmfmodel` and the **generated** code lands in the parent
-package `<area>`, where the tests live. VMF.NET has no such redirection: a `[VmfModel]` interface
-generates its implementation into **the namespace it is declared in**. Declaring models in
-`...Containment.VmfModel` would force every test to write `VmfModel.IParent`.
-
-A `VmfModel/` **subfolder** is fine if you want the visual split — just keep the `namespace` line
-at the area level. Folders are irrelevant to the generator: it groups by namespace only
-(`VmfSourceGenerator.Execute` reads `iface.ContainingNamespace`), and the project compiles the
-SDK default `**/*.cs` glob.
+The generator groups by namespace only (`VmfSourceGenerator.Execute` reads
+`iface.ContainingNamespace`), and the project compiles the SDK default `**/*.cs` glob. A
+`VmfModel/` subfolder is fine if you want the visual split — what counts is the `namespace` line.
 
 ## Why one namespace per area
 
@@ -123,14 +126,14 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 | Java | C# |
 |---|---|
 | package `eu.mihosoft.vmftest.<area>` | namespace `VMF.NET.TestSuite.VmfTest.<Area>` |
-| model in sub-package `<area>.vmfmodel` | **no sub-namespace** — the `[VmfModel]` interface goes directly in the area namespace |
-| `interface Parent` | `public partial interface IParent` |
+| package `…<area>.vmfmodel` | namespace `…<Area>.VmfModel` |
+| `interface Parent` | `interface Parent` — or `IParent`; both generate `IParent` |
 | `getName()` / `setName(x)` | property `Name { get; set; }` |
 | `Parent.newInstance()` / `newBuilder()` | `IParent.NewInstance()` / `IParent.NewBuilder()` |
 | `@Contains(opposite="parent")` | `[Contains("IChild.Parent")]` |
 | `@Contains` (no opposite) | `[Contains]` |
 | `@Container(opposite="child")` | `[Container("IParent.Children")]` |
-| a container's generated `setParent(x)` | declare the property `{ get; set; }` — see below |
+| a container's generated `setParent(x)` | generated too — nothing to declare |
 | `@Refers(opposite="…")` | `[Refers("IOther.Prop")]` |
 | `@GetterOnly` / `@IgnoreEquals` / `@IgnoreToString` | `[GetterOnly]` / `[IgnoreEquals]` / `[IgnoreToString]` |
 | `@Immutable` / `@InterfaceOnly` / `@ExternalType` | `[Immutable]` / `[InterfaceOnly]` / `[ExternalType]` |
@@ -144,8 +147,9 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 | `hasItem(a)` / `hasItems(a, b)` | `Assert.Contains(a, list)` — membership only |
 | `not(hasItem(a))` | `Assert.DoesNotContain(a, list)` |
 
-The model interface is `partial` — the generator adds `NewInstance`, `NewBuilder`, `Clone`,
-`AsReadOnly` and the `Builder` type to it.
+The model interface itself carries no attribute and is not `partial`: it is build input. The
+generator emits the public interface — the members, `NewInstance`, `NewBuilder`, `Clone`,
+`AsReadOnly` and the `Builder` type — into the namespace above.
 
 ### Fidelity rules
 
@@ -193,22 +197,12 @@ suite that reports green while asserting less than it appears to.
 **Recency is not safety.** The `UnparserModelTest` block was dropped days *after* these rules
 were written, by someone who knew them. Verify new ports too.
 
-### Settable container properties
+### Container setters
 
-Java generates a container setter automatically, so `child.setParent(p)` and
-`child.setParent(null)` are always available. VMF.NET cannot: the model interface **is** the
-public API here, and a partial interface cannot add a setter to a property already declared
-`{ get; }`. So a model opts in by declaring the container property settable:
-
-```csharp
-[Container("IParent.Children")]
-IParent? Parent { get; set; }     // instead of { get; }
-```
-
-The generated setter detaches from the current container and then attaches by driving the
-**opposite** property, so containment is established in exactly one place regardless of which
-side the caller used. Setting it to `null` detaches. A `[Container]` with no declared opposite
-gets no setter — there is nothing to drive.
+Generated, as Java generates them — nothing to declare in the model. The setter detaches from the
+current container and then attaches by driving the **opposite** property, so containment is
+established in exactly one place regardless of which side the caller used. Setting it to `null`
+detaches. A `[Container]` with no declared opposite gets none — there is nothing to drive.
 
 ### Narrowed properties
 
@@ -216,11 +210,11 @@ Java narrows a property covariantly by overriding its getter with a narrower ret
 Translate it by re-declaring the property with `new`:
 
 ```csharp
-[VmfModel][InterfaceOnly]
-public partial interface IWithLocation      { [GetterOnly] ILocation? Location { get; } }
+[InterfaceOnly]
+interface IWithLocation      { [GetterOnly] ILocation? Location { get; } }
 
-[VmfModel][InterfaceOnly]
-public partial interface IWithLocationX : IWithLocation
+[InterfaceOnly]
+interface IWithLocationX : IWithLocation
 {
     [GetterOnly] new ILocationX? Location { get; }   // `new`, not an override
 }

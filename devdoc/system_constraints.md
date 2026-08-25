@@ -90,11 +90,14 @@ Test projects target the current SDK and are not bound by this.
 
 ---
 
-## C-3 · The model interface is the public API
+## C-3 · ~~The model interface is the public API~~
 
-**Superseded by [C-6](#c-6--the-model-is-build-input-not-api).** Binding until the model-as-input
-change lands; recorded here because several existing decisions rest on it and must be revisited
-together, not one at a time.
+**Withdrawn 2026-08-25**, superseded by [C-6](#c-6--the-model-is-build-input-not-api). Kept
+because it explains why several older decisions look the way they do, and because a constraint
+that is re-argued from scratch tends to come back.
+
+What it cost while it held: `[VmfModel]` on nearly every interface, `partial` on all of them, and
+`{ get; set; }` on a settable `[Container]`. All three are gone.
 
 Java's `vmfmodel` package is throwaway input: VMF reads it and generates a *separate* set of
 public interfaces elsewhere. VMF.NET has no such redirection — the `[VmfModel]` interface is

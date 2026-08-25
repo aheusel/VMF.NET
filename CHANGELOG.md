@@ -5,7 +5,75 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+### Changed — model declaration (breaking)
+
+**A model is now declared by its namespace, not by an attribute.** An interface in a namespace
+whose last segment is `VmfModel` is a model type; the public API is generated into the namespace
+above it. This mirrors Java, where the model lives in a `vmfmodel` package and VMF generates into
+the package above.
+
+```csharp
+// before
+namespace MyApp;
+
+[VmfModel]
+public partial interface IParent
+{
+    string? Name { get; set; }
+    [Contains("IChild.Parent")] VList<IChild> Children { get; }
+}
+
+// after
+namespace MyApp.VmfModel;
+
+interface IParent
+{
+    string? Name { get; set; }
+    [Contains("IChild.Parent")] VList<IChild> Children { get; }
+}
+```
+
+**Migrating a model:** move it to a `.VmfModel` namespace, then delete `[VmfModel]`, `partial` and
+`public`. Nothing else changes — not the attributes, not the property types, not the opposite
+strings. The generated name is `I` + the model's name **unless it already begins with `I` and a
+capital**, so a model named `IParent` still produces `IParent` and no consumer code moves. The
+337-fact test suite migrated this way without a single test file being edited.
+
+Two things must move out of the model file into the parent namespace: **behaviour delegate
+classes** and any **plain types the model references** (enums, .NET classes). They refer to the
+generated types, and Java keeps them in the generated-into package for the same reason.
+
+A model interface may now be written Java-style — `interface Parent` — and still produces
+`IParent`.
+
+- **`[VmfModel]` is no longer a marker.** It survives only as optional model-wide configuration
+  (`[VmfModel(Equality = …)]` sets the default for a whole namespace); delete every bare use.
+- **A settable `[Container]` no longer needs `{ get; set; }`.** The setter is generated whenever
+  the container has an opposite, as Java generates one unconditionally.
+- **Model interfaces are no longer `partial`** and need not be `public` — `internal`, C#'s default
+  at namespace scope, matches Java's package-private model interfaces.
+
+### Fixed — model discovery
+
+- **An unrelated interface could be turned into a VMF model.** Discovery used to accept any
+  interface carrying a VMF attribute, matched by **simple name only**. `Required`,
+  `DefaultValue` and `Doc` collide with `System.ComponentModel.DataAnnotations.RequiredAttribute`,
+  `System.ComponentModel.DefaultValueAttribute` and anyone else's `Doc`, so a validated DTO in the
+  same project silently generated a full implementation. Measured: five files from an interface
+  with no VMF attribute anywhere. Attribute matching now requires the
+  `VMF.NET.Runtime.Attributes` namespace, and discovery no longer looks at attributes at all.
+- **A model interface carrying no attribute was invisible**, which is why `[VmfModel]` was
+  mandatory in the common case. A plain `interface Named { string Name { get; set; } }` now works.
+
 ### Added
+
+- **`VMF.NET` metapackage.** One reference replaces the two the setup used to need, matching
+  Java's single `apply plugin: 'eu.mihosoft.vmf'`:
+
+  ```xml
+  <PackageReference Include="VMF.NET" Version="…" />
+  ```
+
 
 - **Recursive change listeners now work.** A listener registered on a root sees changes anywhere
   in the subtree that root contains. Previously a change on a contained object reached no

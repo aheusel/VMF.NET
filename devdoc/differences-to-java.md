@@ -23,6 +23,44 @@ merely inferred from its tests. Note the date and what was read.
 
 ---
 
+## Project layout
+
+### The model lives in a `.VmfModel` namespace
+
+Java puts the model in its own source root, `src/main/vmf/…/vmfmodel/`, compiles it to a throwaway
+directory and generates the public API into the package above. VMF.NET does the same thing with a
+namespace:
+
+```csharp
+// Model/Model.cs — build input, never shipped as API
+namespace MyApp.VmfModel;
+
+interface Parent
+{
+    string Name { get; set; }
+    [Contains("Child.Parent")] VList<Child> Children { get; }
+}
+```
+
+That generates `MyApp.IParent`, which is what your code uses. Being in the namespace is the whole
+declaration: **no attribute marks a model type**, exactly as no annotation marks one in Java.
+
+| Java | VMF.NET |
+|---|---|
+| `src/main/vmf/…/vmfmodel/Parent.java` | any file, `namespace MyApp.VmfModel` |
+| package-private `interface Parent` | `interface Parent` — `internal` by default, the same default |
+| generated `Parent` in the parent package | generated `IParent` in the parent namespace |
+| `apply plugin: 'eu.mihosoft.vmf'` | `<PackageReference Include="VMF.NET" />` |
+
+The generated name is `I` + the model's name, unless the model already starts with `I` followed by
+a capital — so a model named `IParent` still yields `IParent`.
+
+Behaviour delegates and any plain types the model references (enums, .NET classes) live in the
+**parent** namespace, beside the generated API — as Java's delegates live in the package VMF
+generates into. A model file resolves them by looking outward, so it needs no `using`.
+
+---
+
 ## API shape
 
 ### `Optional<T>` becomes a nullable reference
@@ -111,26 +149,22 @@ Java names the opposite by property alone, resolving it against the property's o
 @Container(opposite="children") Parent getParent();
 ```
 
-VMF.NET names it fully, because the attribute argument is a plain string with no such context:
+VMF.NET names the type too, because the attribute argument is a plain string with no such context.
+Either spelling of the type works — the model's own name, or the generated one:
 
 ```csharp
-[Contains("IChild.Parent")]  VList<IChild> Children { get; }
-[Container("IParent.Children")] IParent? Parent { get; }
+[Contains("Child.Parent")]      VList<Child> Children { get; }   // model names
+[Contains("IChild.Parent")]     VList<IChild> Children { get; }  // generated names
 ```
 
-### A settable `[Container]` must be declared settable
+### `[Container]` setters are generated, as in Java
 
-Java always generates `child.setParent(p)`. VMF.NET cannot: **the model interface is the public
-API**, and a partial interface cannot add a setter to a property already declared `{ get; }`. Opt
-in by declaring it settable:
+Nothing to declare. A `[Container]` with an opposite gets a setter on the generated interface, the
+way Java always generates `child.setParent(p)`; setting it to `null` detaches. A `[Container]`
+with no declared opposite gets none — there is nothing to drive.
 
-```csharp
-[Container("IParent.Children")]
-IParent? Parent { get; set; }     // instead of { get; }
-```
-
-Setting it to `null` detaches. A `[Container]` with no declared opposite gets no setter — there is
-nothing to drive.
+This used to require `{ get; set; }` in the model. It no longer does, because the model interface
+is no longer the API.
 
 ### A narrowed property needs `new`
 
