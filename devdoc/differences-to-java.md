@@ -281,6 +281,41 @@ it, so its absence is a compile error.
 
 ---
 
+## Not implemented
+
+Features Java VMF has and VMF.NET does not. Distinct from the rest of this file: these are not
+differences in how something behaves, but things that are simply absent.
+
+### `ModelDiff` — graph diff, apply and merge
+
+*Found 2026-08-25 while reconciling the test suite by path against all three Java roots.*
+
+Java exposes `eu.mihosoft.vmf.runtime.core.diff.ModelDiff` (239 lines):
+
+| Java | purpose |
+|---|---|
+| `ModelDiff.diff(VObject a, VObject b)` → `List<Change>` | the changes that turn `a` into `b` |
+| `ModelDiff.apply(VObject target, List<Change> diff)` | replay them onto a graph |
+| `ModelDiff.merge(T template, T override)` → `T` | merge two graphs |
+| `ModelDiff.PropChange` | a `Change` + `PropertyChange` with `undo()` |
+
+**VMF.NET has no equivalent** — no `Diff` type in `VMF.NET.Runtime` or `VMF.NET.Core`. There is no
+workaround to offer beyond comparing and assigning properties yourself; `VMF.Content` and
+`VMF.Changes` are related but answer different questions (content equality, and changes *as they
+happen* rather than between two arbitrary graphs).
+
+Consequence for the parity claim: Java's `vmftest/diff/ModelDiffTest` (2 facts) is the **only**
+unported class in the suite, and it is unported because the feature is missing, not because the
+test resists porting. See
+[`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md) for the full
+reconciliation.
+
+`ModelDiff.PropChange.undo()` suggests the diff machinery leans on the same change
+infrastructure VMF.NET already has, so this is likely additive rather than structural — but that
+is an impression from reading the signatures, not a verified plan.
+
+---
+
 ## Behaviour
 
 ### Read-only violations are compile-time, not runtime

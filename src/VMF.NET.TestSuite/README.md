@@ -8,15 +8,75 @@ For generator-level tests that do *not* need generated code (model analysis, tem
 compile-gates over model source text), see **`VMF.NET.Tests`** instead — that is the counterpart
 of Java's `core/src/test` plus `VMFGeneratorTest`.
 
-> **The port is complete.** Every portable Java fact has a running counterpart and nothing is
-> skipped. `vmf/VMFGenerateRuns` splits across five classes here — four behavioural ones in this
-> project, plus `VMFGenerateRunsValidationTests` in `VMF.NET.Tests`, because a model VMF must
-> *reject* cannot sit in a compiled project.
+> **101 of Java's 103 facts have a running counterpart, and nothing is skipped.** Reconciled
+> 2026-08-25 by path across all three Java roots — see the table below.
+>
+> **The gap is `vmftest/diff/ModelDiffTest` (2 facts).** Java's `ModelDiff` — graph diff, apply
+> and merge — is not implemented in VMF.NET at all, so there is nothing to port against. This is a
+> missing *feature*, not a missing test; see
+> [`../../devdoc/differences-to-java.md`](../../devdoc/differences-to-java.md).
+>
+> `vmf/VMFGenerateRuns` (24 facts) is distributed across seven classes: four behavioural ones in
+> this project, plus `VMFGenerateRunsValidationTests`, `ModelAnalyzerTests` and
+> `GeneratorCompilesTests` in `VMF.NET.Tests` — a model VMF must *reject* cannot sit in a compiled
+> project.
 >
 > Two area folders hold a model and no test: `VmfTest/NoPropertiesTest/` and
 > `VmfTest/CompletePropertyOrderTest/`. That matches Java, where both live under the models-only
 > `vmftests` root and are exercised through `VMFGenerateRuns` rather than by a test class of their
 > own. See [`../../devdoc/java-parity-roadmap.md`](../../devdoc/java-parity-roadmap.md).
+
+## Reconciliation with the Java suite
+
+Reconciled **by path**, not by name: the Java suite reuses `Parent`, `Child` and `Element` across
+some 32 packages, so a name-keyed comparison collapses distinct classes and silently claims
+coverage that is not there.
+
+All three Java roots under `test-suite/src/test/java/eu/mihosoft/` must be walked. An earlier
+audit walked only `vmftest` and reported a parity gap of 14 when the real one was 44:
+
+| Java root | test classes | facts | note |
+|---|---|---|---|
+| `vmftest/` | 29 | 78 | the per-area ports |
+| `vmf/` | 2 | 25 | `VMFGenerateRuns` (24) + `VMFGeneratorTest` (1) |
+| `vmftests/` | 0 | 0 | **models only** — all 18 files sit under `vmfmodel` packages and are exercised through `VMFGenerateRuns`. `ReflectionTest.java` and `DaBean.java` there look like test classes and are not |
+| **total** | **31** | **103** | |
+
+Counting `@Test` naively gives **106**. Three are commented out, and both exclusions are
+upstream's decision rather than ours:
+
+- `vmftest/resources/MemoryResourceSetTest` — commented out entirely since a 2019 TODO about OS
+  portability (2 facts). It tests `MemoryResourceSet`, VMF's internal code-generation I/O, which
+  VMF.NET has no counterpart for: Roslyn's `AddSource` replaces that layer.
+- `VMFGenerateRuns.testGetterOnlyInterfaceOnlyAsCommonInterface` — commented out with upstream's
+  note *"already covered in test src test/vmf/getteronly"*, which is ported.
+
+So 32 files contain `@Test` while 31 carry a live one. A count that misses this reports a gap that
+is not there.
+
+**Model areas** reconcile to the same single gap — 40 in Java, 39 ported:
+
+| | |
+|---|---|
+| in Java, not here | `diff` (the `NodeToDiff` model behind `ModelDiffTest`) |
+| here, not in Java | `Models`, `Models.SchemaValidation` — VMF.NET's own models for its native tests |
+
+And on this side:
+
+| C# | facts |
+|---|---|
+| ports under `VmfTest/` | 97 |
+| `VMF.NET.Tests/VMFGenerateRunsValidationTests` | 5 |
+| native tests, not ports (this project) | 140 |
+| generator-level (`VMF.NET.Tests`, rest) | 92 |
+| **total** | **334** |
+
+The subtotals balance against what the runner reports (237 here + 97 in `VMF.NET.Tests`), so
+nothing is double-counted or invisible.
+
+Where a C# class carries **more** facts than its Java original — `CrossRef` 7 vs 3, `Fsm` 2 vs 1,
+`UnparserModel` 3 vs 2 — those are additions, not substitutions. Re-run this reconciliation after
+any change that adds or moves an area.
 
 ## Layout
 

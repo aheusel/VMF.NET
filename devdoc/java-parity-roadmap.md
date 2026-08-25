@@ -1,11 +1,13 @@
 # Java test-suite parity — roadmap
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
-**Status:** port complete (M2″); every milestone done. **0 skipped facts.**
+**Status:** every milestone done. **0 skipped facts**, and **101 of Java's 103 facts ported** —
+the 2 that are not belong to `ModelDiffTest`, whose feature VMF.NET does not implement. See
+*The parity gap* below.
 > Work continued past this roadmap. What came after — the build-setup rework that made the
 > model build input rather than API — is recorded in
 > [`system_constraints.md`](system_constraints.md) as **C-6**, not here.
-**Last updated:** 2026-08-24.
+**Last updated:** 2026-08-25.
 
 > Companion docs: [`source-generator-dependencies.md`](source-generator-dependencies.md),
 > and [`differences-to-java.md`](differences-to-java.md) — the reader's catalogue of what
@@ -77,13 +79,27 @@ comes before further feature work.
 
 ## Where things stand
 
+*Re-measured 2026-08-25, by path, across all three Java roots.*
+
 | | Java `test-suite` | VMF.NET |
 |---|---|---|
-| Model areas | 39 | **39 — all ported** |
-| Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
-| Facts | 104; **101 portable** | **97 in the TestSuite** (all running) **+ 5 validation facts in `VMF.NET.Tests`** |
+| Model areas | 40 | **39 ported**; the gap is `diff` |
+| Test classes | 31 with an active `@Test` (+1 disabled upstream) | **31 under `VmfTest/`, plus 1 in `VMF.NET.Tests`** |
+| Facts | **103 active**; 101 ported | **97 under `VmfTest/`** + **5** validation facts in `VMF.NET.Tests` |
 
-Suite totals today: **328 passing**, 0 skipped, 0 failing (237 TestSuite + 91 Tests).
+Suite totals today: **334 passing**, 0 skipped, 0 failing (237 TestSuite + 97 Tests).
+
+Two Java `@Test`s are excluded by upstream, not by us, and both were checked rather than assumed:
+
+- `vmftest/resources/MemoryResourceSetTest` — **entirely commented out** since a 2019 TODO about
+  OS portability, so 0 active facts. It exercises `MemoryResourceSet`, VMF's internal
+  code-generation I/O; VMF.NET has no counterpart because Roslyn's `AddSource` replaces that layer
+  wholesale. This is the class that makes 32 files contain `@Test` while only 31 carry a live one.
+- `VMFGenerateRuns.testGetterOnlyInterfaceOnlyAsCommonInterface` — commented out with upstream's
+  own note, *"already covered in test src test/vmf/getteronly"*, which we do port.
+
+Counting `@Test` naively gives 106; only 103 are live. The difference is those three commented-out
+occurrences, and a count that misses the distinction reports a parity gap that does not exist.
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -98,12 +114,26 @@ narrowing rules M7 introduced, five `ContainerPropertyIdTests` facts guarding th
 container-property-identity fix, and three `ModelDiscoveryTests` facts pinning what makes an
 interface a model type (C-6).
 
-### The parity gap: none
+### The parity gap: one class, 2 facts
 
-Every portable Java fact has a running counterpart. The convention that produced that number
-stays in force: a fact blocked on a missing capability is kept as `[Fact(Skip = "…")]` with the
-capability named **and its real body**, so the skip count is the parity gap and un-skipping is
-never a rewrite.
+**101 of Java's 103 facts have a running counterpart.** Reconciled by path across all three roots
+on 2026-08-25 — the table lives in
+[`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
+
+The gap is **`vmftest/diff/ModelDiffTest`**, and it is not a porting gap: Java's `ModelDiff`
+(graph diff / apply / merge) has no VMF.NET equivalent, so there is nothing to write a test
+against. Recorded under *Not implemented* in
+[`differences-to-java.md`](differences-to-java.md).
+
+This is also a correction. The section previously read "the parity gap: none" on the strength of
+"every **portable** Java fact has a counterpart" — where *portable* silently excused a class whose
+feature we had never built. A gap hidden inside a qualifier is exactly what the skip-count
+convention exists to prevent.
+
+That convention still stands for everything else: a fact blocked on a missing capability is kept
+as `[Fact(Skip = "…")]` with the capability named **and its real body**, so the skip count is the
+parity gap and un-skipping is never a rewrite. `ModelDiffTest` has no skipped placeholder because
+its model type does not exist either — worth adding one if `ModelDiff` is ever scheduled.
 
 The `VMFGenerateRuns` overlap is now measured rather than estimated. Of its nine
 model-validation facts, **four were already covered** by `ModelAnalyzerTests` and the five that
