@@ -128,10 +128,13 @@ internal static class ModelNaming
 
     /// <summary>
     /// Maps the type part of an opposite reference (<c>"Child.Parent"</c>, or a bare
-    /// <c>"Parent"</c>) so it names the generated type. A reference already written in the
-    /// generated form (<c>"IChild.Parent"</c>) is left as it is, because
-    /// <see cref="ModelTypeInfo.ApiInterfaceName"/> is idempotent on names that already carry the
-    /// prefix.
+    /// <c>"Parent"</c>) so it names the generated type.
+    /// <para>
+    /// Since the generated interface now keeps the model's name verbatim, this is an identity map
+    /// on the type part: an opposite names the model type exactly as the model declares it. It is
+    /// kept because the *shape* still has to be understood — only the last segment before the
+    /// property is a type name, and anything ahead of it is a namespace.
+    /// </para>
     /// </summary>
     public static string MapOppositeReference(string oppositeRef)
     {

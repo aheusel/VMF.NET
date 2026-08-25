@@ -177,9 +177,17 @@ public sealed class ModelTypeInfo
     public string ImplClassName => SimpleName + "Impl";
 
     /// <summary>
-    /// The read-only interface name (e.g. "IReadOnlyParent").
+    /// The read-only interface name, following whichever convention the model chose:
+    /// <c>IParent</c> yields <c>IReadOnlyParent</c>, <c>Parent</c> yields <c>ReadOnlyParent</c>
+    /// (which is also what Java generates).
+    /// <para>
+    /// It has to track the model's own spelling. A model written Java-style would otherwise get a
+    /// verbatim <c>Parent</c> alongside a C#-style <c>IReadOnlyParent</c> — half of each
+    /// convention, which is nobody's.
+    /// </para>
     /// </summary>
-    public string ReadOnlyInterfaceName => "IReadOnly" + SimpleName;
+    public string ReadOnlyInterfaceName =>
+        HasInterfacePrefix(TypeName) ? "IReadOnly" + SimpleName : "ReadOnly" + SimpleName;
 
     /// <summary>
     /// The read-only implementation class name (e.g. "ReadOnlyParentImpl").
@@ -187,13 +195,23 @@ public sealed class ModelTypeInfo
     public string ReadOnlyImplClassName => "ReadOnly" + SimpleName + "Impl";
 
     /// <summary>
+    /// Whether the name carries C#'s interface prefix: a leading "I" followed by another capital.
+    /// True for "IParent", false for "Item" and for "Parent".
+    /// </summary>
+    public static bool HasInterfacePrefix(string typeName) =>
+        typeName.StartsWith("I") && typeName.Length > 1 && char.IsUpper(typeName[1]);
+
+    /// <summary>
     /// Drops a leading "I" that is followed by another capital, so "IParent" becomes "Parent"
     /// but "Item" is left alone.
+    /// <para>
+    /// This is the ONLY place a model's name is altered. The generated interface keeps the name
+    /// the model gave it; only the implementation and read-only class names are derived, because
+    /// <c>IParentImpl</c> would be a class named like an interface.
+    /// </para>
     /// </summary>
     public static string StripInterfacePrefix(string typeName) =>
-        typeName.StartsWith("I") && typeName.Length > 1 && char.IsUpper(typeName[1])
-            ? typeName.Substring(1)
-            : typeName;
+        HasInterfacePrefix(typeName) ? typeName.Substring(1) : typeName;
 
     /// <summary>
     /// The last namespace segment that marks a model: <c>MyApp.VmfModel</c> holds the model for
@@ -203,18 +221,20 @@ public sealed class ModelTypeInfo
     public const string ModelNamespaceSegment = "VmfModel";
 
     /// <summary>
-    /// The public interface name generated for a model type: <c>"I"</c> + the model's name, unless
-    /// the model already begins with <c>I</c> followed by a capital, in which case it is used
-    /// unchanged. The inverse of <see cref="StripInterfacePrefix"/>.
+    /// The public interface name generated for a model type: <b>the model's own name, verbatim</b>.
     /// <para>
-    /// The second case is what keeps a model written the old way working: a model named
-    /// <c>IParent</c> still yields <c>IParent</c>, so only its namespace has to move.
+    /// The generator used to prefix an unprefixed name with <c>I</c>, so a model named
+    /// <c>Parent</c> silently became <c>IParent</c>. That was a rename the author never asked for
+    /// and nothing in the model file recorded. Now the author decides: <c>Parent</c> generates
+    /// <c>Parent</c> — which is also what Java generates — and <c>IParent</c> generates
+    /// <c>IParent</c>.
+    /// </para>
+    /// <para>
+    /// Kept as a named method rather than inlined because it marks the decision: this is the
+    /// point where a model name becomes an API name, and it deliberately does nothing.
     /// </para>
     /// </summary>
-    public static string ApiInterfaceName(string modelTypeName) =>
-        modelTypeName.StartsWith("I") && modelTypeName.Length > 1 && char.IsUpper(modelTypeName[1])
-            ? modelTypeName
-            : "I" + modelTypeName;
+    public static string ApiInterfaceName(string modelTypeName) => modelTypeName;
 
     public override string ToString() => FullTypeName;
 }

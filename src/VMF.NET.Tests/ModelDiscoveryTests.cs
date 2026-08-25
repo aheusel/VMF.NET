@@ -62,7 +62,7 @@ namespace MyApp.VmfModel
 
         var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
 
-        Assert.Contains("MyApp.INamed.g.cs", files);
+        Assert.Contains("MyApp.Named.g.cs", files);
         Assert.Contains("MyApp.NamedImpl.g.cs", files);
     }
 
@@ -113,22 +113,21 @@ namespace MyApp.VmfModel
         var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
 
         // The stand-in gets no implementation of its own.
-        Assert.DoesNotContain("MyApp.IPayload.g.cs", files);
+        Assert.DoesNotContain("MyApp.Payload.g.cs", files);
         Assert.DoesNotContain("MyApp.PayloadImpl.g.cs", files);
 
-        var holder = result.GeneratedTrees.Single(t => t.FilePath.EndsWith("MyApp.IHolder.g.cs"));
+        var holder = result.GeneratedTrees.Single(t => t.FilePath.EndsWith("MyApp.Holder.g.cs"));
         var text = holder.GetText().ToString();
 
         // Assert.Contains hides the haystack; a generator test needs to show what it produced.
         Assert.True(text.Contains("Other.Payload? Cargo"), text);
-        Assert.False(text.Contains("IPayload"), text);
     }
 
     [Fact]
-    public void ModelNameGainsTheInterfacePrefix_UnlessItAlreadyHasOne()
+    public void TheGeneratedInterfaceKeepsTheModelsName()
     {
-        // Keeping the prefix when it is already there is what let every existing model migrate by
-        // moving its namespace and nothing else.
+        // The model author names the type; the generator does not rename it. `Parent` generates
+        // `Parent` -- which is what Java generates too -- and `IChild` generates `IChild`.
         var result = Run(@"
 namespace MyApp.VmfModel
 {
@@ -138,43 +137,39 @@ namespace MyApp.VmfModel
 
         var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
 
-        Assert.Contains("MyApp.IParent.g.cs", files);
+        Assert.Contains("MyApp.Parent.g.cs", files);
         Assert.Contains("MyApp.IChild.g.cs", files);
-        Assert.DoesNotContain("MyApp.IIChild.g.cs", files);
+        Assert.DoesNotContain("MyApp.IParent.g.cs", files);
     }
 
     [Fact]
-    public void AModelNameThatGetsPrefixed_Warns()
+    public void OnlyTheImplementationNameDropsThePrefix()
     {
-        // Writing `Horse` and getting `IHorse` is a rename the author did not ask for, and
-        // nothing in the model file records it. VMF004 says so, and is separately suppressible
-        // for anyone who prefers Java's unprefixed spelling.
+        // `IChildImpl` would be a class named like an interface, so the impl strips a leading I.
+        // The read-only names follow whichever convention the model chose, so a model is never
+        // half one style and half the other.
         var result = Run(@"
 namespace MyApp.VmfModel
 {
-    interface Horse { string? Name { get; set; } }
+    interface Parent { string Name { get; set; } }
+    interface IChild { string Name { get; set; } }
 }");
 
-        var warnings = result.Diagnostics
-            .Where(d => d.Severity == DiagnosticSeverity.Warning)
-            .ToList();
-
-        var vmf004 = warnings.Where(d => d.Id == "VMF004").ToList();
-        var all = string.Join("; ", warnings.Select(d => $"{d.Id}: {d.GetMessage()}"));
-
-        Assert.True(vmf004.Count == 1, $"expected exactly one VMF004, got: {all}");
-        Assert.True(vmf004[0].GetMessage().Contains("'Horse'"), all);
-        Assert.True(vmf004[0].GetMessage().Contains("'IHorse'"), all);
-
-        // A warning, not an error: the code must still be generated.
         var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
-        Assert.Contains("MyApp.IHorse.g.cs", files);
+
+        Assert.Contains("MyApp.ParentImpl.g.cs", files);
+        Assert.Contains("MyApp.ChildImpl.g.cs", files);
+        Assert.DoesNotContain("MyApp.IChildImpl.g.cs", files);
+
+        Assert.Contains("MyApp.ReadOnlyParent.g.cs", files);
+        Assert.Contains("MyApp.IReadOnlyChild.g.cs", files);
     }
 
     [Fact]
-    public void AModelNameAlreadyPrefixed_DoesNotWarn()
+    public void StrippingThePrefixForTheImplementation_Warns()
     {
-        // The whole point of naming it IHorse is to opt out of the surprise.
+        // The one place a name still changes without being asked for. VMF004 so it can be
+        // silenced on its own by anyone who wants C#-style interface names.
         var result = Run(@"
 namespace MyApp.VmfModel
 {
@@ -182,18 +177,37 @@ namespace MyApp.VmfModel
 }");
 
         var vmf004 = result.Diagnostics.Where(d => d.Id == "VMF004").ToList();
+        var all = string.Join("; ", result.Diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+        Assert.True(vmf004.Count == 1, $"expected exactly one VMF004, got: {all}");
+        Assert.True(vmf004[0].GetMessage().Contains("'IHorse'"), all);
+        Assert.True(vmf004[0].GetMessage().Contains("'HorseImpl'"), all);
+
+        // A warning, not an error: the code must still be generated.
+        var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
+        Assert.Contains("MyApp.IHorse.g.cs", files);
+    }
+
+    [Fact]
+    public void AnUnprefixedModelName_DoesNotWarn()
+    {
+        // Nothing is stripped, so nothing to report.
+        var result = Run(@"
+namespace MyApp.VmfModel
+{
+    interface Horse { string? Name { get; set; } }
+}");
+
+        var vmf004 = result.Diagnostics.Where(d => d.Id == "VMF004").ToList();
         Assert.True(vmf004.Count == 0, string.Join("; ", vmf004.Select(d => d.GetMessage())));
     }
 
     [Fact]
-    public void TwoModelsThatGenerateTheSameName_IsAnError()
+    public void TwoModelsThatShareAnImplementationName_IsAnError()
     {
-        // The flip side of the rule above: because `Horse` and `IHorse` both yield `IHorse`,
-        // declaring both is a name clash.
-        //
-        // This used to be silent. ModelInfo.AddType assigns into a dictionary keyed by the
-        // generated name, so the second declaration simply replaced the first -- `Horse` and its
-        // Name property vanished, one set of files was emitted, and no diagnostic was reported.
+        // `Horse` and `IHorse` generate DISTINCT interfaces now, but both would be implemented by
+        // `HorseImpl`. Left unreported, the second simply overwrote the first in the type table
+        // and everything the first declared vanished.
         var result = Run(@"
 namespace MyApp.VmfModel
 {
@@ -209,11 +223,10 @@ namespace MyApp.VmfModel
         var message = string.Join("; ", errors);
         Assert.True(errors.Count > 0, "expected an error, got none");
 
-        // Both model-side spellings must appear, or the message cannot be acted on: the
-        // generated name alone does not say which two declarations are at fault.
+        // Both model-side spellings must appear, or the message cannot be acted on.
         Assert.True(message.Contains("'Horse'"), message);
         Assert.True(message.Contains("'IHorse'"), message);
-        Assert.True(message.Contains("MyApp.IHorse"), message);
+        Assert.True(message.Contains("HorseImpl"), message);
 
         // An error must stop generation rather than emit half a model.
         Assert.Empty(result.GeneratedTrees);

@@ -152,8 +152,11 @@ public sealed class Diagnostic
     /// <summary>Diagnostic id used when none is given: general model analysis.</summary>
     public const string DefaultId = "VMF001";
 
-    /// <summary>A model name will be prefixed with <c>I</c>, so the generated name differs.</summary>
-    public const string NamePrefixedId = "VMF004";
+    /// <summary>
+    /// A leading <c>I</c> was stripped to name the implementation class, so
+    /// <c>IHorse</c> is implemented by <c>HorseImpl</c>.
+    /// </summary>
+    public const string PrefixStrippedId = "VMF004";
 
     public Diagnostic(DiagnosticSeverity severity, string message, string? location = null,
         string id = DefaultId)

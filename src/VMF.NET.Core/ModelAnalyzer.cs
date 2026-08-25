@@ -51,11 +51,10 @@ public static class ModelAnalyzer
         int typeId = 0;
         var symbolMap = new Dictionary<string, TypeSymbolData>();
 
-        // `Horse` and `IHorse` both generate `IHorse`, because the generator adds the prefix and
-        // leaves an existing "I"+capital alone. Declaring both is therefore a name clash, and
-        // AddType would simply overwrite: the second declaration wins and the first vanishes
-        // along with all its properties, with nothing reported.
-        var claimedBy = new Dictionary<string, string>();
+        // The generated interface keeps the model's name verbatim, so `Horse` and `IHorse` no
+        // longer collide there. Their IMPLEMENTATIONS still do: both are `HorseImpl`, because the
+        // impl name is the model name with any leading `I` stripped. Keyed on that.
+        var implClaimedBy = new Dictionary<string, string>();
 
         foreach (var iface in modelInterfaces)
         {
@@ -65,35 +64,33 @@ public static class ModelAnalyzer
                 continue;
             }
 
-            if (claimedBy.TryGetValue(iface.Name, out var firstModelName))
+            var implName = ModelTypeInfo.StripInterfacePrefix(iface.Name) + "Impl";
+
+            if (implClaimedBy.TryGetValue(implName, out var firstModelName))
             {
                 model.AddError(
-                    $"Model interfaces '{firstModelName}' and '{iface.ModelName}' both generate "
-                    + $"'{namespaceName}.{iface.Name}'. The generator prefixes a model name with 'I', "
-                    + "and leaves a name that already starts with 'I' followed by a capital alone, so "
-                    + "these two collide. Rename one of them.");
+                    $"Model interfaces '{firstModelName}' and '{iface.ModelName}' would both be "
+                    + $"implemented by '{namespaceName}.{implName}'. The implementation name is the "
+                    + "model name with any leading 'I' stripped, so these two collide even though "
+                    + "their interfaces do not. Rename one of them.");
                 continue;
             }
-            claimedBy[iface.Name] = iface.ModelName;
+            implClaimedBy[implName] = iface.ModelName;
 
-            // Writing `Horse` and getting `IHorse` is a rename the author did not ask for, and
-            // nothing in the model file says it happened. Say so.
+            // The interface keeps the model's name, but the implementation cannot: `IHorseImpl`
+            // would be a class named like an interface. So a leading `I` is dropped, and that is
+            // the one place a name still changes without being asked for -- report it.
             //
-            // Java has no such rule: there `Horse` generates `Horse`. VMF.NET cannot follow that,
-            // because the implementation class is derived by stripping the leading I -- so a model
-            // named `IHorse` prefixed unconditionally would yield `IIHorse` and, worse,
-            // `IHorseImpl`: a class named like an interface. Leaving an existing `I`+capital alone
-            // is what avoids that, and the cost is this asymmetry.
-            //
-            // VMF004 so it can be silenced on its own by anyone who prefers Java's spelling:
-            //   <NoWarn>VMF004</NoWarn>
-            if (iface.ModelName != iface.Name)
+            // VMF004, so it can be silenced on its own:  <NoWarn>VMF004</NoWarn>
+            if (ModelTypeInfo.HasInterfacePrefix(iface.Name))
             {
                 model.AddWarning(
-                    $"Model interface '{iface.ModelName}' generates '{iface.Name}'. VMF.NET prefixes "
-                    + $"a model name with 'I'. Name it '{iface.Name}' to say that explicitly, or "
-                    + "silence this with <NoWarn>" + Diagnostic.NamePrefixedId + "</NoWarn>.",
-                    id: Diagnostic.NamePrefixedId);
+                    $"Model interface '{iface.Name}' is implemented by '{implName}': the leading 'I' "
+                    + "is stripped so the implementation is not named like an interface. Name the "
+                    + $"model '{ModelTypeInfo.StripInterfacePrefix(iface.Name)}' to avoid the "
+                    + "asymmetry, or silence this with <NoWarn>"
+                    + Diagnostic.PrefixStrippedId + "</NoWarn>.",
+                    id: Diagnostic.PrefixStrippedId);
             }
 
             var typeInfo = model.AddType(iface.Name, typeId);
