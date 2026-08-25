@@ -348,10 +348,29 @@ internal sealed class TemplateHelpers
         ["String"] = "string",
     };
 
-    private static string Keyword(string simpleName, string? namespaceName) =>
-        namespaceName == "System" && CSharpKeywords.TryGetValue(simpleName, out var keyword)
-            ? keyword
-            : simpleName;
+    /// <summary>
+    /// A non-model type as generated code should write it: the C# keyword where one exists,
+    /// otherwise the <b>qualified</b> name.
+    /// <para>
+    /// Qualified, because the generated file has no idea what the model file imported. A simple
+    /// name only resolves when the type happens to sit in the namespace being generated into or
+    /// in one of the few the template imports — which held for every type the suite uses, and
+    /// stopped holding the moment an <c>[ExternalType]</c> stand-in named a different namespace.
+    /// </para>
+    /// </summary>
+    private static readonly HashSet<string> CSharpKeywordSpellings =
+        new(CSharpKeywords.Values, StringComparer.Ordinal);
+
+    private static string Keyword(string simpleName, string? namespaceName)
+    {
+        if (namespaceName == "System" && CSharpKeywords.TryGetValue(simpleName, out var keyword))
+            return keyword;
+
+        // Already a keyword — qualifying it would produce "System.string".
+        if (CSharpKeywordSpellings.Contains(simpleName)) return simpleName;
+
+        return string.IsNullOrEmpty(namespaceName) ? simpleName : $"{namespaceName}.{simpleName}";
+    }
 
     /// <summary>The element type of a collection property, as generated code should write it.</summary>
     public static string ElementTypeName(PropertyInfo prop)
@@ -382,14 +401,14 @@ internal sealed class TemplateHelpers
         {
             var elementType = prop.GenericModelType != null
                 ? prop.GenericModelType.ReadOnlyInterfaceName
-                : prop.GenericTypeName ?? "object";
+                : prop.GenericTypeName is { } n ? Keyword(n, prop.GenericPackageName) : "object";
             return $"IReadOnlyList<{elementType}>";
         }
 
         if (prop.IsModelType)
             return prop.ModelType!.ReadOnlyInterfaceName;
 
-        return prop.SimpleTypeName;
+        return Keyword(prop.SimpleTypeName, prop.PackageName);
     }
 
     /// <summary>

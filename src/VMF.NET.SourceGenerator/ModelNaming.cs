@@ -26,7 +26,58 @@ internal static class ModelNaming
     public const string GlobalNamespaceName = "Global";
 
     public static bool IsModelType(INamedTypeSymbol symbol) =>
-        symbol.TypeKind == TypeKind.Interface && IsModelNamespace(symbol.ContainingNamespace);
+        symbol.TypeKind == TypeKind.Interface
+        && IsModelNamespace(symbol.ContainingNamespace)
+        && ExternalTypeNamespaceOf(symbol) == null;
+
+    /// <summary>
+    /// The namespace named by <c>[ExternalType("…")]</c>, or null if the interface does not carry
+    /// it.
+    /// <para>
+    /// Such an interface is a **stand-in**, not a model type: it names a type that lives outside
+    /// the model, and generated code must reference that type rather than the stand-in. Java needs
+    /// the same device because its model package is compiled on its own.
+    /// </para>
+    /// </summary>
+    public static string? ExternalTypeNamespaceOf(INamedTypeSymbol symbol)
+    {
+        foreach (var attr in symbol.GetAttributes())
+        {
+            var attrClass = attr.AttributeClass;
+            if (attrClass?.Name is not ("ExternalTypeAttribute" or "ExternalType")) continue;
+            if (attrClass.ContainingNamespace?.ToDisplayString() != "VMF.NET.Runtime.Attributes") continue;
+
+            if (attr.ConstructorArguments.Length > 0
+                && attr.ConstructorArguments[0].Value is string ctorNamespace)
+            {
+                return ctorNamespace;
+            }
+
+            foreach (var named in attr.NamedArguments)
+            {
+                if (named.Key == "Namespace" && named.Value.Value is string namedNamespace)
+                    return namedNamespace;
+            }
+
+            return "";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The name generated code uses for an <c>[ExternalType]</c> stand-in: the external namespace
+    /// it names, plus the stand-in's own simple name. Null if it is not a stand-in.
+    /// </summary>
+    public static string? ExternalFullName(ITypeSymbol type)
+    {
+        if (type is not INamedTypeSymbol named) return null;
+
+        var externalNamespace = ExternalTypeNamespaceOf(named);
+        if (externalNamespace == null) return null;
+
+        return string.IsNullOrEmpty(externalNamespace) ? named.Name : $"{externalNamespace}.{named.Name}";
+    }
 
     public static bool IsModelNamespace(INamespaceSymbol? ns) =>
         ns is not null

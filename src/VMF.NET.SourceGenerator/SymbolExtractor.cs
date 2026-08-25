@@ -427,6 +427,11 @@ internal static class SymbolExtractor
         if (ModelNaming.TryMapModelType(type, out var apiFullName, out _))
             return apiFullName;
 
+        // An [ExternalType] stand-in names a type that lives elsewhere; that is the type the
+        // generated code must reference, not the stand-in.
+        if (ModelNaming.ExternalFullName(type) is { } externalName)
+            return externalName;
+
         var ns = GetNamespace(type);
         if (string.IsNullOrEmpty(ns))
             return type.Name;
@@ -443,6 +448,11 @@ internal static class SymbolExtractor
 
     private static string? GetNamespace(ITypeSymbol type)
     {
+        if (type is INamedTypeSymbol standIn && ModelNaming.ExternalTypeNamespaceOf(standIn) is { } externalNamespace)
+        {
+            return string.IsNullOrEmpty(externalNamespace) ? null : externalNamespace;
+        }
+
         if (type is INamedTypeSymbol named && ModelNaming.IsModelType(named))
         {
             var apiNs = ModelNaming.ApiNamespace(named);
@@ -470,6 +480,9 @@ internal static class SymbolExtractor
 
         if (ModelNaming.TryMapModelType(type, out var apiFullName, out _))
             return apiFullName;
+
+        if (ModelNaming.ExternalFullName(type) is { } externalName)
+            return externalName;
 
         var keyword = type.SpecialType switch
         {

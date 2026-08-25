@@ -86,6 +86,45 @@ namespace MyApp.NotAModelAtAll
     }
 
     [Fact]
+    public void ExternalTypeStandIn_ResolvesToTheTypeItNames()
+    {
+        // A stand-in is not a model type: it names something living outside the model, and the
+        // generated code must reference THAT. Before this was fixed the attribute's namespace
+        // argument was ignored entirely — generated code referenced the empty stand-in itself.
+        var result = Run(@"
+using VMF.NET.Runtime.Attributes;
+
+namespace Other
+{
+    public class Payload { public string? Text { get; set; } }
+}
+
+namespace MyApp.VmfModel
+{
+    [ExternalType(""Other"")]
+    interface Payload { }
+
+    interface Holder
+    {
+        Payload? Cargo { get; set; }
+    }
+}");
+
+        var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
+
+        // The stand-in gets no implementation of its own.
+        Assert.DoesNotContain("MyApp.IPayload.g.cs", files);
+        Assert.DoesNotContain("MyApp.PayloadImpl.g.cs", files);
+
+        var holder = result.GeneratedTrees.Single(t => t.FilePath.EndsWith("MyApp.IHolder.g.cs"));
+        var text = holder.GetText().ToString();
+
+        // Assert.Contains hides the haystack; a generator test needs to show what it produced.
+        Assert.True(text.Contains("Other.Payload? Cargo"), text);
+        Assert.False(text.Contains("IPayload"), text);
+    }
+
+    [Fact]
     public void ModelNameGainsTheInterfacePrefix_UnlessItAlreadyHasOne()
     {
         // Keeping the prefix when it is already there is what let every existing model migrate by
