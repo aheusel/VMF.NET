@@ -99,8 +99,29 @@ the compiler host must then supply. Scriban 7 fails outright on an .NET 8 SDK.
 | `VMF.NET.SourceGenerator` | `netstandard2.0` | Roslyn analyzer requirement |
 | `VMF.NET.Runtime` | `net6.0` | consumer-facing runtime |
 | `VMF.NET.Json` | `net6.0` | consumer-facing |
+| test projects | `net8.0` | see below — **not** "whatever is newest" |
 
-Test projects target the current SDK and are not bound by this.
+**The test projects deliberately do not track the newest SDK.** They targeted `net10.0` until
+2026-08-25, and that was wrong on both halves of this constraint:
+
+- **It tested the wrong thing.** C-2 is about working on older toolchains, and a suite that only
+  ever runs on the newest runtime cannot demonstrate that. Running on `net8.0` exercises the
+  generator under the older Roslyn that ships with that SDK, which is the case most likely to
+  break.
+- **It broke the IDE silently.** .NET 10 requires Visual Studio 2026. VS 2022 resolves the .NET 8
+  SDK and rejects a `net10.0` project outright (`NETSDK1045`). A project that will not load has no
+  semantic model, so the editor offers no IntelliSense **at all** — not even for `string` — while
+  `dotnet test` stays green and reports nothing wrong.
+
+CI installs both `8.0.x` and `10.0.x`: the SDK builds with the newest, and the older runtime must
+be present or framework-dependent tests will not run — .NET does not roll forward across majors.
+
+**Verify:** raising the test TFM means opening the solution in the oldest IDE that is expected to
+work, not only running `dotnet test`. Building with that IDE's own MSBuild is the cheap proxy:
+
+```
+"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" VMF.NET.sln -t:Build -restore
+```
 
 ---
 

@@ -1,6 +1,22 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <!--
+      Default TFM. Only the two TEST projects actually inherit it; everything shipped pins its
+      own (net6.0 for Runtime/Json, netstandard2.0 for Core/SourceGenerator).
+
+      net8.0, not the newest, for two reasons:
+
+      1. C-2. Running the suite on an older runtime is what the "usable on older toolchains" goal
+         actually asks for. Testing only on the newest SDK is how the Scriban regression got
+         through once already.
+      2. Tooling. .NET 10 requires Visual Studio 2026; VS 2022 resolves the .NET 8 SDK and fails
+         a net10.0 project outright with NETSDK1045. A project that will not load has no semantic
+         model, so the IDE offers no IntelliSense at all (not even for `string`) while the
+         command line stays green and says nothing.
+
+      Raising this means checking the IDE, not just `dotnet test`.
+    -->
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
