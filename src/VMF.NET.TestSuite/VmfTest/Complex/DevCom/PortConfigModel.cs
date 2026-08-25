@@ -106,10 +106,10 @@ interface IPortEvent
     long Timestamp { get; }
 
     [Doc("port infos of ports added since the last scan.")]
-    VList<IPortInfo> Added { get; }
+    IPortInfo[] Added { get; }
 
     [Doc("port infos of ports removed since the last scan.")]
-    VList<IPortInfo> Removed { get; }
+    IPortInfo[] Removed { get; }
 }
 
 [Doc("State changed event.")]

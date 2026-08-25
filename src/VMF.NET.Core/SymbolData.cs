@@ -75,8 +75,17 @@ public sealed class PropertySymbolData
     /// <summary>Whether this is a nullable value type (double?, int?, bool?, …).</summary>
     public bool IsNullableValueType { get; set; }
 
-    /// <summary>Whether this is a collection type (IList&lt;T&gt;, VList&lt;T&gt;).</summary>
+    /// <summary>
+    /// Whether this is a collection property, i.e. declared as an array (<c>T[]</c>) in the model.
+    /// </summary>
     public bool IsCollection { get; set; }
+
+    /// <summary>
+    /// Set when the model names a concrete collection type (<c>VList&lt;T&gt;</c>,
+    /// <c>IList&lt;T&gt;</c>, …) instead of writing <c>T[]</c>. Carries that name so the analyzer
+    /// can report it; null for every well-formed property.
+    /// </summary>
+    public string? LegacyCollectionSpelling { get; set; }
 
     /// <summary>For collections: element type simple name.</summary>
     public string? CollectionElementSimpleName { get; set; }

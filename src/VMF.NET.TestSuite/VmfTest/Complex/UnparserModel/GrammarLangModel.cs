@@ -10,7 +10,7 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel.VmfModel;
 interface IGrammarModel
 {
     [Contains("IRuleClass.Model")]
-    VList<IRuleClass> RuleClasses { get; }
+    IRuleClass[] RuleClasses { get; }
 
     string? GrammarName { get; set; }
     string? PackageName { get; set; }
@@ -19,7 +19,7 @@ interface IGrammarModel
     ITypeMappings? TypeMappings { get; set; }
 
     [Contains("ICustomRule.Model")]
-    VList<ICustomRule> CustomRules { get; }
+    ICustomRule[] CustomRules { get; }
 }
 
 interface ICustomRule : IWithText
@@ -83,26 +83,26 @@ interface IRuleClass : IWithName, ICodeElement
     IGrammarModel? Model { get; }
 
     [Contains("IProperty.Parent")]
-    VList<IProperty> Properties { get; }
+    IProperty[] Properties { get; }
 
     [Contains("IProperty.Parent")]
-    VList<IProperty> CustomProperties { get; }
+    IProperty[] CustomProperties { get; }
 
     [Refers("IRuleClass.ChildClasses")]
     IRuleClass? SuperClass { get; set; }
 
-    VList<string> SuperInterfaces { get; }
+    string[] SuperInterfaces { get; }
 
     [Refers("IRuleClass.SuperClass")]
-    VList<IRuleClass> ChildClasses { get; }
+    IRuleClass[] ChildClasses { get; }
 
     bool Root { get; set; }
 
     [Contains("IDelegationMethod.Parent")]
-    VList<IDelegationMethod> DelegationMethods { get; }
+    IDelegationMethod[] DelegationMethods { get; }
 
     [Contains("IRuleAnnotation.Parent")]
-    VList<IRuleAnnotation> CustomRuleAnnotations { get; }
+    IRuleAnnotation[] CustomRuleAnnotations { get; }
 }
 
 interface IProperty : IWithName, IWithType, ICodeElement
@@ -112,7 +112,7 @@ interface IProperty : IWithName, IWithType, ICodeElement
     IRuleClass? Parent { get; }
 
     [Contains("IPropertyAnnotation.Property")]
-    VList<IPropertyAnnotation> Annotations { get; }
+    IPropertyAnnotation[] Annotations { get; }
 }
 
 interface IDelegationMethod : IWithText
@@ -142,7 +142,7 @@ interface IRuleAnnotation : IWithText
 interface ITypeMappings
 {
     [Contains("ITypeMapping.Parent")]
-    VList<ITypeMapping> TypeMappings { get; }
+    ITypeMapping[] TypeMappings { get; }
 
     [Container("IGrammarModel.TypeMappings")]
     IGrammarModel? Model { get; }
@@ -154,9 +154,9 @@ interface ITypeMapping
     ITypeMappings? Parent { get; }
 
     [Contains("IMapping.Parent")]
-    VList<IMapping> Entries { get; }
+    IMapping[] Entries { get; }
 
-    VList<string> ApplyToNames { get; }
+    string[] ApplyToNames { get; }
 }
 
 interface IMapping

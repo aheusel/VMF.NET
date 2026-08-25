@@ -15,9 +15,9 @@ interface INamed
 interface IParent : INamed
 {
     [Contains("IChild.Parent")]
-    VList<IChild> Children { get; }
+    IChild[] Children { get; }
 
-    VList<INamed> Elements { get; }
+    INamed[] Elements { get; }
 }
 
 [VmfEquals]

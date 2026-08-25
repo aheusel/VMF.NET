@@ -26,17 +26,17 @@ interface IEntityOneB
 interface IEntityTwoB
 {
     [Refers("IEntityOneB.Ref")]
-    VList<IEntityOneB> Refs { get; }
+    IEntityOneB[] Refs { get; }
 }
 
 interface IEntityOneC
 {
     [Refers("IEntityTwoC.Refs")]
-    VList<IEntityTwoC> Refs { get; }
+    IEntityTwoC[] Refs { get; }
 }
 
 interface IEntityTwoC
 {
     [Refers("IEntityOneC.Refs")]
-    VList<IEntityOneC> Refs { get; }
+    IEntityOneC[] Refs { get; }
 }

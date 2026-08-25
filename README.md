@@ -44,7 +44,6 @@ marks them as a model — no attribute is needed, and the interfaces need not be
 `partial`, because the model is **build input**, not the API you use:
 
 ```csharp
-using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
 namespace MyApp.VmfModel;
@@ -53,8 +52,9 @@ interface Parent
 {
     string? Name { get; set; }
 
+    // A multi-valued property is an array here; the generated API exposes it as VList<IChild>.
     [Contains("Child.Parent")]
-    VList<Child> Children { get; }
+    Child[] Children { get; }
 }
 
 interface Child

@@ -10,7 +10,7 @@ interface IHorseBarn
 {
     [Doc("The horses contained in this barn.")]
     [Contains]
-    VList<IHorse> Horses { get; }
+    IHorse[] Horses { get; }
 }
 
 [Doc("Owner of a horse or multiple horses.")]
@@ -21,7 +21,7 @@ interface IOwner
 
     [Doc("Horses owned by this owner.")]
     [Refers("IHorse.Owner")]
-    VList<IHorse> Horses { get; }
+    IHorse[] Horses { get; }
 }
 
 [Doc("A horse.")]
@@ -35,7 +35,7 @@ interface IHorse
 
     [Doc("Tournaments this horse attends.")]
     [Refers("ITournament.Horses")]
-    VList<ITournament> Tournaments { get; }
+    ITournament[] Tournaments { get; }
 }
 
 [Doc("Tournament a horse can attend.")]
@@ -46,5 +46,5 @@ interface ITournament
 
     [Doc("Horses that attend this tournament.")]
     [Refers("IHorse.Tournaments")]
-    VList<IHorse> Horses { get; }
+    IHorse[] Horses { get; }
 }

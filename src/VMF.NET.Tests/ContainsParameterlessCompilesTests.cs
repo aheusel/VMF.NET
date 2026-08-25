@@ -42,7 +42,7 @@ namespace ParameterlessContainsModel.VmfModel
     interface IBox
     {
         string? Label { get; set; }
-        [Contains] VList<IBoxItem> Items { get; }
+        [Contains] IBoxItem[] Items { get; }
     }
 }";
         AssertGeneratedCodeCompiles(source);

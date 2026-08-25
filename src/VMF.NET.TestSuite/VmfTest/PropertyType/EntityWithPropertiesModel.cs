@@ -7,8 +7,8 @@ namespace VMF.NET.TestSuite.VmfTest.PropertyType.VmfModel;
 
 interface IEntityWithProperties
 {
-    VList<int> Ids { get; }
-    VList<IChildEntity> Children { get; }
+    int[] Ids { get; }
+    IChildEntity[] Children { get; }
     IChildEntity? Entity { get; set; }
 }
 

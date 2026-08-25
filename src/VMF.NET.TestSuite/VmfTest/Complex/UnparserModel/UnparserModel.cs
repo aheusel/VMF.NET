@@ -9,10 +9,10 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel.VmfModel;
 interface IUnparserModel
 {
     [Contains("IUPRule.Parent")]
-    VList<IUPRule> Rules { get; }
+    IUPRule[] Rules { get; }
 
     [Contains("IUPLexerRule.Parent")]
-    VList<IUPLexerRule> LexerRules { get; }
+    IUPLexerRule[] LexerRules { get; }
 }
 
 interface IUPLexerRule : IWithName, IWithText
@@ -50,7 +50,7 @@ interface IWithRuleId
 interface IUPRuleBase : IWithRuleId
 {
     [Contains("IAlternativeBase.ParentRule")]
-    VList<IAlternativeBase> Alternatives { get; }
+    IAlternativeBase[] Alternatives { get; }
 }
 
 interface IUPRule : IWithName, IUPRuleBase, IWithTokenLocation
@@ -74,7 +74,7 @@ interface IAlternativeBase : IWithText, IWithAltId
     IUPRuleBase? ParentRule { get; }
 
     [Contains("IUPElement.ParentAlt")]
-    VList<IUPElement> Elements { get; }
+    IUPElement[] Elements { get; }
 }
 
 interface IUPElement : IWithText, IWithElementId, IWithTokenLocation

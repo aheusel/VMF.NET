@@ -54,7 +54,7 @@ interface IConnector : IWithId, IWithType, IWithValue
 {
     [GetterOnly] IVNode? Parent { get; }
 
-    [GetterOnly] VList<IConnection> Connections { get; }
+    [GetterOnly] IConnection[] Connections { get; }
 
     [DelegateTo(typeof(ConnectorDelegate))]
     IConnectionResult? TryConnect(IConnector c);
@@ -69,7 +69,7 @@ interface IInput : IConnector
     new IVNode? Parent { get; }
 
     [Contains("IConnection.Receiver")]
-    new VList<IConnection> Connections { get; }
+    new IConnection[] Connections { get; }
 }
 
 interface IOutput : IConnector
@@ -78,7 +78,7 @@ interface IOutput : IConnector
     new IVNode? Parent { get; }
 
     [Contains("IConnection.Sender")]
-    new VList<IConnection> Connections { get; }
+    new IConnection[] Connections { get; }
 }
 
 [DelegateTo(typeof(ConnectionDelegate))]
@@ -106,10 +106,10 @@ interface IConnectionResult
 interface IVNode : IWithLocation, IWithDimensions, IWithId, IWithType, IWithValue, IWithName
 {
     [Contains("IInput.Parent")]
-    VList<IInput> Inputs { get; }
+    IInput[] Inputs { get; }
 
     [Contains("IOutput.Parent")]
-    VList<IOutput> Outputs { get; }
+    IOutput[] Outputs { get; }
 
     [Container("IVFlow.Nodes")]
     IVFlow? Parent { get; }
@@ -125,10 +125,10 @@ interface IVNode : IWithLocation, IWithDimensions, IWithId, IWithType, IWithValu
 interface IVFlow : IVNode
 {
     [Contains("IVNode.Parent")]
-    VList<IVNode> Nodes { get; }
+    IVNode[] Nodes { get; }
 
     [Contains("IConnection.Flow")]
-    VList<IConnection> Connections { get; }
+    IConnection[] Connections { get; }
 
     [DelegateTo(typeof(VFlowDelegate))]
     IConnectionResult? Connect(IConnector c1, IConnector c2);

@@ -12,7 +12,7 @@ interface INodeNoContainment
     INodeNoContainment? Parent { get; set; }
 
     [Contains("INodeNoContainment.Parent")]
-    VList<INodeNoContainment> Children { get; }
+    INodeNoContainment[] Children { get; }
 
     INodeNoContainment? Node { get; set; }
 

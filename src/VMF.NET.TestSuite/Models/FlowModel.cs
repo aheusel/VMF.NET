@@ -15,10 +15,10 @@ interface IFlow
     string? Title { get; set; }
 
     [Contains("INode.Flow")]
-    VList<INode> Nodes { get; }
+    INode[] Nodes { get; }
 
     [Contains("IConnection.Flow")]
-    VList<IConnection> Connections { get; }
+    IConnection[] Connections { get; }
 }
 
 /// <summary>
@@ -36,10 +36,10 @@ interface INode
     IFlow? Flow { get; }
 
     [Refers("IConnection.Sender")]
-    VList<IConnection> Outputs { get; }
+    IConnection[] Outputs { get; }
 
     [Refers("IConnection.Receiver")]
-    VList<IConnection> Inputs { get; }
+    IConnection[] Inputs { get; }
 }
 
 /// <summary>

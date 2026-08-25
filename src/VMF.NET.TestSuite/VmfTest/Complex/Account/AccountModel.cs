@@ -8,10 +8,10 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.Account.VmfModel;
 interface IAccountModel
 {
     [Contains("ICustomer.Model")]
-    VList<ICustomer> Customers { get; }
+    ICustomer[] Customers { get; }
 
     [Contains("IAccount.Model")]
-    VList<IAccount> Accounts { get; }
+    IAccount[] Accounts { get; }
 }
 
 [Doc("A bank account has one or more authorized signatories.")]
@@ -20,7 +20,7 @@ interface IAccount
     string? Name { get; set; }
 
     [Refers("ICustomer.Accounts")]
-    VList<ICustomer> AuthorizedSignatories { get; }
+    ICustomer[] AuthorizedSignatories { get; }
 
     [Container("IAccountModel.Accounts")]
     IAccountModel? Model { get; }
@@ -32,7 +32,7 @@ interface ICustomer
 {
     [Doc("Returns all bank accounts of this customer.")]
     [Refers("IAccount.AuthorizedSignatories")]
-    VList<IAccount> Accounts { get; }
+    IAccount[] Accounts { get; }
 
     [Container("IAccountModel.Customers")]
     IAccountModel? Model { get; }

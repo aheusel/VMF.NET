@@ -18,7 +18,7 @@ interface IWithVarName { string? VarName { get; set; } }
 interface IWithFunctionName { string? FunctionName { get; set; } }
 
 [InterfaceOnly]
-interface IWithArraySizes { VList<string> ArraySizes { get; } }
+interface IWithArraySizes { string[] ArraySizes { get; } }
 
 [InterfaceOnly]
 interface ICodeElement
@@ -41,7 +41,7 @@ interface IControlFlowChildNode
 [InterfaceOnly]
 interface IControlFlowScope : IWithId, IControlFlowChildNode
 {
-    VList<IStatement> Statements { get; }
+    IStatement[] Statements { get; }
 }
 
 [InterfaceOnly]
@@ -52,7 +52,7 @@ interface IDeclStatement : IWithVarName
 {
     IType? DeclType { get; set; }
     new string? VarName { get; set; }
-    VList<string> ArraySizes { get; }
+    string[] ArraySizes { get; }
 }
 
 [InterfaceOnly]
@@ -92,24 +92,24 @@ interface IMiniClangModel { IProgram? Root { get; set; } }
 
 interface IProgram : ICodeElement
 {
-    [PropertyOrder(0)] VList<IPersistentComment> Header { get; }
-    [PropertyOrder(1)] VList<IInclude> Includes { get; }
-    [PropertyOrder(2)] VList<IConstantDef> Constants { get; }
+    [PropertyOrder(0)] IPersistentComment[] Header { get; }
+    [PropertyOrder(1)] IInclude[] Includes { get; }
+    [PropertyOrder(2)] IConstantDef[] Constants { get; }
     [PropertyOrder(3)] IMainFunctionDecl? MainFunction { get; set; }
-    [PropertyOrder(4)] VList<IPersistentComment> Footer { get; }
-    [PropertyOrder(5)] VList<IForwardDecl> ForwardDeclarations { get; }
-    [PropertyOrder(6)] VList<IFunctionDecl> Functions { get; }
+    [PropertyOrder(4)] IPersistentComment[] Footer { get; }
+    [PropertyOrder(5)] IForwardDecl[] ForwardDeclarations { get; }
+    [PropertyOrder(6)] IFunctionDecl[] Functions { get; }
 }
 
 interface IInclude : ICodeElement
 {
-    [PropertyOrder(0)] VList<IPersistentComment> Comments { get; }
+    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
     [PropertyOrder(1)] string? FileName { get; set; }
 }
 
 interface IConstantDef : ICodeElement, IWithVarName, IDeclStatement
 {
-    [PropertyOrder(0)] VList<IPersistentComment> Comments { get; }
+    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
     [PropertyOrder(1)] new string? VarName { get; set; }
     [VmfDefaultValue("null")]
     [PropertyOrder(2)] int? Value { get; set; }
@@ -117,25 +117,25 @@ interface IConstantDef : ICodeElement, IWithVarName, IDeclStatement
 
 interface IMainFunctionDecl : ICodeElement, IWithFunctionName, IControlFlowScope
 {
-    [PropertyOrder(0)] VList<IPersistentComment> Comments { get; }
-    [PropertyOrder(1)] new VList<IStatement> Statements { get; }
+    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
+    [PropertyOrder(1)] new IStatement[] Statements { get; }
 }
 
 interface IForwardDecl : ICodeElement, IWithFunctionName
 {
-    [PropertyOrder(0)] VList<IPersistentComment> Comments { get; }
+    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
     [PropertyOrder(1)] IType? ReturnType { get; set; }
     [PropertyOrder(2)] new string? FunctionName { get; set; }
-    [PropertyOrder(3)] VList<IParameter> Params { get; }
+    [PropertyOrder(3)] IParameter[] Params { get; }
 }
 
 interface IFunctionDecl : ICodeElement, IWithFunctionName, IControlFlowScope
 {
-    [PropertyOrder(0)] VList<IPersistentComment> Comments { get; }
+    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
     [PropertyOrder(1)] IType? ReturnType { get; set; }
     [PropertyOrder(2)] new string? FunctionName { get; set; }
-    [PropertyOrder(3)] new VList<IStatement> Statements { get; }
-    [PropertyOrder(4)] VList<IParameter> Params { get; }
+    [PropertyOrder(3)] new IStatement[] Statements { get; }
+    [PropertyOrder(4)] IParameter[] Params { get; }
 }
 
 // --- statements ---------------------------------------------------------------
@@ -145,7 +145,7 @@ interface IStatement : ICodeElement, IWithId, IControlFlowChildNode { }
 
 interface IBlockStatement : IStatement, IControlFlowScope
 {
-    [PropertyOrder(0)] new VList<IStatement> Statements { get; }
+    [PropertyOrder(0)] new IStatement[] Statements { get; }
 }
 
 interface IIfElseStatement : IStatement, IControlFlowContainer
@@ -172,14 +172,14 @@ interface IForStatement : IStatement, IControlFlowContainer
 interface IPrintStatement : IStatement
 {
     [PropertyOrder(0)] IExpression? PrintExpression { get; set; }
-    [PropertyOrder(1)] VList<IExpression> ValueExpressions { get; }
+    [PropertyOrder(1)] IExpression[] ValueExpressions { get; }
 }
 
 interface IArrayDeclStatement : IStatement, IWithVarName, IDeclStatement, IWithArraySizes
 {
     [PropertyOrder(0)] new IType? DeclType { get; set; }
     [PropertyOrder(1)] new string? VarName { get; set; }
-    [PropertyOrder(2)] new VList<string> ArraySizes { get; }
+    [PropertyOrder(2)] new string[] ArraySizes { get; }
 }
 
 interface IVariableAssignmentStatement : IStatement, IWithVarName, IDeclStatement
@@ -199,7 +199,7 @@ interface IArrayAssignmentStatement : IStatement, IWithVarName, IDeclStatement
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
     [PropertyOrder(1)] IExpression? AssignmentExpression { get; set; }
-    [PropertyOrder(2)] VList<IExpression> ArrayIndices { get; }
+    [PropertyOrder(2)] IExpression[] ArrayIndices { get; }
 }
 
 interface IReturnStatement : IStatement
@@ -210,7 +210,7 @@ interface IReturnStatement : IStatement
 interface IFunctionCallStatement : IStatement, IWithFunctionName
 {
     [PropertyOrder(0)] new string? FunctionName { get; set; }
-    [PropertyOrder(1)] VList<IExpression> Args { get; }
+    [PropertyOrder(1)] IExpression[] Args { get; }
 }
 
 interface ICommentStatement : IStatement
@@ -226,13 +226,13 @@ interface IExpression : ICodeElement, IWithId, IControlFlowChildNode { }
 interface IArrayAccessExpression : IExpression
 {
     [PropertyOrder(0)] IExpression? ArrayVariableExpression { get; set; }
-    [PropertyOrder(1)] VList<IExpression> ArrayIndices { get; }
+    [PropertyOrder(1)] IExpression[] ArrayIndices { get; }
 }
 
 interface IFunctionCallExpression : IExpression, IWithFunctionName
 {
     [PropertyOrder(0)] new string? FunctionName { get; set; }
-    [PropertyOrder(1)] VList<IExpression> Args { get; }
+    [PropertyOrder(1)] IExpression[] Args { get; }
 }
 
 interface INotExpression : IExpression
@@ -396,7 +396,7 @@ interface IParameter : ICodeElement, IWithVarName, IWithArraySizes, IWithId, IDe
     [PropertyOrder(0)] new IType? DeclType { get; set; }
     [PropertyOrder(1)] string? Pointer { get; set; }
     [PropertyOrder(2)] new string? VarName { get; set; }
-    [PropertyOrder(3)] new VList<string> ArraySizes { get; }
+    [PropertyOrder(3)] new string[] ArraySizes { get; }
 }
 
 interface IType : ICodeElement

@@ -63,7 +63,7 @@ namespace VMF.NET.TestSuite.VmfTest.Containment.VmfModel;
 interface IParent
 {
     string? Name { get; set; }
-    [Contains("IChild.Parent")] VList<IChild> Children { get; }
+    [Contains("IChild.Parent")] IChild[] Children { get; }
 }
 
 [VmfEquals(EqualsType.All)]

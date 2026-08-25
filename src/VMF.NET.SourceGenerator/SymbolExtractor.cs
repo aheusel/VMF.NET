@@ -108,6 +108,7 @@ internal static class SymbolExtractor
             IsPrimitive = IsValueType(propType),
             IsNullableValueType = isNullableValueType,
             IsCollection = IsCollectionType(propType),
+            LegacyCollectionSpelling = LegacyCollectionSpelling(propType),
             IsRequired = HasAttribute(prop, "RequiredAttribute") || HasAttribute(prop, "VmfRequiredAttribute"),
             IsIgnoredForEquals = HasAttribute(prop, "IgnoreEqualsAttribute"),
             IsIgnoredForToString = HasAttribute(prop, "IgnoreToStringAttribute"),
@@ -117,12 +118,23 @@ internal static class SymbolExtractor
             Documentation = GetDocAttribute(prop),
         };
 
-        // Collection element type
-        if (data.IsCollection && propType is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
+        // Collection element type: the array's element type. Everything downstream works from
+        // this pair, and the templates hardcode VList<...> around it, so the generated API does
+        // not depend on how the model spelled the collection.
+        //
+        // Also filled in for the superseded generic spelling, where the property is NOT a
+        // collection -- there it is what lets the diagnostic name the array to write instead.
+        ITypeSymbol? collectionElement = propType switch
         {
-            var elementType = namedType.TypeArguments[0];
-            data.CollectionElementSimpleName = GetSimpleName(elementType);
-            data.CollectionElementNamespace = GetNamespace(elementType);
+            IArrayTypeSymbol array => array.ElementType,
+            INamedTypeSymbol named when data.LegacyCollectionSpelling != null => named.TypeArguments[0],
+            _ => null,
+        };
+
+        if (collectionElement != null)
+        {
+            data.CollectionElementSimpleName = GetSimpleName(collectionElement);
+            data.CollectionElementNamespace = GetNamespace(collectionElement);
         }
 
         // Containment
@@ -524,18 +536,46 @@ internal static class SymbolExtractor
         return type.IsValueType;
     }
 
-    private static bool IsCollectionType(ITypeSymbol type)
-    {
-        if (type is not INamedTypeSymbol named) return false;
-        if (named.TypeArguments.Length == 0) return false;
+    /// <summary>
+    /// A collection property is declared as an <b>array</b> in the model —
+    /// <c>IElement[] Elements { get; }</c> — exactly as in Java VMF, where the generator turns
+    /// <c>Element[] getElements()</c> into a <c>VList</c> getter.
+    /// <para>
+    /// The point is that the model never names the collection type, so the generated API can
+    /// change it without breaking any code written against it. A model that names
+    /// <c>VList&lt;T&gt;</c> defeats that, which is why the old spelling is rejected rather than
+    /// quietly accepted — see <see cref="LegacyCollectionSpelling"/>.
+    /// </para>
+    /// </summary>
+    private static bool IsCollectionType(ITypeSymbol type) => type is IArrayTypeSymbol;
 
-        var name = named.Name;
-        return name == "VList"
-            || name == "IList"
-            || name == "ICollection"
-            || name == "IReadOnlyList"
-            || name == "IReadOnlyCollection"
-            || name == "List"
-            || name == "ObservableCollection";
+    /// <summary>
+    /// The superseded spelling: a model naming a concrete collection type. Returns that name so
+    /// the analyzer can say what to write instead.
+    /// <para>
+    /// Reporting matters here. Without it such a property would fall through to
+    /// <see cref="PropType.Class"/> and generate a plain reference property — a silent
+    /// miscompile of an existing model, rather than a message telling the author to write
+    /// <c>T[]</c>.
+    /// </para>
+    /// </summary>
+    private static string? LegacyCollectionSpelling(ITypeSymbol type)
+    {
+        if (type is not INamedTypeSymbol named) return null;
+        if (named.TypeArguments.Length == 0) return null;
+
+        switch (named.Name)
+        {
+            case "VList":
+            case "IList":
+            case "ICollection":
+            case "IReadOnlyList":
+            case "IReadOnlyCollection":
+            case "List":
+            case "ObservableCollection":
+                return named.Name;
+            default:
+                return null;
+        }
     }
 }

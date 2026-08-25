@@ -8,7 +8,7 @@ namespace VMF.NET.TestSuite.VmfTest.LazyInit.VmfModel;
 [VmfEquals]
 interface IObj
 {
-    VList<IEntry> Entries { get; }
+    IEntry[] Entries { get; }
 }
 
 [VmfEquals]

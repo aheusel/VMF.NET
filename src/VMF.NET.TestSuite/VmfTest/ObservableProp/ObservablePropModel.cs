@@ -8,5 +8,5 @@ namespace VMF.NET.TestSuite.VmfTest.ObservableProp.VmfModel;
 interface IObserveMyProperties
 {
     string? Name { get; set; }
-    VList<int> Values { get; }
+    int[] Values { get; }
 }

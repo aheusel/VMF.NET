@@ -8,8 +8,8 @@ namespace VMF.NET.TestSuite.VmfTest.Builders.VmfModel;
 interface IAClass
 {
     string? Name { get; set; }
-    VList<string> Ids { get; }
-    VList<IChild> Children { get; }
+    string[] Ids { get; }
+    IChild[] Children { get; }
     IChild2? Child { get; set; }
 }
 

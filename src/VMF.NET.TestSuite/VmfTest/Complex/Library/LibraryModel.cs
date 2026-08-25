@@ -10,10 +10,10 @@ interface ILibrary
     string? Name { get; set; }
 
     [Contains("IBook.Library")]
-    VList<IBook> Books { get; }
+    IBook[] Books { get; }
 
     [Contains("IWriter.Library")]
-    VList<IWriter> Authors { get; }
+    IWriter[] Authors { get; }
 }
 
 interface IBook
@@ -25,7 +25,7 @@ interface IBook
     ILibrary? Library { get; }
 
     [Refers("IWriter.Books")]
-    VList<IWriter> Authors { get; }
+    IWriter[] Authors { get; }
 }
 
 interface IWriter
@@ -36,5 +36,5 @@ interface IWriter
     ILibrary? Library { get; }
 
     [Refers("IBook.Authors")]
-    VList<IBook> Books { get; }
+    IBook[] Books { get; }
 }

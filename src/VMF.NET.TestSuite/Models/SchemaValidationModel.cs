@@ -16,7 +16,7 @@ namespace VMF.NET.TestSuite.Models.SchemaValidation.VmfModel;
 interface IArrayDefaultConfig
 {
     [VmfAnnotation("default=[\"alldrop\", \"smartdrop\", \"biospot\"]", Key = "vmf:schema:constraint")]
-    VList<string> DeviceIds { get; }
+    string[] DeviceIds { get; }
 }
 
 /// <summary>A valid regex pattern constraint — must be accepted.</summary>
@@ -66,7 +66,7 @@ interface IBadConstraintFormConfig
 interface IBadUniqueItemsConfig
 {
     [VmfAnnotation("yes", Key = "vmf:schema:uniqueItems")]
-    VList<string> Tags { get; }
+    string[] Tags { get; }
 }
 
 /// <summary>inject is not valid JSON.</summary>

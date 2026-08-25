@@ -26,5 +26,5 @@ interface IFigure
     [VmfRequired]
     string Name { get; set; }
 
-    VList<IPoint> Points { get; }
+    IPoint[] Points { get; }
 }

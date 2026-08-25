@@ -38,7 +38,7 @@ namespace MyApp.VmfModel;
 interface Parent
 {
     string Name { get; set; }
-    [Contains("Child.Parent")] VList<Child> Children { get; }
+    [Contains("Child.Parent")] Child[] Children { get; }
 }
 ```
 
@@ -129,12 +129,29 @@ Java generates `static Type type()` on every model interface. C# cannot use that
 declare a property called `Type` (VFlow's `WithType` does), and a method cannot share a name with
 a property. The static entry point is `static VmfType ModelType()`.
 
-### Collections are `VList<T>`, not arrays
+### Collections — same as Java: the model writes an array
 
-Java declares a multi-valued property as `Connection[] getConnections()`. VMF.NET declares
-`VList<IConnection> Connections { get; }`. The consequence that bites is **variance**: Java's
-arrays are covariant, `VList<T>` is invariant, so a collection property **cannot be narrowed** in
-a subtype. The generator reports this rather than emitting code that will not compile.
+A multi-valued property is declared as an **array**, exactly as in Java, and the generator
+produces a `VList<T>` property:
+
+```csharp
+IConnection[] Connections { get; }      // model  (Java: Connection[] getConnections())
+VList<IConnection> Connections { get; } // generated API
+```
+
+The model never names the collection type, so the generated API can change it without breaking
+code written against it. Naming it directly — `VList<T>`, `IList<T>`, `List<T>`, … — is an
+**error**, not a second accepted spelling; the generator says which array to write instead.
+
+Arrays are the notation for **properties**. A delegated *method*'s return type is passed through
+as written, so a method returning a collection still says `VList<T>`. Java is the same, and its
+own `MiniClangModel` keeps `//ControlFlowScope[] parentScopes();` commented out directly above the
+`VList` form.
+
+What does not change is **variance**: Java's arrays are covariant, `VList<T>` is invariant, so a
+collection property still **cannot be narrowed** in a subtype. The generator reports that rather
+than emitting code that will not compile. The array notation is a model-authoring convention; it
+does not make the generated collection covariant.
 
 ---
 
@@ -153,8 +170,8 @@ VMF.NET names the type too, because the attribute argument is a plain string wit
 Either spelling of the type works — the model's own name, or the generated one:
 
 ```csharp
-[Contains("Child.Parent")]      VList<Child> Children { get; }   // model names
-[Contains("IChild.Parent")]     VList<IChild> Children { get; }  // generated names
+[Contains("Child.Parent")]      Child[] Children { get; }   // model names
+[Contains("IChild.Parent")]     IChild[] Children { get; }  // generated names
 ```
 
 ### `[ExternalType]` names a type outside the model

@@ -25,5 +25,5 @@ interface IBox
     // Parameterless [Contains]: opposite-less containment. Requires a parameterless ContainsAttribute
     // constructor (the fix); the generator's existing "without opposite" path handles the rest.
     [Contains]
-    VList<IBoxItem> Items { get; }
+    IBoxItem[] Items { get; }
 }

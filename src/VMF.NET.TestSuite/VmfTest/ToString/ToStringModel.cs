@@ -21,7 +21,7 @@ interface IChild
 // and here we test with collections
 interface IParent2
 {
-    VList<IChild2> Children { get; }
+    IChild2[] Children { get; }
     string? Name { get; set; }
 }
 

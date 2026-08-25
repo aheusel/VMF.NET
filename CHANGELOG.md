@@ -29,15 +29,49 @@ namespace MyApp.VmfModel;
 interface IParent
 {
     string? Name { get; set; }
-    [Contains("IChild.Parent")] VList<IChild> Children { get; }
+    [Contains("IChild.Parent")] IChild[] Children { get; }
 }
 ```
 
 **Migrating a model:** move it to a `.VmfModel` namespace, then delete `[VmfModel]`, `partial` and
-`public`. Nothing else changes — not the attributes, not the property types, not the opposite
-strings. The generated name is `I` + the model's name **unless it already begins with `I` and a
-capital**, so a model named `IParent` still produces `IParent` and no consumer code moves. The
-337-fact test suite migrated this way without a single test file being edited.
+`public`, and rewrite collection properties as arrays (see below). Nothing else changes — not the
+attributes, not the scalar property types, not the opposite strings. The generated name is `I` +
+the model's name **unless it already begins with `I` and a capital**, so a model named `IParent`
+still produces `IParent` and no consumer code moves. The ported test suite migrated this way
+without a single test file being edited.
+
+### Changed — collections are declared as arrays (breaking)
+
+**A multi-valued property is now declared as an array, as in Java.** The generator produces the
+`VList<T>` property from it:
+
+```csharp
+// before (model)                      // after (model)
+VList<IChild> Children { get; }        IChild[] Children { get; }
+```
+
+The generated API is unchanged — still `VList<IChild> Children { get; }` — so **no consumer code
+moves**; only model files do.
+
+The point is that the model no longer names the collection type, so the generated API is free to
+change it without breaking code written against it. That is also why naming it directly
+(`VList<T>`, `IList<T>`, `List<T>`, …) is now an **error** rather than a second accepted spelling:
+left tolerated, such a property would silently classify as a plain single-valued reference. The
+diagnostic names the array to write instead.
+
+Arrays are the notation for **properties**. A delegated *method*'s return type is passed through
+as written, so a method returning a collection still says `VList<T>` — Java behaves the same way.
+
+Variance is unaffected: `VList<T>` is invariant, so a collection property still cannot be narrowed
+in a subtype.
+
+### Fixed — IntelliSense in projects that reference the generator by project reference
+
+A project feeding Scriban to the compiler from a target hooked `BeforeTargets="CoreCompile"` got no
+IntelliSense in Visual Studio: design-time builds do not run `CoreCompile`, so the generator was
+loaded without its dependency, failed, and produced no types — while `dotnet build` worked. The
+in-repo test suite did this; consumers using the NuGet package were never affected, since NuGet
+wires `analyzers/dotnet/cs` itself.
 
 Two things must move out of the model file into the parent namespace: **behaviour delegate
 classes** and any **plain types the model references** (enums, .NET classes). They refer to the

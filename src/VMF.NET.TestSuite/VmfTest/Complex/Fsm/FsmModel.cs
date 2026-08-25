@@ -12,10 +12,10 @@ interface IFSM
     string? Name { get; set; }
     IState? InitialState { get; set; }
     IState? CurrentState { get; set; }
-    VList<IState> FinalState { get; }
+    IState[] FinalState { get; }
 
     [Contains("IState.OwningFSM")]
-    VList<IState> OwnedState { get; }
+    IState[] OwnedState { get; }
 }
 
 [VmfEquals]
@@ -27,10 +27,10 @@ interface IState
     IFSM? OwningFSM { get; }
 
     [Contains("ITransition.Source")]
-    VList<ITransition> OutgoingTransitions { get; }
+    ITransition[] OutgoingTransitions { get; }
 
     [Contains("ITransition.Target")]
-    VList<ITransition> IncomingTransitions { get; }
+    ITransition[] IncomingTransitions { get; }
 }
 
 [VmfEquals]
@@ -45,7 +45,7 @@ interface ITransition
     [Container("IState.IncomingTransitions")]
     IState? Target { get; }
 
-    VList<IAction> Actions { get; }
+    IAction[] Actions { get; }
 }
 
 [VmfEquals]

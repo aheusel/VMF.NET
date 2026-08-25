@@ -188,6 +188,19 @@ public static class ModelAnalyzer
             prop.CustomOrderIndex = propSym.OrderIndex;
             prop.Documentation = propSym.Documentation;
 
+            // A model must declare a collection as an array, so that it never names the
+            // collection type and the generated API is free to change it. Reported rather than
+            // tolerated: the property would otherwise be classified as a plain reference below,
+            // silently generating the wrong thing for a model written against the old rule.
+            if (propSym.LegacyCollectionSpelling is { } legacySpelling)
+            {
+                model.AddError(
+                    $"Property '{typeInfo.TypeName}.{prop.Name}' declares its collection as "
+                    + $"'{legacySpelling}<{propSym.CollectionElementSimpleName ?? "T"}>'. Declare it as "
+                    + $"'{propSym.CollectionElementSimpleName ?? "T"}[]' instead — VMF.NET follows Java VMF, "
+                    + "where a model writes an array and the generator produces the VList property.");
+            }
+
             // Classify property type
             if (propSym.IsPrimitive)
             {

@@ -15,5 +15,5 @@ interface IImmutableType
 [Immutable]
 interface IImmutableTypeWithList
 {
-    VList<string> Names { get; }
+    string[] Names { get; }
 }

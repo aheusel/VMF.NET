@@ -25,7 +25,7 @@ interface IServiceConfig
     string? Host { get; set; }
 
     [VmfAnnotation("true", Key = "vmf:schema:uniqueItems")]
-    VList<string> Tags { get; }
+    string[] Tags { get; }
 
     [VmfAnnotation("1", Key = "vmf:schema:propertyOrder")]
     bool Enabled { get; set; }

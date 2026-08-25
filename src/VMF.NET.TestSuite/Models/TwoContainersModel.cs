@@ -12,10 +12,10 @@ namespace VMF.NET.TestSuite.Models.VmfModel;
 interface IShelf
 {
     [Contains("IBook.FrontShelf")]
-    VList<IBook> Front { get; }
+    IBook[] Front { get; }
 
     [Contains("IBook.BackShelf")]
-    VList<IBook> Back { get; }
+    IBook[] Back { get; }
 
     [Contains("IBook.Featured")]
     IBook? Featured { get; set; }

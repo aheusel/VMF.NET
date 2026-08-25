@@ -13,7 +13,7 @@ interface IModel
 {
     string? Name { get; set; }
     MyType? Entry { get; set; }
-    VList<MyType> Entries { get; }
+    MyType[] Entries { get; }
 
     [DelegateTo(typeof(ModelBehavior))]
     void RunAction(MyAction action);

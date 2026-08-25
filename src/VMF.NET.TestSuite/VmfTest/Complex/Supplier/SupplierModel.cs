@@ -13,10 +13,10 @@ interface ISupplier
     string? Name { get; set; }
 
     [Contains("ICustomer.Supplier")]
-    VList<ICustomer> Customers { get; }
+    ICustomer[] Customers { get; }
 
     [Contains("IPurchaseOrder.Supplier")]
-    VList<IPurchaseOrder> Orders { get; }
+    IPurchaseOrder[] Orders { get; }
 }
 
 [Doc("Customer of a supplier. It has a unique id.")]
@@ -28,7 +28,7 @@ interface ICustomer
     int? CustomerID { get; set; }
 
     [Refers("IPurchaseOrder.Customer")]
-    VList<IPurchaseOrder> Orders { get; }
+    IPurchaseOrder[] Orders { get; }
 }
 
 [Doc("A purchase order.")]
@@ -44,7 +44,7 @@ interface IPurchaseOrder
     IPurchaseOrder? PreviousOrder { get; set; }
 
     [Contains("IItem.PurchaseOrder")]
-    VList<IItem> Items { get; }
+    IItem[] Items { get; }
 
     [Contains]
     IAddress? BillTo { get; set; }

@@ -14,10 +14,10 @@ interface IContainerOne
     IElement? Element1 { get; set; }
 
     [Contains]
-    VList<IElement> Elements1 { get; }
+    IElement[] Elements1 { get; }
 
     [Contains("IElement.ListParentOne")]
-    VList<IElement> Elements1a { get; }
+    IElement[] Elements1a { get; }
 }
 
 interface IContainerTwo
@@ -29,10 +29,10 @@ interface IContainerTwo
     IElement? Element2 { get; set; }
 
     [Contains]
-    VList<IElement> Elements2 { get; }
+    IElement[] Elements2 { get; }
 
     [Contains("IElement.ListParentTwo")]
-    VList<IElement> Elements2a { get; }
+    IElement[] Elements2a { get; }
 }
 
 interface IElement
@@ -59,10 +59,10 @@ interface IContainerMultipleOpposites
     IElementMultipleOpposites? Element1 { get; set; }
 
     [Contains("IElementMultipleOpposites.Parent")]
-    VList<IElementMultipleOpposites> Elements { get; }
+    IElementMultipleOpposites[] Elements { get; }
 
     [Contains("IElementMultipleOpposites.Parent")]
-    VList<IElementMultipleOpposites> Elements1 { get; }
+    IElementMultipleOpposites[] Elements1 { get; }
 }
 
 interface IElementMultipleOpposites

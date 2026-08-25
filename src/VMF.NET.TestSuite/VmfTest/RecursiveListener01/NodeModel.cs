@@ -11,7 +11,7 @@ interface INode
     INode? Parent { get; }
 
     [Contains("INode.Parent")]
-    VList<INode> Children { get; }
+    INode[] Children { get; }
 
     string? Name { get; set; }
 }

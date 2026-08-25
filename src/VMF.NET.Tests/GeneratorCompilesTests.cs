@@ -46,7 +46,7 @@ namespace InheritanceModel.VmfModel
     interface IZoo
     {
         string? Name { get; set; }
-        [Contains(""IAnimal.Zoo"")] VList<IAnimal> Animals { get; }
+        [Contains(""IAnimal.Zoo"")] IAnimal[] Animals { get; }
     }
 }";
         AssertGeneratedCodeCompiles(source);
@@ -70,7 +70,7 @@ namespace ImmutableModel.VmfModel
     interface IRectangle : IShape { double Width { get; } double Height { get; } }
 
     [VmfModel(Equality = EqualsType.All)] [Immutable]
-    interface IDrawing { string? Title { get; } VList<IShape> Shapes { get; } }
+    interface IDrawing { string? Title { get; } IShape[] Shapes { get; } }
 }";
         AssertGeneratedCodeCompiles(source);
     }

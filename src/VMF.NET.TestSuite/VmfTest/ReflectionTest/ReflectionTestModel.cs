@@ -57,7 +57,7 @@ interface IInheritedDefaultValueOverride2 : IInheritedDefaultValueParent
 interface INode
 {
     [Contains("INode.Parent")]
-    VList<INode> Children { get; }
+    INode[] Children { get; }
 
     [Container("INode.Children")]
     INode? Parent { get; }
@@ -69,7 +69,7 @@ interface IReflectionTest
     int Id { get; set; }
 
     [VmfDefaultValue("new[] { \"a\", \"b\", \"c\" }")]
-    VList<string> Values { get; }
+    string[] Values { get; }
 
     string? Id2 { get; set; }
 }

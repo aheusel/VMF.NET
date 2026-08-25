@@ -50,7 +50,7 @@ interface IJson : ICodeElement
 
 interface IObj : ICodeElement
 {
-    [PropertyOrder(0)] VList<IPair> Pairs { get; }
+    [PropertyOrder(0)] IPair[] Pairs { get; }
 }
 
 interface IPair : ICodeElement
@@ -63,7 +63,7 @@ interface IPair : ICodeElement
 
 interface IArray : ICodeElement
 {
-    [PropertyOrder(0)] VList<IVal> Values { get; }
+    [PropertyOrder(0)] IVal[] Values { get; }
 }
 
 [InterfaceOnly]

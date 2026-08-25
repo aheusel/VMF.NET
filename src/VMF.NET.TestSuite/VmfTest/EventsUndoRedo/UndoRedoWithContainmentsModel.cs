@@ -8,7 +8,7 @@ namespace VMF.NET.TestSuite.VmfTest.EventsUndoRedo.VmfModel;
 interface IParentListContainment
 {
     [Contains("IChildListContainment.Parent")]
-    VList<IChildListContainment> Children { get; }
+    IChildListContainment[] Children { get; }
 }
 
 interface IChildListContainment

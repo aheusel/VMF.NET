@@ -36,5 +36,5 @@ interface IRectangle : IShape
 interface IDrawing
 {
     string? Title { get; }
-    VList<IShape> Shapes { get; }
+    IShape[] Shapes { get; }
 }

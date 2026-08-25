@@ -59,7 +59,7 @@ interface IEqualsTestContainmentEqListChild : IWithName
 interface IEqualsTestContainmentEqList : IWithName
 {
     [Contains("IEqualsTestContainmentEqListChild.Parent")]
-    VList<IEqualsTestContainmentEqListChild> Children { get; }
+    IEqualsTestContainmentEqListChild[] Children { get; }
 }
 
 [VmfEquals(EqualsType.Instance)]
@@ -73,5 +73,5 @@ interface IEqualsTestInstanceEqListChild : IWithName
 interface IEqualsTestInstanceEqList : IWithName
 {
     [Contains("IEqualsTestInstanceEqListChild.Parent")]
-    VList<IEqualsTestInstanceEqListChild> Children { get; }
+    IEqualsTestInstanceEqListChild[] Children { get; }
 }

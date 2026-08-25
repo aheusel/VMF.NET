@@ -38,5 +38,5 @@ interface IZoo
 
     // Heterogeneous list typed by the base; holds IDog / ICat instances.
     [Contains("IAnimal.Zoo")]
-    VList<IAnimal> Animals { get; }
+    IAnimal[] Animals { get; }
 }
