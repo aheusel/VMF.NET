@@ -6,35 +6,31 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.VmfText.Generated.Json;
+namespace VMF.NET.TestSuite.VmfTest.Complex.VmfText.Generated.Json.VmfModel;
 
-[VmfModel]
-public partial interface IJSONModel
+interface IJSONModel
 {
     IJson? Root { get; set; }
 }
 
-[VmfModel]
 [Immutable]
-public partial interface ICodeRange
+interface ICodeRange
 {
     ICodeLocation? Start { get; }
     ICodeLocation? Stop { get; }
     int Length { get; }
 }
 
-[VmfModel]
 [Immutable]
-public partial interface ICodeLocation
+interface ICodeLocation
 {
     int Index { get; }
     int Line { get; }
     int CharPosInLine { get; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface ICodeElement
+interface ICodeElement
 {
     [IgnoreToString]
     [IgnoreEquals]
@@ -47,20 +43,17 @@ public partial interface ICodeElement
     object? Payload { get; set; }
 }
 
-[VmfModel]
-public partial interface IJson : ICodeElement
+interface IJson : ICodeElement
 {
     [PropertyOrder(0)] IVal? Value { get; set; }
 }
 
-[VmfModel]
-public partial interface IObj : ICodeElement
+interface IObj : ICodeElement
 {
     [PropertyOrder(0)] VList<IPair> Pairs { get; }
 }
 
-[VmfModel]
-public partial interface IPair : ICodeElement
+interface IPair : ICodeElement
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] string? Key { get; set; }
@@ -68,55 +61,47 @@ public partial interface IPair : ICodeElement
     [PropertyOrder(1)] IVal? Value { get; set; }
 }
 
-[VmfModel]
-public partial interface IArray : ICodeElement
+interface IArray : ICodeElement
 {
     [PropertyOrder(0)] VList<IVal> Values { get; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IVal : ICodeElement
+interface IVal : ICodeElement
 {
     [GetterOnly]
     [PropertyOrder(0)] object? Value { get; }
 }
 
-[VmfModel]
-public partial interface IStringValue : IVal
+interface IStringValue : IVal
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new string? Value { get; set; }
 }
 
-[VmfModel]
-public partial interface INumberValue : IVal
+interface INumberValue : IVal
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new double? Value { get; set; }
 }
 
-[VmfModel]
-public partial interface IObjectValue : IVal
+interface IObjectValue : IVal
 {
     [PropertyOrder(0)] new IObj? Value { get; set; }
 }
 
-[VmfModel]
-public partial interface IArrayValue : IVal
+interface IArrayValue : IVal
 {
     [PropertyOrder(0)] new IArray? Value { get; set; }
 }
 
-[VmfModel]
-public partial interface IBooleanValue : IVal
+interface IBooleanValue : IVal
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new bool? Value { get; set; }
 }
 
-[VmfModel]
-public partial interface INullValue : IVal
+interface INullValue : IVal
 {
     [PropertyOrder(0)] new object? Value { get; set; }
 }

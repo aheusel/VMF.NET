@@ -3,10 +3,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.Library;
+namespace VMF.NET.TestSuite.VmfTest.Complex.Library.VmfModel;
 
-[VmfModel]
-public partial interface ILibrary
+interface ILibrary
 {
     string? Name { get; set; }
 
@@ -17,8 +16,7 @@ public partial interface ILibrary
     VList<IWriter> Authors { get; }
 }
 
-[VmfModel]
-public partial interface IBook
+interface IBook
 {
     string? Title { get; set; }
     int? Pages { get; set; }
@@ -30,8 +28,7 @@ public partial interface IBook
     VList<IWriter> Authors { get; }
 }
 
-[VmfModel]
-public partial interface IWriter
+interface IWriter
 {
     string? Name { get; set; }
 

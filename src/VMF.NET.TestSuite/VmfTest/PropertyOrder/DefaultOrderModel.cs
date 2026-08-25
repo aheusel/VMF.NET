@@ -2,10 +2,9 @@
 
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.PropertyOrder;
+namespace VMF.NET.TestSuite.VmfTest.PropertyOrder.VmfModel;
 
-[VmfModel]
-public partial interface IDefaultOrder
+interface IDefaultOrder
 {
     string? Z { get; set; }
     IElement? B { get; set; }
@@ -13,8 +12,7 @@ public partial interface IDefaultOrder
     double X { get; set; }
 }
 
-[VmfModel]
-public partial interface ICustomOrder
+interface ICustomOrder
 {
     [PropertyOrder(3)] int? D { get; set; }
     [PropertyOrder(1)] string? Z { get; set; }
@@ -22,45 +20,39 @@ public partial interface ICustomOrder
     [PropertyOrder(4)] double X { get; set; }
 }
 
-[VmfModel]
-public partial interface IElement
+interface IElement
 {
 }
 
-[VmfModel]
-public partial interface IInheritedBaseWithoutCustomOrder
+interface IInheritedBaseWithoutCustomOrder
 {
     string? BaseA { get; set; }
     string? BaseZ { get; set; }
     string? BaseB { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedOrderSubClassWithoutBaseOrder : IInheritedBaseWithoutCustomOrder
+interface IInheritedOrderSubClassWithoutBaseOrder : IInheritedBaseWithoutCustomOrder
 {
     [PropertyOrder(0)] string? A { get; set; }
     [PropertyOrder(1)] string? Z { get; set; }
     [PropertyOrder(2)] string? B { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedBaseWithCustomOrder
+interface IInheritedBaseWithCustomOrder
 {
     [PropertyOrder(0)] string? BaseA { get; set; }
     [PropertyOrder(1)] string? BaseZ { get; set; }
     [PropertyOrder(2)] string? BaseB { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedOrderSubClassWithBaseOrder : IInheritedBaseWithCustomOrder
+interface IInheritedOrderSubClassWithBaseOrder : IInheritedBaseWithCustomOrder
 {
     [PropertyOrder(0)] string? A { get; set; }
     [PropertyOrder(1)] string? Z { get; set; }
     [PropertyOrder(2)] string? B { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedOrderSubClassWithRedefinedBaseOrder : IInheritedOrderSubClassWithBaseOrder
+interface IInheritedOrderSubClassWithRedefinedBaseOrder : IInheritedOrderSubClassWithBaseOrder
 {
     [PropertyOrder(0)] new string? Z { get; set; }
     [PropertyOrder(1)] new string? B { get; set; }
@@ -68,25 +60,22 @@ public partial interface IInheritedOrderSubClassWithRedefinedBaseOrder : IInheri
 }
 
 // redeclare property order unchanged -> compile-only test
-[VmfModel]
-public partial interface IInheritedOrderSubClassWithRedefinedBaseOrderUnchanged : IInheritedOrderSubClassWithBaseOrder
+interface IInheritedOrderSubClassWithRedefinedBaseOrderUnchanged : IInheritedOrderSubClassWithBaseOrder
 {
     [PropertyOrder(0)] new string? A { get; set; }
     [PropertyOrder(1)] new string? Z { get; set; }
     [PropertyOrder(2)] new string? B { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IBaseClass
+interface IBaseClass
 {
     [PropertyOrder(0)]
     [GetterOnly]
     object? Value { get; }
 }
 
-[VmfModel]
-public partial interface IInherited : IBaseClass
+interface IInherited : IBaseClass
 {
     // this should be allowed
     // -> until v0.2.6.1 it wasn't

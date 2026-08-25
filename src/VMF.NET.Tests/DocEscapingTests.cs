@@ -29,11 +29,11 @@ public class DocEscapingTests
         const string source = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace DocEscapingModel
+namespace DocEscapingModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)]
     [Doc(""Maps Foo<Bar> & Baz.\nSecond line."")]
-    public partial interface IWidget
+    interface IWidget
     {
         [Doc(""The <b>name</b> & label.\nMore text."")]
         string? Name { get; set; }
@@ -96,7 +96,7 @@ namespace DocEscapingModel
         {
             refs.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, dll)));
         }
-        // VMF.NET.Runtime supplies [VmfModel], [Doc], VList<T>, EqualsType, IVObject.
+        // VMF.NET.Runtime supplies , [Doc], VList<T>, EqualsType, IVObject.
         refs.Add(MetadataReference.CreateFromFile(typeof(VMF.NET.Runtime.IVObject).Assembly.Location));
         return refs;
     }

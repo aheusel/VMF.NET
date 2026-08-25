@@ -3,18 +3,16 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.PropertyType;
+namespace VMF.NET.TestSuite.VmfTest.PropertyType.VmfModel;
 
-[VmfModel]
-public partial interface IEntityWithProperties
+interface IEntityWithProperties
 {
     VList<int> Ids { get; }
     VList<IChildEntity> Children { get; }
     IChildEntity? Entity { get; set; }
 }
 
-[VmfModel]
-public partial interface IChildEntity
+interface IChildEntity
 {
     string? Name { get; set; }
 }

@@ -51,6 +51,9 @@ public sealed class DelegationInfo
     /// <summary>Custom documentation.</summary>
     public string? Documentation { get; }
 
+    /// <summary>Whether this delegation carries documentation.</summary>
+    public bool IsDocumented => !string.IsNullOrEmpty(Documentation);
+
     /// <summary>
     /// The <c>T</c> the delegate class declares its <c>IDelegatedBehavior&lt;T&gt;</c> at, which
     /// is what the generated code casts to before calling <c>SetCaller</c>. Java needs no cast —

@@ -3,18 +3,16 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.LazyInit;
+namespace VMF.NET.TestSuite.VmfTest.LazyInit.VmfModel;
 
-[VmfModel]
 [VmfEquals]
-public partial interface IObj
+interface IObj
 {
     VList<IEntry> Entries { get; }
 }
 
-[VmfModel]
 [VmfEquals]
-public partial interface IEntry
+interface IEntry
 {
     string? Name { get; set; }
 }

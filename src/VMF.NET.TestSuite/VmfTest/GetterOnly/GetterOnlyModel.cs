@@ -2,23 +2,20 @@
 
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.GetterOnly;
+namespace VMF.NET.TestSuite.VmfTest.GetterOnly.VmfModel;
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithName
+interface IWithName
 {
     [GetterOnly]
     string? Name { get; }
 }
 
-[VmfModel]
 [Immutable]
-public partial interface IImmutableObj : IWithName
+interface IImmutableObj : IWithName
 {
 }
 
-[VmfModel]
-public partial interface IMutableObj : IWithName
+interface IMutableObj : IWithName
 {
 }

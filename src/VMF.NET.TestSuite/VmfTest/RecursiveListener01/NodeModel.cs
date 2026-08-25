@@ -3,10 +3,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01;
+namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01.VmfModel;
 
-[VmfModel]
-public partial interface INode
+interface INode
 {
     [Container("INode.Children")]
     INode? Parent { get; }

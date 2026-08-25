@@ -8,17 +8,17 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IBoxItem
+interface IBoxItem
 {
     string? Name { get; set; }
     // No [Container] property — the parent is not part of the contained type's public surface.
 }
 
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IBox
+interface IBox
 {
     string? Label { get; set; }
 

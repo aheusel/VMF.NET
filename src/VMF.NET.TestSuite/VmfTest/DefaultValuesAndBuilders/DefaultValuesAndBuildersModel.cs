@@ -2,10 +2,9 @@
 
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.DefaultValuesAndBuilders;
+namespace VMF.NET.TestSuite.VmfTest.DefaultValuesAndBuilders.VmfModel;
 
-[VmfModel]
-public partial interface IWithDefaultValues
+interface IWithDefaultValues
 {
     [VmfDefaultValue("true")]
     bool Visible { get; set; }

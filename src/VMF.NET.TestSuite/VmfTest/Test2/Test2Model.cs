@@ -3,18 +3,16 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Test2;
+namespace VMF.NET.TestSuite.VmfTest.Test2.VmfModel;
 
-[VmfModel]
 [VmfEquals]
-public partial interface INamed
+interface INamed
 {
     string? Name { get; set; }
 }
 
-[VmfModel]
 [VmfEquals]
-public partial interface IParent : INamed
+interface IParent : INamed
 {
     [Contains("IChild.Parent")]
     VList<IChild> Children { get; }
@@ -22,9 +20,8 @@ public partial interface IParent : INamed
     VList<INamed> Elements { get; }
 }
 
-[VmfModel]
 [VmfEquals]
-public partial interface IChild : INamed
+interface IChild : INamed
 {
     [Container("IParent.Children")]
     IParent? Parent { get; }

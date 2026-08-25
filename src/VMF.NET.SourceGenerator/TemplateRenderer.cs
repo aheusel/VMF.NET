@@ -130,6 +130,17 @@ public sealed class TemplateRenderer
         scriptObject.Add("all_props", allProps);
         scriptObject.Add("own_props", ownProps);
 
+        // A member re-declared on this type while a base also declares it hides the base's, which
+        // C# wants stated with `new`. The generated interface has to say so itself now that it,
+        // rather than the model file, is what declares members.
+        var baseMemberNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var baseType in type.AllInheritedTypes)
+        {
+            foreach (var p in baseType.Properties) baseMemberNames.Add(p.Name);
+            foreach (var d in baseType.OwnMethodDelegations) baseMemberNames.Add(d.MethodName);
+        }
+        scriptObject.Import("hides_base", new Func<string, bool>(baseMemberNames.Contains));
+
         // Pre-compute string arrays for static readonly fields
         scriptObject.Add("prop_names_literal", TemplateHelpers.StringArray(allProps.Select(p => p.Name)));
         scriptObject.Add("prop_type_names_literal", TemplateHelpers.StringArray(allProps.Select(p => TemplateHelpers.PropTypeFullName(p))));

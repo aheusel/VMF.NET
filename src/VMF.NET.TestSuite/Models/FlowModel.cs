@@ -4,13 +4,13 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 /// <summary>
 /// A flow graph containing nodes and connections.
 /// </summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IFlow
+interface IFlow
 {
     string? Title { get; set; }
 
@@ -24,7 +24,7 @@ public partial interface IFlow
 /// <summary>
 /// A node in a flow graph.
 /// </summary>
-public partial interface INode
+interface INode
 {
     string? Name { get; set; }
 
@@ -45,7 +45,7 @@ public partial interface INode
 /// <summary>
 /// A connection between two nodes.
 /// </summary>
-public partial interface IConnection
+interface IConnection
 {
     [Container("IFlow.Connections")]
     IFlow? Flow { get; }

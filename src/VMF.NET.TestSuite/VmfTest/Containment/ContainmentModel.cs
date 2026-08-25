@@ -3,10 +3,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Containment;
+namespace VMF.NET.TestSuite.VmfTest.Containment.VmfModel;
 
-[VmfModel]
-public partial interface IContainerOne
+interface IContainerOne
 {
     [Contains]
     IElement? Element { get; set; }
@@ -21,8 +20,7 @@ public partial interface IContainerOne
     VList<IElement> Elements1a { get; }
 }
 
-[VmfModel]
-public partial interface IContainerTwo
+interface IContainerTwo
 {
     [Contains]
     IElement? Element { get; set; }
@@ -37,8 +35,7 @@ public partial interface IContainerTwo
     VList<IElement> Elements2a { get; }
 }
 
-[VmfModel]
-public partial interface IElement
+interface IElement
 {
     [Container("IContainerOne.Element1")]
     IContainerOne? ParentOne { get; }
@@ -53,8 +50,7 @@ public partial interface IElement
     IContainerTwo? ListParentTwo { get; }
 }
 
-[VmfModel]
-public partial interface IContainerMultipleOpposites
+interface IContainerMultipleOpposites
 {
     [Contains("IElementMultipleOpposites.Parent")]
     IElementMultipleOpposites? Element { get; set; }
@@ -69,8 +65,7 @@ public partial interface IContainerMultipleOpposites
     VList<IElementMultipleOpposites> Elements1 { get; }
 }
 
-[VmfModel]
-public partial interface IElementMultipleOpposites
+interface IElementMultipleOpposites
 {
     // multiple opposites (unknown at compile-time)
     [Container]

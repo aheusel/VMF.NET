@@ -3,12 +3,11 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.Fsm;
+namespace VMF.NET.TestSuite.VmfTest.Complex.Fsm.VmfModel;
 
-[VmfModel]
 [Doc("This model entity is a finite state machine.")]
 [VmfEquals]
-public partial interface IFSM
+interface IFSM
 {
     string? Name { get; set; }
     IState? InitialState { get; set; }
@@ -19,9 +18,8 @@ public partial interface IFSM
     VList<IState> OwnedState { get; }
 }
 
-[VmfModel]
 [VmfEquals]
-public partial interface IState
+interface IState
 {
     string? Name { get; set; }
 
@@ -35,9 +33,8 @@ public partial interface IState
     VList<ITransition> IncomingTransitions { get; }
 }
 
-[VmfModel]
 [VmfEquals]
-public partial interface ITransition
+interface ITransition
 {
     string? Input { get; set; }
     string? Output { get; set; }
@@ -51,9 +48,8 @@ public partial interface ITransition
     VList<IAction> Actions { get; }
 }
 
-[VmfModel]
 [VmfEquals]
-public partial interface IAction
+interface IAction
 {
     string? Name { get; set; }
 }

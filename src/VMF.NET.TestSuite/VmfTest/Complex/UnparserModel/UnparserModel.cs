@@ -4,10 +4,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel;
+namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel.VmfModel;
 
-[VmfModel]
-public partial interface IUnparserModel
+interface IUnparserModel
 {
     [Contains("IUPRule.Parent")]
     VList<IUPRule> Rules { get; }
@@ -16,52 +15,45 @@ public partial interface IUnparserModel
     VList<IUPLexerRule> LexerRules { get; }
 }
 
-[VmfModel]
-public partial interface IUPLexerRule : IWithName, IWithText
+interface IUPLexerRule : IWithName, IWithText
 {
     [Container("IUnparserModel.LexerRules")]
     IUnparserModel? Parent { get; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithTokenLocation
+interface IWithTokenLocation
 {
     [IgnoreEquals] int TokenIndexStart { get; set; }
     [IgnoreEquals] int TokenIndexStop { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithAltId
+interface IWithAltId
 {
     int AltId { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithElementId
+interface IWithElementId
 {
     int ElementId { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithRuleId
+interface IWithRuleId
 {
     int RuleId { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IUPRuleBase : IWithRuleId
+interface IUPRuleBase : IWithRuleId
 {
     [Contains("IAlternativeBase.ParentRule")]
     VList<IAlternativeBase> Alternatives { get; }
 }
 
-[VmfModel]
-public partial interface IUPRule : IWithName, IUPRuleBase, IWithTokenLocation
+interface IUPRule : IWithName, IUPRuleBase, IWithTokenLocation
 {
     [Container("IUnparserModel.Rules")]
     IUnparserModel? Parent { get; }
@@ -70,15 +62,13 @@ public partial interface IUPRule : IWithName, IUPRuleBase, IWithTokenLocation
     [IgnoreEquals] int TokenIndexLOCALS { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface ISubRule : IUPRuleBase
+interface ISubRule : IUPRuleBase
 {
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IAlternativeBase : IWithText, IWithAltId
+interface IAlternativeBase : IWithText, IWithAltId
 {
     [Container("IUPRuleBase.Alternatives")]
     IUPRuleBase? ParentRule { get; }
@@ -87,8 +77,7 @@ public partial interface IAlternativeBase : IWithText, IWithAltId
     VList<IUPElement> Elements { get; }
 }
 
-[VmfModel]
-public partial interface IUPElement : IWithText, IWithElementId, IWithTokenLocation
+interface IUPElement : IWithText, IWithElementId, IWithTokenLocation
 {
     // Settable so containment can be driven from the child side, as the Java fact does.
     // Java generates a container setter automatically; in VMF.NET the model interface IS
@@ -105,27 +94,22 @@ public partial interface IUPElement : IWithText, IWithElementId, IWithTokenLocat
     string? RuleName { get; set; }
 }
 
-[VmfModel]
-public partial interface IUPNamedElement : IUPElement, IWithName
+interface IUPNamedElement : IUPElement, IWithName
 {
 }
 
-[VmfModel]
-public partial interface IUPSubRuleElement : IUPElement, ISubRule
+interface IUPSubRuleElement : IUPElement, ISubRule
 {
 }
 
-[VmfModel]
-public partial interface IUPNamedSubRuleElement : IUPElement, ISubRule, IWithName
+interface IUPNamedSubRuleElement : IUPElement, ISubRule, IWithName
 {
 }
 
-[VmfModel]
-public partial interface IAlternative : IAlternativeBase
+interface IAlternative : IAlternativeBase
 {
 }
 
-[VmfModel]
-public partial interface ILabeledAlternative : IAlternative, IWithName
+interface ILabeledAlternative : IAlternative, IWithName
 {
 }

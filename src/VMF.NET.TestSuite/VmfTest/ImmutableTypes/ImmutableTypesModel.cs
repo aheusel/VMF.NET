@@ -3,19 +3,17 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.ImmutableTypes;
+namespace VMF.NET.TestSuite.VmfTest.ImmutableTypes.VmfModel;
 
-[VmfModel]
 [Immutable]
-public partial interface IImmutableType
+interface IImmutableType
 {
     string? Name { get; }
 }
 
 // should compile, see https://github.com/miho/VMF/issues/48
-[VmfModel]
 [Immutable]
-public partial interface IImmutableTypeWithList
+interface IImmutableTypeWithList
 {
     VList<string> Names { get; }
 }

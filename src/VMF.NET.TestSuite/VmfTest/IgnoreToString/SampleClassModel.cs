@@ -2,10 +2,9 @@
 
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.IgnoreToString;
+namespace VMF.NET.TestSuite.VmfTest.IgnoreToString.VmfModel;
 
-[VmfModel]
-public partial interface ISampleClass
+interface ISampleClass
 {
     string? Name { get; set; }
 

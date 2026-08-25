@@ -3,20 +3,18 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.Horses;
+namespace VMF.NET.TestSuite.VmfTest.Complex.Horses.VmfModel;
 
-[VmfModel]
 [Doc("A barn for horses.")]
-public partial interface IHorseBarn
+interface IHorseBarn
 {
     [Doc("The horses contained in this barn.")]
     [Contains]
     VList<IHorse> Horses { get; }
 }
 
-[VmfModel]
 [Doc("Owner of a horse or multiple horses.")]
-public partial interface IOwner
+interface IOwner
 {
     [Doc("Name of the owner.")]
     string? Name { get; set; }
@@ -26,9 +24,8 @@ public partial interface IOwner
     VList<IHorse> Horses { get; }
 }
 
-[VmfModel]
 [Doc("A horse.")]
-public partial interface IHorse
+interface IHorse
 {
     string? Name { get; set; }
 
@@ -41,9 +38,8 @@ public partial interface IHorse
     VList<ITournament> Tournaments { get; }
 }
 
-[VmfModel]
 [Doc("Tournament a horse can attend.")]
-public partial interface ITournament
+interface ITournament
 {
     [Doc("Name of the tournament.")]
     string? Name { get; set; }

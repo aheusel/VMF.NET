@@ -7,10 +7,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
-[VmfModel]
-public partial interface IShelf
+interface IShelf
 {
     [Contains("IBook.FrontShelf")]
     VList<IBook> Front { get; }
@@ -22,8 +21,7 @@ public partial interface IShelf
     IBook? Featured { get; set; }
 }
 
-[VmfModel]
-public partial interface IBook
+interface IBook
 {
     string? Title { get; set; }
 

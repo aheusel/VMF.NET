@@ -3,10 +3,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.Account;
+namespace VMF.NET.TestSuite.VmfTest.Complex.Account.VmfModel;
 
-[VmfModel]
-public partial interface IAccountModel
+interface IAccountModel
 {
     [Contains("ICustomer.Model")]
     VList<ICustomer> Customers { get; }
@@ -15,9 +14,8 @@ public partial interface IAccountModel
     VList<IAccount> Accounts { get; }
 }
 
-[VmfModel]
 [Doc("A bank account has one or more authorized signatories.")]
-public partial interface IAccount
+interface IAccount
 {
     string? Name { get; set; }
 
@@ -28,10 +26,9 @@ public partial interface IAccount
     IAccountModel? Model { get; }
 }
 
-[VmfModel]
 [Doc("A customer can have one or more bank accounts.")]
 [InterfaceOnly]
-public partial interface ICustomer
+interface ICustomer
 {
     [Doc("Returns all bank accounts of this customer.")]
     [Refers("IAccount.AuthorizedSignatories")]
@@ -41,26 +38,23 @@ public partial interface ICustomer
     IAccountModel? Model { get; }
 }
 
-[VmfModel]
 [Doc("A private customer has a name and a residential address.")]
-public partial interface IPrivateCustomer : ICustomer
+interface IPrivateCustomer : ICustomer
 {
     string? FirstName { get; set; }
     string? LastName { get; set; }
     IAddress? ResidentialAddress { get; set; }
 }
 
-[VmfModel]
 [Doc("A business customer is a company.")]
-public partial interface IBusinessCustomer : ICustomer
+interface IBusinessCustomer : ICustomer
 {
     string? CompanyName { get; set; }
     IAddress? CompanyAddress { get; set; }
 }
 
-[VmfModel]
 [Doc("An address for customers.")]
-public partial interface IAddress
+interface IAddress
 {
     string? Street { get; set; }
     string? City { get; set; }

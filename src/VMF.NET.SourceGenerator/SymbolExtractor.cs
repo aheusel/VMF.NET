@@ -19,8 +19,8 @@ internal static class SymbolExtractor
     {
         var data = new TypeSymbolData
         {
-            Name = symbol.Name,
-            FullName = GetFullName(symbol),
+            Name = ModelNaming.ApiName(symbol),
+            FullName = ModelNaming.ApiFullName(symbol),
             IsInterface = symbol.TypeKind == TypeKind.Interface,
             IsImmutable = HasAttribute(symbol, "ImmutableAttribute"),
             IsInterfaceOnly = HasAttribute(symbol, "InterfaceOnlyAttribute"),
@@ -81,6 +81,9 @@ internal static class SymbolExtractor
         return data;
     }
 
+    private static string? MapOpposite(string? oppositeRef) =>
+        oppositeRef == null ? null : ModelNaming.MapOppositeReference(oppositeRef);
+
     private static PropertySymbolData ExtractProperty(IPropertySymbol prop)
     {
         // Unwrap Nullable<T> (e.g. double?/int?/bool?) so the type is named after its
@@ -101,7 +104,7 @@ internal static class SymbolExtractor
         {
             Name = prop.Name,
             FullTypeName = GetFullName(propType),
-            SimpleTypeName = propType.Name,
+            SimpleTypeName = GetSimpleName(propType),
             TypeNamespace = GetNamespace(propType),
             IsPrimitive = IsValueType(propType),
             IsNullableValueType = isNullableValueType,
@@ -119,14 +122,16 @@ internal static class SymbolExtractor
         if (data.IsCollection && propType is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
         {
             var elementType = namedType.TypeArguments[0];
-            data.CollectionElementSimpleName = elementType.Name;
+            data.CollectionElementSimpleName = GetSimpleName(elementType);
             data.CollectionElementNamespace = GetNamespace(elementType);
         }
 
         // Containment
-        data.ContainsOpposite = GetContainsOpposite(prop);
-        data.ContainerOpposite = GetContainerOpposite(prop);
-        data.RefersOpposite = GetRefersOpposite(prop);
+        // Opposites name a type by the name written in the MODEL; map it to the generated one so
+        // both "Child.Parent" and the already-prefixed "IChild.Parent" resolve.
+        data.ContainsOpposite = MapOpposite(GetContainsOpposite(prop));
+        data.ContainerOpposite = MapOpposite(GetContainerOpposite(prop));
+        data.RefersOpposite = MapOpposite(GetRefersOpposite(prop));
 
         // Custom annotations
         foreach (var attr in prop.GetAttributes())
@@ -226,9 +231,15 @@ internal static class SymbolExtractor
 
         if (candidates.Count == 0) return fallback;
 
-        var match = candidates.FirstOrDefault(t =>
-            SymbolEqualityComparer.Default.Equals(t, modelType)
-            || modelType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, t)));
+        // The delegate names the GENERATED interface, which is a different symbol from the model
+        // type being extracted -- so the two are matched by name, not by symbol identity.
+        var reachable = new HashSet<string>(StringComparer.Ordinal) { ModelNaming.ApiFullName(modelType) };
+        foreach (var i in modelType.AllInterfaces)
+        {
+            if (ModelNaming.IsModelType(i)) reachable.Add(ModelNaming.ApiFullName(i));
+        }
+
+        var match = candidates.FirstOrDefault(t => reachable.Contains(GetFullName(t)));
 
         return GetFullName(match ?? candidates[0]);
     }
@@ -245,10 +256,22 @@ internal static class SymbolExtractor
         return symbol.GetAttributes().FirstOrDefault(a => MatchesAttributeName(a, attrName));
     }
 
+    /// <summary>Where VMF's own attributes live. Nothing outside it counts.</summary>
+    private const string VmfAttributesNamespace = "VMF.NET.Runtime.Attributes";
+
+    /// <summary>
+    /// Matches one of VMF's attributes. The namespace check is not optional: several of our names
+    /// collide with the BCL's -- <c>Required</c> (DataAnnotations), <c>DefaultValue</c>
+    /// (System.ComponentModel) -- and matching on the simple name alone read those as ours.
+    /// </summary>
     private static bool MatchesAttributeName(AttributeData attr, string name)
     {
-        var className = attr.AttributeClass?.Name;
-        if (className == null) return false;
+        var attrClass = attr.AttributeClass;
+        if (attrClass == null) return false;
+
+        if (attrClass.ContainingNamespace?.ToDisplayString() != VmfAttributesNamespace) return false;
+
+        var className = attrClass.Name;
         return className == name || className == name.Replace("Attribute", "");
     }
 
@@ -390,10 +413,19 @@ internal static class SymbolExtractor
 
     // --- Type helpers ---
 
+    /// <summary>
+    /// The name generated code uses for a type. A reference to a model type names the GENERATED
+    /// interface -- <c>MyApp.VmfModel.Child</c> is written as <c>MyApp.IChild</c> -- because the
+    /// model itself is build input and never appears in the emitted API. Everything else passes
+    /// through unchanged.
+    /// </summary>
     private static string GetFullName(ITypeSymbol type)
     {
         if (type is IArrayTypeSymbol arrayType)
             return GetFullName(arrayType.ElementType) + "[]";
+
+        if (ModelNaming.TryMapModelType(type, out var apiFullName, out _))
+            return apiFullName;
 
         var ns = GetNamespace(type);
         if (string.IsNullOrEmpty(ns))
@@ -411,10 +443,20 @@ internal static class SymbolExtractor
 
     private static string? GetNamespace(ITypeSymbol type)
     {
+        if (type is INamedTypeSymbol named && ModelNaming.IsModelType(named))
+        {
+            var apiNs = ModelNaming.ApiNamespace(named);
+            return apiNs == ModelNaming.GlobalNamespaceName ? null : apiNs;
+        }
+
         if (type.ContainingNamespace == null || type.ContainingNamespace.IsGlobalNamespace)
             return null;
         return type.ContainingNamespace.ToDisplayString();
     }
+
+    /// <summary>The simple name generated code uses; mapped for model types, as GetFullName is.</summary>
+    private static string GetSimpleName(ITypeSymbol type) =>
+        ModelNaming.TryMapModelType(type, out _, out var apiSimpleName) ? apiSimpleName : type.Name;
 
     private static bool IsValueType(ITypeSymbol type)
     {

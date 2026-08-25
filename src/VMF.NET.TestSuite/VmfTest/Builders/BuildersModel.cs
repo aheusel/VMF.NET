@@ -3,10 +3,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Builders;
+namespace VMF.NET.TestSuite.VmfTest.Builders.VmfModel;
 
-[VmfModel]
-public partial interface IAClass
+interface IAClass
 {
     string? Name { get; set; }
     VList<string> Ids { get; }
@@ -14,14 +13,12 @@ public partial interface IAClass
     IChild2? Child { get; set; }
 }
 
-[VmfModel]
-public partial interface IChild
+interface IChild
 {
     int Value { get; set; }
 }
 
-[VmfModel]
-public partial interface IChild2
+interface IChild2
 {
     int Value { get; set; }
 }

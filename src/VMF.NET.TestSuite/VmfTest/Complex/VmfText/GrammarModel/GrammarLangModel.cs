@@ -6,10 +6,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.VmfText.GrammarModel;
+namespace VMF.NET.TestSuite.VmfTest.Complex.VmfText.GrammarModel.VmfModel;
 
-[VmfModel]
-public partial interface IGrammarModel
+interface IGrammarModel
 {
     [Contains("IRuleClass.Model")]
     VList<IRuleClass> RuleClasses { get; }
@@ -24,62 +23,54 @@ public partial interface IGrammarModel
     VList<ICustomRule> CustomRules { get; }
 }
 
-[VmfModel]
-public partial interface ICustomRule : IWithText
+interface ICustomRule : IWithText
 {
     [Container("IGrammarModel.CustomRules")]
     IGrammarModel? Model { get; }
 }
 
-[VmfModel]
 [Immutable]
-public partial interface ICodeRange
+interface ICodeRange
 {
     ICodeLocation? Start { get; }
     ICodeLocation? Stop { get; }
     int Length { get; }
 }
 
-[VmfModel]
 [Immutable]
-public partial interface ICodeLocation
+interface ICodeLocation
 {
     int Index { get; }
     int Line { get; }
     int CharPosInLine { get; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface ILangElement
+interface ILangElement
 {
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface ICodeElement
+interface ICodeElement
 {
     ICodeRange? CodeRange { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithType : ILangElement
+interface IWithType : ILangElement
 {
     IType? Type { get; set; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithName : ILangElement
+interface IWithName : ILangElement
 {
     [GetterOnly]
     string? Name { get; }
 }
 
-[VmfModel]
 [Immutable]
-public partial interface IType : ILangElement, IWithName
+interface IType : ILangElement, IWithName
 {
     string? PackageName { get; }
     string? AntlrRuleName { get; }
@@ -87,8 +78,7 @@ public partial interface IType : ILangElement, IWithName
     bool ArrayType { get; }
 }
 
-[VmfModel]
-public partial interface IRuleClass : IWithName, ICodeElement
+interface IRuleClass : IWithName, ICodeElement
 {
     [Container("IGrammarModel.RuleClasses")]
     IGrammarModel? Model { get; }
@@ -116,8 +106,7 @@ public partial interface IRuleClass : IWithName, ICodeElement
     VList<IRuleAnnotation> CustomRuleAnnotations { get; }
 }
 
-[VmfModel]
-public partial interface IProperty : IWithName, IWithType, ICodeElement
+interface IProperty : IWithName, IWithType, ICodeElement
 {
     [Container("IRuleClass.Properties")]
     IRuleClass? Parent { get; }
@@ -126,36 +115,31 @@ public partial interface IProperty : IWithName, IWithType, ICodeElement
     VList<IPropertyAnnotation> Annotations { get; }
 }
 
-[VmfModel]
-public partial interface IDelegationMethod : IWithText
+interface IDelegationMethod : IWithText
 {
     [Container("IRuleClass.DelegationMethods")]
     IRuleClass? Parent { get; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithText
+interface IWithText
 {
     string? Text { get; set; }
 }
 
-[VmfModel]
-public partial interface IPropertyAnnotation : IWithText
+interface IPropertyAnnotation : IWithText
 {
     [Container("IProperty.Annotations")]
     IProperty? Property { get; }
 }
 
-[VmfModel]
-public partial interface IRuleAnnotation : IWithText
+interface IRuleAnnotation : IWithText
 {
     [Container("IRuleClass.CustomRuleAnnotations")]
     IRuleClass? Parent { get; }
 }
 
-[VmfModel]
-public partial interface ITypeMappings
+interface ITypeMappings
 {
     [Contains("ITypeMapping.Parent")]
     VList<ITypeMapping> TypeMappings { get; }
@@ -164,8 +148,7 @@ public partial interface ITypeMappings
     IGrammarModel? Model { get; }
 }
 
-[VmfModel]
-public partial interface ITypeMapping
+interface ITypeMapping
 {
     [Container("ITypeMappings.TypeMappings")]
     ITypeMappings? Parent { get; }
@@ -176,8 +159,7 @@ public partial interface ITypeMapping
     VList<string> ApplyToNames { get; }
 }
 
-[VmfModel]
-public partial interface IMapping
+interface IMapping
 {
     [Container("ITypeMapping.Entries")]
     ITypeMapping? Parent { get; }

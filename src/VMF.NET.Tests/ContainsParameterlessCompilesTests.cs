@@ -30,16 +30,16 @@ public class ContainsParameterlessCompilesTests
         const string source = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace ParameterlessContainsModel
+namespace ParameterlessContainsModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IBoxItem
+    interface IBoxItem
     {
         string? Name { get; set; }
     }
 
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IBox
+    interface IBox
     {
         string? Label { get; set; }
         [Contains] VList<IBoxItem> Items { get; }
@@ -100,7 +100,7 @@ namespace ParameterlessContainsModel
         {
             refs.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, dll)));
         }
-        // VMF.NET.Runtime supplies [VmfModel], [Contains]/[Container], [Immutable], VList<T>, EqualsType, IVObject.
+        // VMF.NET.Runtime supplies , [Contains]/[Container], [Immutable], VList<T>, EqualsType, IVObject.
         refs.Add(MetadataReference.CreateFromFile(typeof(VMF.NET.Runtime.IVObject).Assembly.Location));
         return refs;
     }

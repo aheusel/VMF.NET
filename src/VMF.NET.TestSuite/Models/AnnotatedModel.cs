@@ -3,13 +3,13 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 /// <summary>
 /// A service config with various JSON schema annotations for testing.
 /// </summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IServiceConfig
+interface IServiceConfig
 {
     [VmfAnnotation("service_name", Key = "vmf:json:name")]
     string? Name { get; set; }

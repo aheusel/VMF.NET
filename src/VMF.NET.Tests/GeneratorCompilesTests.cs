@@ -26,10 +26,10 @@ public class GeneratorCompilesTests
         const string source = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace InheritanceModel
+namespace InheritanceModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IAnimal
+    interface IAnimal
     {
         string? Name { get; set; }
         int Age { get; set; }
@@ -37,13 +37,13 @@ namespace InheritanceModel
     }
 
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IDog : IAnimal { string? Breed { get; set; } }
+    interface IDog : IAnimal { string? Breed { get; set; } }
 
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface ICat : IAnimal { bool Indoor { get; set; } }
+    interface ICat : IAnimal { bool Indoor { get; set; } }
 
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IZoo
+    interface IZoo
     {
         string? Name { get; set; }
         [Contains(""IAnimal.Zoo"")] VList<IAnimal> Animals { get; }
@@ -58,19 +58,19 @@ namespace InheritanceModel
         const string source = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace ImmutableModel
+namespace ImmutableModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)] [Immutable]
-    public partial interface IShape { string? Label { get; } }
+    interface IShape { string? Label { get; } }
 
     [VmfModel(Equality = EqualsType.All)] [Immutable]
-    public partial interface ICircle : IShape { double Radius { get; } }
+    interface ICircle : IShape { double Radius { get; } }
 
     [VmfModel(Equality = EqualsType.All)] [Immutable]
-    public partial interface IRectangle : IShape { double Width { get; } double Height { get; } }
+    interface IRectangle : IShape { double Width { get; } double Height { get; } }
 
     [VmfModel(Equality = EqualsType.All)] [Immutable]
-    public partial interface IDrawing { string? Title { get; } VList<IShape> Shapes { get; } }
+    interface IDrawing { string? Title { get; } VList<IShape> Shapes { get; } }
 }";
         AssertGeneratedCodeCompiles(source);
     }
@@ -80,10 +80,10 @@ namespace ImmutableModel
     {
         const string source = @"
 using VMF.NET.Runtime.Attributes;
-namespace NullableModel
+namespace NullableModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IMeasurement
+    interface IMeasurement
     {
         string? Label { get; set; }
         double? Value { get; set; }
@@ -103,19 +103,19 @@ namespace NullableModel
         const string source = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace InterfaceOnlyModel
+namespace InterfaceOnlyModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)] [InterfaceOnly]
-    public partial interface IWithName { string? Name { get; set; } }
+    interface IWithName { string? Name { get; set; } }
 
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IThing : IWithName { int Value { get; set; } }
+    interface IThing : IWithName { int Value { get; set; } }
 
     [VmfModel(Equality = EqualsType.All)] [InterfaceOnly]
-    public partial interface IWithLabel { [GetterOnly] string? Label { get; } }
+    interface IWithLabel { [GetterOnly] string? Label { get; } }
 
     [VmfModel(Equality = EqualsType.All)] [Immutable]
-    public partial interface IFrozen : IWithLabel { int Size { get; } }
+    interface IFrozen : IWithLabel { int Size { get; } }
 }";
         AssertGeneratedCodeCompiles(source);
     }
@@ -129,13 +129,13 @@ namespace InterfaceOnlyModel
         const string source = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace GetterOnlyModel
+namespace GetterOnlyModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)] [InterfaceOnly]
-    public partial interface IWithName { [GetterOnly] string? Name { get; } }
+    interface IWithName { [GetterOnly] string? Name { get; } }
 
     [VmfModel(Equality = EqualsType.All)]
-    public partial interface IThing : IWithName { int Value { get; set; } }
+    interface IThing : IWithName { int Value { get; set; } }
 }";
         AssertGeneratedCodeCompiles(source);
     }
@@ -161,6 +161,12 @@ namespace GetterOnlyModel
         var genErrors = genDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
         Assert.True(genErrors.Count == 0,
             "Generator reported errors:\n" + string.Join("\n", genErrors.Select(d => $"  {d.Id}: {d.GetMessage()}")));
+
+        // 1b. Something must actually have been generated. Without this the whole assertion is
+        // vacuous when the model is not recognised -- a model source in the wrong namespace
+        // generates nothing, and "nothing" compiles perfectly.
+        Assert.True(driver.GetRunResult().GeneratedTrees.Length > 0,
+            "The generator produced no output. Is the model in a '.VmfModel' namespace?");
 
         // 2. The GENERATED code must compile (this is where A/C currently fail).
         var compileErrors = outputCompilation.GetDiagnostics()
@@ -191,7 +197,7 @@ namespace GetterOnlyModel
         {
             refs.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, dll)));
         }
-        // VMF.NET.Runtime supplies [VmfModel], [Contains]/[Container], [Immutable], VList<T>, EqualsType, IVObject.
+        // VMF.NET.Runtime supplies , [Contains]/[Container], [Immutable], VList<T>, EqualsType, IVObject.
         refs.Add(MetadataReference.CreateFromFile(typeof(VMF.NET.Runtime.IVObject).Assembly.Location));
         return refs;
     }

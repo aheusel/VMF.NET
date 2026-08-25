@@ -7,62 +7,54 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.ReflectionTest;
+namespace VMF.NET.TestSuite.VmfTest.ReflectionTest.VmfModel;
 
-[VmfModel]
-public partial interface IInheritedDefaultValueParent
+interface IInheritedDefaultValueParent
 {
     [VmfDefaultValue("123")]
     int MyValue { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedDefaultValueParent2
+interface IInheritedDefaultValueParent2
 {
     [VmfDefaultValue("456")]
     int MyValue { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedDefaultValue : IInheritedDefaultValueParent
+interface IInheritedDefaultValue : IInheritedDefaultValueParent
 {
 }
 
 // DEVIATION: Java lets a type inherit the same member from two unrelated interfaces; C#
 // reports CS0229 (ambiguous). The member is therefore re-declared, carrying the default of
 // the parent listed first -- which is the one VMF's property collection would pick anyway.
-[VmfModel]
-public partial interface IInheritedDefaultValueFromTwoParents
+interface IInheritedDefaultValueFromTwoParents
     : IInheritedDefaultValueParent, IInheritedDefaultValueParent2
 {
     [VmfDefaultValue("123")]
     new int MyValue { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedDefaultValueFromTwoParents2
+interface IInheritedDefaultValueFromTwoParents2
     : IInheritedDefaultValueParent2, IInheritedDefaultValueParent
 {
     [VmfDefaultValue("456")]
     new int MyValue { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedDefaultValueOverride : IInheritedDefaultValueParent
+interface IInheritedDefaultValueOverride : IInheritedDefaultValueParent
 {
     [VmfDefaultValue("-123")]
     new int MyValue { get; set; }
 }
 
-[VmfModel]
-public partial interface IInheritedDefaultValueOverride2 : IInheritedDefaultValueParent
+interface IInheritedDefaultValueOverride2 : IInheritedDefaultValueParent
 {
     // should default to 0 (the default for int)
     new int MyValue { get; set; }
 }
 
-[VmfModel]
-public partial interface INode
+interface INode
 {
     [Contains("INode.Parent")]
     VList<INode> Children { get; }
@@ -71,8 +63,7 @@ public partial interface INode
     INode? Parent { get; }
 }
 
-[VmfModel]
-public partial interface IReflectionTest
+interface IReflectionTest
 {
     [VmfDefaultValue("23")]
     int Id { get; set; }

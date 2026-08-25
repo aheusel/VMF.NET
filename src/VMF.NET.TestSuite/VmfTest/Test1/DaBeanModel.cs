@@ -2,10 +2,9 @@
 
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Test1;
+namespace VMF.NET.TestSuite.VmfTest.Test1.VmfModel;
 
-[VmfModel]
-public partial interface IDaBean
+interface IDaBean
 {
     string? Name { get; set; }
 }

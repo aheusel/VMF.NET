@@ -3,10 +3,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01.NoContainment;
+namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01.NoContainment.VmfModel;
 
-[VmfModel]
-public partial interface INodeNoContainment
+interface INodeNoContainment
 {
     // Settable so the fact can detach a node with Parent = null (Java: setParent(null)).
     [Container("INodeNoContainment.Children")]

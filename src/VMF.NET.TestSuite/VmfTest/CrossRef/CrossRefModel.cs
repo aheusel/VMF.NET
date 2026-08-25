@@ -3,45 +3,39 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.CrossRef;
+namespace VMF.NET.TestSuite.VmfTest.CrossRef.VmfModel;
 
-[VmfModel]
-public partial interface IEntityOneA
+interface IEntityOneA
 {
     [Refers("IEntityTwoA.Ref")]
     IEntityTwoA? Ref { get; set; }
 }
 
-[VmfModel]
-public partial interface IEntityTwoA
+interface IEntityTwoA
 {
     [Refers("IEntityOneA.Ref")]
     IEntityOneA? Ref { get; set; }
 }
 
-[VmfModel]
-public partial interface IEntityOneB
+interface IEntityOneB
 {
     [Refers("IEntityTwoB.Refs")]
     IEntityTwoB? Ref { get; set; }
 }
 
-[VmfModel]
-public partial interface IEntityTwoB
+interface IEntityTwoB
 {
     [Refers("IEntityOneB.Ref")]
     VList<IEntityOneB> Refs { get; }
 }
 
-[VmfModel]
-public partial interface IEntityOneC
+interface IEntityOneC
 {
     [Refers("IEntityTwoC.Refs")]
     VList<IEntityTwoC> Refs { get; }
 }
 
-[VmfModel]
-public partial interface IEntityTwoC
+interface IEntityTwoC
 {
     [Refers("IEntityOneC.Refs")]
     VList<IEntityOneC> Refs { get; }

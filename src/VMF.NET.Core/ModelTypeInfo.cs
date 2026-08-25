@@ -74,8 +74,14 @@ public sealed class ModelTypeInfo
     /// <summary>All delegations (method + constructor).</summary>
     public List<DelegationInfo> Delegations { get; } = new();
 
-    /// <summary>Method delegations only.</summary>
+    /// <summary>Method delegations only. Includes inherited ones after analysis.</summary>
     public List<DelegationInfo> MethodDelegations { get; } = new();
+
+    /// <summary>
+    /// Method delegations DECLARED on this type, before inheritance is applied. The generated
+    /// interface declares these; the inherited ones already appear on the base interface.
+    /// </summary>
+    public List<DelegationInfo> OwnMethodDelegations { get; } = new();
 
     /// <summary>Constructor delegations only.</summary>
     public List<DelegationInfo> ConstructorDelegations { get; } = new();
@@ -187,6 +193,27 @@ public sealed class ModelTypeInfo
         typeName.StartsWith("I") && typeName.Length > 1 && char.IsUpper(typeName[1])
             ? typeName.Substring(1)
             : typeName;
+
+    /// <summary>
+    /// The last namespace segment that marks a model: <c>MyApp.VmfModel</c> holds the model for
+    /// <c>MyApp</c>. Mirrors Java's <c>…vmfmodel</c> package, and being there is what declares an
+    /// interface to be a model type — no attribute does.
+    /// </summary>
+    public const string ModelNamespaceSegment = "VmfModel";
+
+    /// <summary>
+    /// The public interface name generated for a model type: <c>"I"</c> + the model's name, unless
+    /// the model already begins with <c>I</c> followed by a capital, in which case it is used
+    /// unchanged. The inverse of <see cref="StripInterfacePrefix"/>.
+    /// <para>
+    /// The second case is what keeps a model written the old way working: a model named
+    /// <c>IParent</c> still yields <c>IParent</c>, so only its namespace has to move.
+    /// </para>
+    /// </summary>
+    public static string ApiInterfaceName(string modelTypeName) =>
+        modelTypeName.StartsWith("I") && modelTypeName.Length > 1 && char.IsUpper(modelTypeName[1])
+            ? modelTypeName
+            : "I" + modelTypeName;
 
     public override string ToString() => FullTypeName;
 }

@@ -10,31 +10,27 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.DelegationInherit;
+namespace VMF.NET.TestSuite.VmfTest.DelegationInherit.VmfModel;
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IProducer
+interface IProducer
 {
     void Produce();
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IConsumer
+interface IConsumer
 {
     void Consume();
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IProcessor : IProducer, IConsumer
+interface IProcessor : IProducer, IConsumer
 {
     void Process();
 }
 
-[VmfModel]
-public partial interface IDevice : IProcessor
+interface IDevice : IProcessor
 {
     [DelegateTo(typeof(DeviceDelegate))]
     new void Process();
@@ -46,9 +42,8 @@ public partial interface IDevice : IProcessor
     new void Produce();
 }
 
-[VmfModel]
 [DelegateTo(typeof(CircuitDeviceDelegate))]
-public partial interface ICircuitDevice : IDevice
+interface ICircuitDevice : IDevice
 {
     // uses constructor delegation info
     new void Process();
@@ -58,22 +53,4 @@ public partial interface ICircuitDevice : IDevice
 
     [DelegateTo(typeof(CircuitDeviceDelegate))]
     new void Produce();
-}
-
-public sealed class DeviceDelegate : IDelegatedBehavior<IDevice>
-{
-    public void Consume() { }
-    public void Produce() { }
-    public void Process() { }
-}
-
-public sealed class CircuitDeviceDelegate : IDelegatedBehavior<IDevice>
-{
-    public void OnCircuitDeviceInstantiated()
-    {
-    }
-
-    public void Consume() { }
-    public void Produce() { }
-    public void Process() { }
 }

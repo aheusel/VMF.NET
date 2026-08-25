@@ -192,9 +192,9 @@ public class SourceGeneratorTests
         var userSource = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace TestModel
+namespace TestModel.VmfModel
 {
-    public partial interface INode
+    interface INode
     {
         string? Name { get; set; }
         int Value { get; set; }
@@ -289,10 +289,9 @@ namespace TestModel
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace MyModel
+namespace MyModel.VmfModel
 {
-    [VmfModel]
-    public partial interface IItem
+    interface IItem
     {
         string Name { get; set; }
         int Count { get; set; }

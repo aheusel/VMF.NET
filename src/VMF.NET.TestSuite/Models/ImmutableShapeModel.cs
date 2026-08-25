@@ -7,25 +7,25 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-public partial interface IShape
+interface IShape
 {
     string? Label { get; }
 }
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-public partial interface ICircle : IShape
+interface ICircle : IShape
 {
     double Radius { get; }
 }
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-public partial interface IRectangle : IShape
+interface IRectangle : IShape
 {
     double Width { get; }
     double Height { get; }
@@ -33,7 +33,7 @@ public partial interface IRectangle : IShape
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-public partial interface IDrawing
+interface IDrawing
 {
     string? Title { get; }
     VList<IShape> Shapes { get; }

@@ -8,11 +8,10 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.DelegationTest;
+namespace VMF.NET.TestSuite.VmfTest.DelegationTest.VmfModel;
 
-[VmfModel]
 [DelegateTo(typeof(MyBehavior))]
-public partial interface IDelegationTestClass
+interface IDelegationTestClass
 {
     string? Name { get; set; }
 
@@ -21,29 +20,4 @@ public partial interface IDelegationTestClass
 
     [DelegateTo(typeof(MyBehavior))]
     bool ConstructorCalled();
-}
-
-public sealed class MyBehavior : IDelegatedBehavior<IDelegationTestClass>
-{
-    private IDelegationTestClass? _caller;
-    private bool _constructorCalled;
-
-    public void SetCaller(IDelegationTestClass caller) => _caller = caller;
-
-    public bool NameStartsWith(string value)
-    {
-        if (value == null)
-        {
-            return false;
-        }
-
-        return _caller!.Name!.StartsWith(value);
-    }
-
-    public void OnDelegationTestClassInstantiated()
-    {
-        _constructorCalled = true;
-    }
-
-    public bool ConstructorCalled() => _constructorCalled;
 }

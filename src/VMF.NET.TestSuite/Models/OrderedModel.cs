@@ -3,13 +3,13 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 /// <summary>
 /// A config with ordered properties and documentation.
 /// </summary>
 [Doc("Configuration with ordered properties")]
-public partial interface IConfig
+interface IConfig
 {
     [PropertyOrder(2)]
     [Doc("The port number")]

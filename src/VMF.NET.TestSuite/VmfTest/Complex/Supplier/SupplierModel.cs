@@ -5,11 +5,10 @@ using System;
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.Supplier;
+namespace VMF.NET.TestSuite.VmfTest.Complex.Supplier.VmfModel;
 
-[VmfModel]
 [Doc("Supplier has customers and processes orders.")]
-public partial interface ISupplier
+interface ISupplier
 {
     string? Name { get; set; }
 
@@ -20,9 +19,8 @@ public partial interface ISupplier
     VList<IPurchaseOrder> Orders { get; }
 }
 
-[VmfModel]
 [Doc("Customer of a supplier. It has a unique id.")]
-public partial interface ICustomer
+interface ICustomer
 {
     [Container("ISupplier.Customers")]
     ISupplier? Supplier { get; }
@@ -33,9 +31,8 @@ public partial interface ICustomer
     VList<IPurchaseOrder> Orders { get; }
 }
 
-[VmfModel]
 [Doc("A purchase order.")]
-public partial interface IPurchaseOrder
+interface IPurchaseOrder
 {
     string? Comment { get; set; }
     DateTime? Date { get; set; }
@@ -59,9 +56,8 @@ public partial interface IPurchaseOrder
     ISupplier? Supplier { get; }
 }
 
-[VmfModel]
 [Doc("Item provided by a supplier.")]
-public partial interface IItem
+interface IItem
 {
     string? ProductName { get; set; }
     int? Quantity { get; set; }
@@ -74,17 +70,15 @@ public partial interface IItem
     IPurchaseOrder? PurchaseOrder { get; }
 }
 
-[VmfModel]
 [Doc("An address used for shippment and billing.")]
 [InterfaceOnly]
-public partial interface IAddress
+interface IAddress
 {
     string? Name { get; set; }
 }
 
-[VmfModel]
 [Doc("US address")]
-public partial interface IUSAddress : IAddress
+interface IUSAddress : IAddress
 {
     int? Zip { get; set; }
     string? City { get; set; }
@@ -92,9 +86,8 @@ public partial interface IUSAddress : IAddress
     string? State { get; set; }
 }
 
-[VmfModel]
 [Doc("Global address.")]
-public partial interface IGlobalAddress : IAddress
+interface IGlobalAddress : IAddress
 {
     string? Country { get; set; }
     int? Zip { get; set; }

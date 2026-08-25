@@ -3,10 +3,10 @@
 
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IMeasurement
+interface IMeasurement
 {
     string? Label { get; set; }
     double? Value { get; set; }

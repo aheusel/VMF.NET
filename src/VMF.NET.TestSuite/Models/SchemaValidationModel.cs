@@ -9,11 +9,11 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models.SchemaValidation;
+namespace VMF.NET.TestSuite.Models.SchemaValidation.VmfModel;
 
 /// <summary>A JSON-array constraint value (default=[...]) must render as a real JSON array.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IArrayDefaultConfig
+interface IArrayDefaultConfig
 {
     [VmfAnnotation("default=[\"alldrop\", \"smartdrop\", \"biospot\"]", Key = "vmf:schema:constraint")]
     VList<string> DeviceIds { get; }
@@ -21,7 +21,7 @@ public partial interface IArrayDefaultConfig
 
 /// <summary>A valid regex pattern constraint — must be accepted.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IValidPatternConfig
+interface IValidPatternConfig
 {
     [VmfAnnotation("pattern=^\\d{3}$", Key = "vmf:schema:constraint")]
     string? Code { get; set; }
@@ -29,7 +29,7 @@ public partial interface IValidPatternConfig
 
 /// <summary>An unknown (open-ended) scalar keyword — must still be accepted verbatim.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IUnknownKeywordConfig
+interface IUnknownKeywordConfig
 {
     [VmfAnnotation("deprecated=true", Key = "vmf:schema:constraint")]
     string? Legacy { get; set; }
@@ -39,7 +39,7 @@ public partial interface IUnknownKeywordConfig
 
 /// <summary>minimum is not numeric.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IBadMinimumConfig
+interface IBadMinimumConfig
 {
     [VmfAnnotation("minimum=abc", Key = "vmf:schema:constraint")]
     int Port { get; set; }
@@ -47,7 +47,7 @@ public partial interface IBadMinimumConfig
 
 /// <summary>pattern is not a compilable regex.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IBadPatternConfig
+interface IBadPatternConfig
 {
     [VmfAnnotation("pattern=[unterminated", Key = "vmf:schema:constraint")]
     string? Code { get; set; }
@@ -55,7 +55,7 @@ public partial interface IBadPatternConfig
 
 /// <summary>Constraint value is missing the 'keyword=value' form.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IBadConstraintFormConfig
+interface IBadConstraintFormConfig
 {
     [VmfAnnotation("noequalshere", Key = "vmf:schema:constraint")]
     string? Code { get; set; }
@@ -63,7 +63,7 @@ public partial interface IBadConstraintFormConfig
 
 /// <summary>uniqueItems is not a boolean.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IBadUniqueItemsConfig
+interface IBadUniqueItemsConfig
 {
     [VmfAnnotation("yes", Key = "vmf:schema:uniqueItems")]
     VList<string> Tags { get; }
@@ -71,7 +71,7 @@ public partial interface IBadUniqueItemsConfig
 
 /// <summary>inject is not valid JSON.</summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IBadInjectConfig
+interface IBadInjectConfig
 {
     [VmfAnnotation("\"examples\": [1, 2,", Key = "vmf:schema:inject")]
     int Value { get; set; }

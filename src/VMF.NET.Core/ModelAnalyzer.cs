@@ -293,6 +293,7 @@ public static class ModelAnalyzer
             {
                 typeInfo.Delegations.Add(info);
                 typeInfo.MethodDelegations.Add(info);
+                typeInfo.OwnMethodDelegations.Add(info);
             }
             else
             {

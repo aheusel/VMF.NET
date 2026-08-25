@@ -3,14 +3,14 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 /// <summary>
 /// An immutable 2D point.
 /// </summary>
 [Immutable]
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IPoint
+interface IPoint
 {
     double X { get; }
     double Y { get; }
@@ -21,7 +21,7 @@ public partial interface IPoint
 /// (Renamed from IShape to avoid colliding with the immutable IShape acceptance model.)
 /// </summary>
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IFigure
+interface IFigure
 {
     [VmfRequired]
     string Name { get; set; }

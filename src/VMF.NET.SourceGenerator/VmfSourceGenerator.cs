@@ -22,10 +22,10 @@ public sealed class VmfSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Step 1: Find all interface declarations that have at least one VMF attribute
+        // Step 1: Find the interfaces that live in a model namespace
         var interfaceDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (node, _) => IsVmfInterface(node),
+                predicate: static (node, _) => node is InterfaceDeclarationSyntax,
                 transform: static (ctx, _) => GetVmfInterfaceSymbol(ctx))
             .Where(static symbol => symbol != null)
             .Select(static (symbol, _) => symbol!);
@@ -38,28 +38,9 @@ public sealed class VmfSourceGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Syntax predicate: is this an interface with at least one attribute?
-    /// </summary>
-    private static bool IsVmfInterface(Microsoft.CodeAnalysis.SyntaxNode node)
-    {
-        if (node is not InterfaceDeclarationSyntax iface) return false;
-        // Check interface-level attributes
-        if (iface.AttributeLists.Count > 0) return true;
-        // Check member-level attributes (properties with [Contains], [Refers], etc.)
-        foreach (var member in iface.Members)
-        {
-            if (member is Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax prop
-                && prop.AttributeLists.Count > 0)
-                return true;
-            if (member is Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax method
-                && method.AttributeLists.Count > 0)
-                return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Semantic transform: resolve the symbol and check for VMF attributes.
+    /// Semantic transform: a model type is one declared in a model namespace. Nothing else marks
+    /// it -- mirroring Java, where an interface is a model because it sits in the
+    /// <c>vmfmodel</c> package.
     /// </summary>
     private static INamedTypeSymbol? GetVmfInterfaceSymbol(GeneratorSyntaxContext context)
     {
@@ -67,59 +48,7 @@ public sealed class VmfSourceGenerator : IIncrementalGenerator
         if (context.SemanticModel.GetDeclaredSymbol(interfaceSyntax) is not INamedTypeSymbol symbol)
             return null;
 
-        // Check if this interface has VMF attributes
-        if (HasAnyVmfAttribute(symbol))
-            return symbol;
-
-        return null;
-    }
-
-    private static bool HasAnyVmfAttribute(INamedTypeSymbol symbol)
-    {
-        foreach (var attr in symbol.GetAttributes())
-        {
-            var name = attr.AttributeClass?.Name;
-            if (name == null) continue;
-            if (IsVmfAttributeName(name)) return true;
-        }
-
-        // Check if any property has VMF attributes
-        foreach (var member in symbol.GetMembers())
-        {
-            if (member is IPropertySymbol prop)
-            {
-                foreach (var attr in prop.GetAttributes())
-                {
-                    var name = attr.AttributeClass?.Name;
-                    if (name != null && IsVmfAttributeName(name)) return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static bool IsVmfAttributeName(string name)
-    {
-        return name == "VmfModelAttribute" || name == "VmfModel"
-            || name == "ContainsAttribute" || name == "Contains"
-            || name == "ContainerAttribute" || name == "Container"
-            || name == "RefersAttribute" || name == "Refers"
-            || name == "ImmutableAttribute" || name == "Immutable"
-            || name == "InterfaceOnlyAttribute" || name == "InterfaceOnly"
-            || name == "ExternalTypeAttribute" || name == "ExternalType"
-            || name == "VmfEqualsAttribute" || name == "VmfEquals"
-            || name == "DelegateToAttribute" || name == "DelegateTo"
-            || name == "VmfAnnotationAttribute" || name == "VmfAnnotation"
-            || name == "RequiredAttribute" || name == "Required"
-            || name == "VmfRequiredAttribute" || name == "VmfRequired"
-            || name == "GetterOnlyAttribute" || name == "GetterOnly"
-            || name == "IgnoreEqualsAttribute" || name == "IgnoreEquals"
-            || name == "IgnoreToStringAttribute" || name == "IgnoreToString"
-            || name == "DefaultValueAttribute" || name == "DefaultValue"
-            || name == "VmfDefaultValueAttribute" || name == "VmfDefaultValue"
-            || name == "PropertyOrderAttribute" || name == "PropertyOrder"
-            || name == "DocAttribute" || name == "Doc";
+        return ModelNaming.IsModelType(symbol) ? symbol : null;
     }
 
     /// <summary>
@@ -129,11 +58,12 @@ public sealed class VmfSourceGenerator : IIncrementalGenerator
     {
         if (interfaces.IsDefaultOrEmpty) return;
 
-        // Group interfaces by namespace (each namespace forms a separate model)
+        // Group by the namespace the API is generated INTO -- the model namespace's parent -- so
+        // one `MyApp.VmfModel` forms the model for `MyApp`.
         var byNamespace = new Dictionary<string, List<INamedTypeSymbol>>();
         foreach (var iface in interfaces)
         {
-            var ns = iface.ContainingNamespace?.ToDisplayString() ?? "Global";
+            var ns = ModelNaming.ApiNamespace(iface);
             if (!byNamespace.TryGetValue(ns, out var list))
             {
                 list = new List<INamedTypeSymbol>();

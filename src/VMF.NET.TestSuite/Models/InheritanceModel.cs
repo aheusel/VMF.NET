@@ -6,10 +6,10 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.Models;
+namespace VMF.NET.TestSuite.Models.VmfModel;
 
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IAnimal
+interface IAnimal
 {
     string? Name { get; set; }
     int Age { get; set; }
@@ -20,19 +20,19 @@ public partial interface IAnimal
 }
 
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IDog : IAnimal
+interface IDog : IAnimal
 {
     string? Breed { get; set; }
 }
 
 [VmfModel(Equality = EqualsType.All)]
-public partial interface ICat : IAnimal
+interface ICat : IAnimal
 {
     bool Indoor { get; set; }
 }
 
 [VmfModel(Equality = EqualsType.All)]
-public partial interface IZoo
+interface IZoo
 {
     string? Name { get; set; }
 

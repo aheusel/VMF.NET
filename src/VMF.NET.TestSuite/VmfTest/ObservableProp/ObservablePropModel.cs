@@ -3,10 +3,9 @@
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.ObservableProp;
+namespace VMF.NET.TestSuite.VmfTest.ObservableProp.VmfModel;
 
-[VmfModel]
-public partial interface IObserveMyProperties
+interface IObserveMyProperties
 {
     string? Name { get; set; }
     VList<int> Values { get; }

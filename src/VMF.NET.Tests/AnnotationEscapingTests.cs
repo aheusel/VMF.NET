@@ -33,11 +33,11 @@ public class AnnotationEscapingTests
         const string source = @"
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
-namespace AnnotationEscapingModel
+namespace AnnotationEscapingModel.VmfModel
 {
     [VmfModel(Equality = EqualsType.All)]
     [VmfAnnotation(""default=[\""alldrop\"", \""smartdrop\"", \""biospot\""]"", Key = ""vmf:schema:constraint"")]
-    public partial interface IDevice
+    interface IDevice
     {
         // The exact value from the reported build failure — embedded double quotes.
         [VmfAnnotation(""default=[\""alldrop\"", \""smartdrop\"", \""biospot\""]"", Key = ""vmf:schema:constraint"")]
@@ -102,7 +102,7 @@ namespace AnnotationEscapingModel
         {
             refs.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, dll)));
         }
-        // VMF.NET.Runtime supplies [VmfModel], [VmfAnnotation], VList<T>, EqualsType, IVObject.
+        // VMF.NET.Runtime supplies , [VmfAnnotation], VList<T>, EqualsType, IVObject.
         refs.Add(MetadataReference.CreateFromFile(typeof(VMF.NET.Runtime.IVObject).Assembly.Location));
         return refs;
     }

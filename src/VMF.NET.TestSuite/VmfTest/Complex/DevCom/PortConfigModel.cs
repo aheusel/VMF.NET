@@ -10,17 +10,13 @@ using System;
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
 
-namespace VMF.NET.TestSuite.VmfTest.Complex.DevCom;
+namespace VMF.NET.TestSuite.VmfTest.Complex.DevCom.VmfModel;
 
-public enum StopBits { OneStopBit, OnePointFiveStopBits, TwoStopBits }
 
-public enum ParityBits { NoParity, OddParity, EvenParity, MarkParity, SpaceParity }
 
-public enum State { Disconnected, Connecting, Connected, Error }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithName
+interface IWithName
 {
     [Doc("The port name used to identify the port, e.g. 'COM3'.")]
     [VmfDefaultValue("\"COM0\"")]
@@ -28,9 +24,8 @@ public partial interface IWithName
     string? Name { get; }
 }
 
-[VmfModel]
 [InterfaceOnly]
-public partial interface IWithExtendedName
+interface IWithExtendedName
 {
     [Doc("The extended port name, e.g., 'COM3 - Arduino UNO'")]
     [VmfDefaultValue("\"\"")]
@@ -38,10 +33,9 @@ public partial interface IWithExtendedName
     string? ExtendedName { get; }
 }
 
-[VmfModel]
 [Doc("COM port configuration used to configure a physical or virtual COM port.")]
 [Immutable]
-public partial interface IPortConfig : IWithName
+interface IPortConfig : IWithName
 {
     [Doc("The number of data bits (usually 8).")]
     [VmfDefaultValue("8")]
@@ -72,10 +66,9 @@ public partial interface IPortConfig : IWithName
     int WriteTimeout { get; }
 }
 
-[VmfModel]
 [Immutable]
 [VmfEquals]
-public partial interface IPortInfo : IWithName, IWithExtendedName
+interface IPortInfo : IWithName, IWithExtendedName
 {
     [Doc("The port description. Some devices add the serial number (e.g. FTDI chips).")]
     [VmfDefaultValue("\"\"")]
@@ -88,10 +81,9 @@ public partial interface IPortInfo : IWithName, IWithExtendedName
     string? Location { get; }
 }
 
-[VmfModel]
 [Doc("Denotes a device accessed with this library")]
 [Immutable]
-public partial interface IDeviceInfo
+interface IDeviceInfo
 {
     [Doc("Returns the device class")]
     string? DeviceClass { get; }
@@ -106,10 +98,9 @@ public partial interface IDeviceInfo
     string? SerialNumber { get; }
 }
 
-[VmfModel]
 [Doc("Port event.")]
 [Immutable]
-public partial interface IPortEvent
+interface IPortEvent
 {
     [Doc("Timestamp (milliseconds since January 1st, 1970).")]
     long Timestamp { get; }
@@ -121,10 +112,9 @@ public partial interface IPortEvent
     VList<IPortInfo> Removed { get; }
 }
 
-[VmfModel]
 [Doc("State changed event.")]
 [Immutable]
-public partial interface IStateChangedEvent
+interface IStateChangedEvent
 {
     [Doc("Timestamp (milliseconds since January 1st, 1970).")]
     long Timestamp { get; }
