@@ -146,7 +146,8 @@ public sealed class ModelTypeInfo
     public bool IsEqualsMethodDelegated =>
         AllDelegations.Any(d =>
             d.MethodName == "Equals" && d.ParamTypes.Count == 1
-            && d.ParamTypes[0] == "object" && d.ReturnType == "bool");
+            && (d.ParamTypes[0] == "object" || d.ParamTypes[0] == "object?")
+            && d.ReturnType == "bool");
 
     /// <summary>Whether GetHashCode() is delegated.</summary>
     public bool IsHashCodeMethodDelegated =>

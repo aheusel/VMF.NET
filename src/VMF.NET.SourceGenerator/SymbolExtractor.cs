@@ -457,6 +457,22 @@ internal static class SymbolExtractor
     /// </summary>
     private static string GetCodeName(ITypeSymbol type)
     {
+        // Nullability is part of the signature. Dropping it made the generated API claim
+        // `ICodeEntity Root()` where the model said `ICodeEntity? Root()` -- a wrong contract for
+        // the consumer, and CS8603 in their build when the delegate returned null.
+        if (type is INamedTypeSymbol nullableValue
+            && nullableValue.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+            && nullableValue.TypeArguments.Length == 1)
+        {
+            return GetCodeName(nullableValue.TypeArguments[0]) + "?";
+        }
+
+        var name = GetCodeNameUnannotated(type);
+        return type.NullableAnnotation == NullableAnnotation.Annotated ? name + "?" : name;
+    }
+
+    private static string GetCodeNameUnannotated(ITypeSymbol type)
+    {
         if (type is IArrayTypeSymbol arrayType)
             return GetCodeName(arrayType.ElementType) + "[]";
 

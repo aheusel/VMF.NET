@@ -775,6 +775,11 @@ namespace {{ ns }}
                 case {{ prop.PropId }}: {{ prop.Name }} = ({{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }})value; break;
 {{~ end ~}}
 {{~ end ~}}
+{{~ # Java throws here rather than doing nothing quietly, and a switch with no cases at all --
+   # a type with no properties -- is an empty block the compiler warns about (CS1522). ~}}
+                default:
+                    throw new InvalidOperationException(
+                        $"Cannot set property with id={id}: property is not writable.");
             }
         }
 

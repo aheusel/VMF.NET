@@ -135,7 +135,10 @@ public sealed class PropertyInfo : IEquatable<PropertyInfo>
     public string GetDefaultValueForCodeGen()
     {
         if (string.IsNullOrEmpty(DefaultValueAsString)) return "default";
-        return DefaultValueAsString;
+
+        // netstandard2.0's IsNullOrEmpty carries no [NotNullWhen(false)], so the check above is
+        // invisible to the compiler here.
+        return DefaultValueAsString!;
     }
 
     public bool Equals(PropertyInfo? other)
