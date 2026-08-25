@@ -4,7 +4,7 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.IgnoreToString.VmfModel;
 
-interface SampleClass
+interface ISampleClass
 {
     string? Name { get; set; }
 

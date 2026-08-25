@@ -1,8 +1,8 @@
 // Repro model for Issue A + B on the IMMUTABLE path (the real use case: a frozen capture
 // document whose payloads are immutable value objects).
 //
-// An immutable base (Shape) with concrete subtypes (Circle, Rectangle), held in a
-// heterogeneous value list on Drawing. Immutable element lists need no [Contains].
+// An immutable base (IShape) with concrete subtypes (ICircle, IRectangle), held in a
+// heterogeneous value list on IDrawing. Immutable element lists need no [Contains].
 
 using VMF.NET.Runtime;
 using VMF.NET.Runtime.Attributes;
@@ -11,21 +11,21 @@ namespace VMF.NET.TestSuite.Models.VmfModel;
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-interface Shape
+interface IShape
 {
     string? Label { get; }
 }
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-interface Circle : Shape
+interface ICircle : IShape
 {
     double Radius { get; }
 }
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-interface Rectangle : Shape
+interface IRectangle : IShape
 {
     double Width { get; }
     double Height { get; }
@@ -33,8 +33,8 @@ interface Rectangle : Shape
 
 [VmfModel(Equality = EqualsType.All)]
 [Immutable]
-interface Drawing
+interface IDrawing
 {
     string? Title { get; }
-    Shape[] Shapes { get; }
+    IShape[] Shapes { get; }
 }

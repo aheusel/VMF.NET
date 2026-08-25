@@ -48,23 +48,28 @@ using VMF.NET.Runtime.Attributes;
 
 namespace MyApp.VmfModel;
 
-interface Parent
+interface IParent
 {
     string? Name { get; set; }
 
     // A multi-valued property is an array here; the generated API exposes it as VList<IChild>.
-    [Contains("Child.Parent")]
-    Child[] Children { get; }
+    [Contains("IChild.Parent")]
+    IChild[] Children { get; }
 }
 
-interface Child
+interface IChild
 {
     int Value { get; set; }
 
-    [Container("Parent.Children")]
-    Parent? Parent { get; }
+    [Container("IParent.Children")]
+    IParent? Parent { get; }
 }
 ```
+
+Name the model interface what it will generate. VMF.NET prefixes a model name with `I`, and leaves
+a name that already starts with `I` plus a capital alone — so `Parent` and `IParent` both produce
+`IParent`, and writing the `I` yourself is what makes the file say so. A bare `Parent` still works
+but warns (`VMF004`).
 
 VMF.NET generates the public API into the namespace **above** the model — `MyApp` here — prefixing
 each name with `I`. That is what your code uses:

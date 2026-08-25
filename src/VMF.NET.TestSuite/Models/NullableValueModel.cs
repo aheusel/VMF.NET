@@ -6,7 +6,7 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.Models.VmfModel;
 
 [VmfModel(Equality = EqualsType.All)]
-interface Measurement
+interface IMeasurement
 {
     string? Label { get; set; }
     double? Value { get; set; }

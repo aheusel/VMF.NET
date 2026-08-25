@@ -5,17 +5,17 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.GetterOnly.VmfModel;
 
 [InterfaceOnly]
-interface WithName
+interface IWithName
 {
     [GetterOnly]
     string? Name { get; }
 }
 
 [Immutable]
-interface ImmutableObj : WithName
+interface IImmutableObj : IWithName
 {
 }
 
-interface MutableObj : WithName
+interface IMutableObj : IWithName
 {
 }

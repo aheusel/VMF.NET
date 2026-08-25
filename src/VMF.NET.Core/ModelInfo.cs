@@ -127,15 +127,15 @@ public sealed class ModelInfo
     }
 
     /// <summary>Adds an error diagnostic.</summary>
-    public void AddError(string message, string? location = null)
+    public void AddError(string message, string? location = null, string id = Diagnostic.DefaultId)
     {
-        Diagnostics.Add(new Diagnostic(DiagnosticSeverity.Error, message, location));
+        Diagnostics.Add(new Diagnostic(DiagnosticSeverity.Error, message, location, id));
     }
 
     /// <summary>Adds a warning diagnostic.</summary>
-    public void AddWarning(string message, string? location = null)
+    public void AddWarning(string message, string? location = null, string id = Diagnostic.DefaultId)
     {
-        Diagnostics.Add(new Diagnostic(DiagnosticSeverity.Warning, message, location));
+        Diagnostics.Add(new Diagnostic(DiagnosticSeverity.Warning, message, location, id));
     }
 }
 
@@ -149,16 +149,30 @@ public enum DiagnosticSeverity
 /// <summary>A diagnostic message from model analysis.</summary>
 public sealed class Diagnostic
 {
-    public Diagnostic(DiagnosticSeverity severity, string message, string? location = null)
+    /// <summary>Diagnostic id used when none is given: general model analysis.</summary>
+    public const string DefaultId = "VMF001";
+
+    /// <summary>A model name will be prefixed with <c>I</c>, so the generated name differs.</summary>
+    public const string NamePrefixedId = "VMF004";
+
+    public Diagnostic(DiagnosticSeverity severity, string message, string? location = null,
+        string id = DefaultId)
     {
         Severity = severity;
         Message = message;
         Location = location;
+        Id = id;
     }
 
     public DiagnosticSeverity Severity { get; }
     public string Message { get; }
     public string? Location { get; }
+
+    /// <summary>
+    /// The reported diagnostic id. Distinct ids exist so a consumer can silence one kind without
+    /// silencing model analysis as a whole — <c>&lt;NoWarn&gt;VMF004&lt;/NoWarn&gt;</c>.
+    /// </summary>
+    public string Id { get; }
 
     public override string ToString() => $"[{Severity}] {Message}" + (Location != null ? $" at {Location}" : "");
 }

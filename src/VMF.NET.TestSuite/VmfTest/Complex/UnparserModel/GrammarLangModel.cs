@@ -7,37 +7,37 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel.VmfModel;
 
 [VmfModel(Equality = EqualsType.ContainmentAndExternal)]
-interface GrammarModel
+interface IGrammarModel
 {
-    [Contains("RuleClass.Model")]
-    RuleClass[] RuleClasses { get; }
+    [Contains("IRuleClass.Model")]
+    IRuleClass[] RuleClasses { get; }
 
     string? GrammarName { get; set; }
     string? PackageName { get; set; }
 
-    [Contains("TypeMappings.Model")]
-    TypeMappings? TypeMappings { get; set; }
+    [Contains("ITypeMappings.Model")]
+    ITypeMappings? TypeMappings { get; set; }
 
-    [Contains("CustomRule.Model")]
-    CustomRule[] CustomRules { get; }
+    [Contains("ICustomRule.Model")]
+    ICustomRule[] CustomRules { get; }
 }
 
-interface CustomRule : WithText
+interface ICustomRule : IWithText
 {
-    [Container("GrammarModel.CustomRules")]
-    GrammarModel? Model { get; }
+    [Container("IGrammarModel.CustomRules")]
+    IGrammarModel? Model { get; }
 }
 
 [Immutable]
-interface CodeRange
+interface ICodeRange
 {
-    CodeLocation? Start { get; }
-    CodeLocation? Stop { get; }
+    ICodeLocation? Start { get; }
+    ICodeLocation? Stop { get; }
     int Length { get; }
 }
 
 [Immutable]
-interface CodeLocation
+interface ICodeLocation
 {
     int Index { get; }
     int Line { get; }
@@ -45,31 +45,31 @@ interface CodeLocation
 }
 
 [InterfaceOnly]
-interface LangElement
+interface ILangElement
 {
 }
 
 [InterfaceOnly]
-interface CodeElement
+interface ICodeElement
 {
-    CodeRange? CodeRange { get; set; }
+    ICodeRange? CodeRange { get; set; }
 }
 
 [InterfaceOnly]
-interface WithType : LangElement
+interface IWithType : ILangElement
 {
-    Type? Type { get; set; }
+    IType? Type { get; set; }
 }
 
 [InterfaceOnly]
-interface WithName : LangElement
+interface IWithName : ILangElement
 {
     [GetterOnly]
     string? Name { get; }
 }
 
 [Immutable]
-interface Type : LangElement, WithName
+interface IType : ILangElement, IWithName
 {
     string? PackageName { get; }
     string? AntlrRuleName { get; }
@@ -77,92 +77,92 @@ interface Type : LangElement, WithName
     bool ArrayType { get; }
 }
 
-interface RuleClass : WithName, CodeElement
+interface IRuleClass : IWithName, ICodeElement
 {
-    [Container("GrammarModel.RuleClasses")]
-    GrammarModel? Model { get; }
+    [Container("IGrammarModel.RuleClasses")]
+    IGrammarModel? Model { get; }
 
-    [Contains("Property.Parent")]
-    Property[] Properties { get; }
+    [Contains("IProperty.Parent")]
+    IProperty[] Properties { get; }
 
-    [Contains("Property.Parent")]
-    Property[] CustomProperties { get; }
+    [Contains("IProperty.Parent")]
+    IProperty[] CustomProperties { get; }
 
-    [Refers("RuleClass.ChildClasses")]
-    RuleClass? SuperClass { get; set; }
+    [Refers("IRuleClass.ChildClasses")]
+    IRuleClass? SuperClass { get; set; }
 
     string[] SuperInterfaces { get; }
 
-    [Refers("RuleClass.SuperClass")]
-    RuleClass[] ChildClasses { get; }
+    [Refers("IRuleClass.SuperClass")]
+    IRuleClass[] ChildClasses { get; }
 
     bool Root { get; set; }
 
-    [Contains("DelegationMethod.Parent")]
-    DelegationMethod[] DelegationMethods { get; }
+    [Contains("IDelegationMethod.Parent")]
+    IDelegationMethod[] DelegationMethods { get; }
 
-    [Contains("RuleAnnotation.Parent")]
-    RuleAnnotation[] CustomRuleAnnotations { get; }
+    [Contains("IRuleAnnotation.Parent")]
+    IRuleAnnotation[] CustomRuleAnnotations { get; }
 }
 
-interface Property : WithName, WithType, CodeElement
+interface IProperty : IWithName, IWithType, ICodeElement
 {
-    // several properties on RuleClass contain Property -> no single opposite
+    // several properties on IRuleClass contain IProperty -> no single opposite
     [Container]
-    RuleClass? Parent { get; }
+    IRuleClass? Parent { get; }
 
-    [Contains("PropertyAnnotation.Property")]
-    PropertyAnnotation[] Annotations { get; }
+    [Contains("IPropertyAnnotation.Property")]
+    IPropertyAnnotation[] Annotations { get; }
 }
 
-interface DelegationMethod : WithText
+interface IDelegationMethod : IWithText
 {
-    [Container("RuleClass.DelegationMethods")]
-    RuleClass? Parent { get; }
+    [Container("IRuleClass.DelegationMethods")]
+    IRuleClass? Parent { get; }
 }
 
 [InterfaceOnly]
-interface WithText
+interface IWithText
 {
     string? Text { get; set; }
 }
 
-interface PropertyAnnotation : WithText
+interface IPropertyAnnotation : IWithText
 {
-    [Container("Property.Annotations")]
-    Property? Property { get; }
+    [Container("IProperty.Annotations")]
+    IProperty? Property { get; }
 }
 
-interface RuleAnnotation : WithText
+interface IRuleAnnotation : IWithText
 {
-    [Container("RuleClass.CustomRuleAnnotations")]
-    RuleClass? Parent { get; }
+    [Container("IRuleClass.CustomRuleAnnotations")]
+    IRuleClass? Parent { get; }
 }
 
-interface TypeMappings
+interface ITypeMappings
 {
-    [Contains("TypeMapping.Parent")]
-    TypeMapping[] TypeMappings { get; }
+    [Contains("ITypeMapping.Parent")]
+    ITypeMapping[] TypeMappings { get; }
 
-    [Container("GrammarModel.TypeMappings")]
-    GrammarModel? Model { get; }
+    [Container("IGrammarModel.TypeMappings")]
+    IGrammarModel? Model { get; }
 }
 
-interface TypeMapping
+interface ITypeMapping
 {
-    [Container("TypeMappings.TypeMappings")]
-    TypeMappings? Parent { get; }
+    [Container("ITypeMappings.TypeMappings")]
+    ITypeMappings? Parent { get; }
 
-    [Contains("Mapping.Parent")]
-    Mapping[] Entries { get; }
+    [Contains("IMapping.Parent")]
+    IMapping[] Entries { get; }
 
     string[] ApplyToNames { get; }
 }
 
-interface Mapping
+interface IMapping
 {
-    [Container("TypeMapping.Entries")]
-    TypeMapping? Parent { get; }
+    [Container("ITypeMapping.Entries")]
+    ITypeMapping? Parent { get; }
 
     string? RuleName { get; set; }
     string? TypeName { get; set; }

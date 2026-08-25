@@ -11,7 +11,7 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.DelegationTest.VmfModel;
 
 [DelegateTo(typeof(MyBehavior))]
-interface DelegationTestClass
+interface IDelegationTestClass
 {
     string? Name { get; set; }
 

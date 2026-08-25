@@ -35,10 +35,10 @@ namespace:
 // Model/Model.cs — build input, never shipped as API
 namespace MyApp.VmfModel;
 
-interface Parent
+interface IParent
 {
     string Name { get; set; }
-    [Contains("Child.Parent")] Child[] Children { get; }
+    [Contains("IChild.Parent")] IChild[] Children { get; }
 }
 ```
 
@@ -48,17 +48,37 @@ declaration: **no attribute marks a model type**, exactly as no annotation marks
 | Java | VMF.NET |
 |---|---|
 | `src/main/vmf/…/vmfmodel/Parent.java` | any file, `namespace MyApp.VmfModel` |
-| package-private `interface Parent` | `interface Parent` — `internal` by default, the same default |
+| package-private `interface Parent` | `interface IParent` — `internal` by default, the same default |
 | generated `Parent` in the parent package | generated `IParent` in the parent namespace |
 | `apply plugin: 'eu.mihosoft.vmf'` | `<PackageReference Include="VMF.NET" />` |
 
-The generated name is `I` + the model's name, unless the model already starts with `I` followed by
-a capital — so a model named `IParent` still yields `IParent`.
+### Name the model interface what it will generate
 
-**Write the model without the `I` prefix**, as Java does; the generator adds it. The exception
-above is a migration affordance, not a style: it lets a model written the old way move by changing
-its namespace alone. The ported test suite dropped the prefix from all 271 of its model interfaces
-without a single test file changing, since the generated names were identical either way.
+The rule: the generated name is `I` + the model's name, **unless** the model already starts with
+`I` followed by a capital, in which case it is used unchanged. So `Parent` and `IParent` both
+generate `IParent`.
+
+**Write the `I` yourself.** A model named `Parent` silently becomes something else, and nothing in
+the model file records that; writing `IParent` makes the file say what it produces. The generator
+warns when it has to add the prefix:
+
+```
+warning VMF004: Model interface 'Parent' generates 'IParent'. VMF.NET prefixes a model name
+with 'I'. Name it 'IParent' to say that explicitly, or silence this with <NoWarn>VMF004</NoWarn>.
+```
+
+Java needs none of this — there `Parent` generates `Parent`. The asymmetry is C#'s `I` convention,
+and the exception exists for a concrete reason rather than as a compatibility wart: **the
+implementation class name is derived by stripping the leading `I`**. Prefix unconditionally and a
+model named `IHorse` yields interface `IIHorse` and implementation `IHorseImpl` — a class named
+like an interface. Leaving an existing `I`+capital alone is what prevents that.
+
+The consequence to know about: because both spellings converge, declaring `Horse` **and** `IHorse`
+in one namespace is a name clash. That is an error (`VMF001`) naming both spellings; it used to
+silently drop one of the two types and everything it declared.
+
+If you prefer Java's spelling, `<NoWarn>VMF004</NoWarn>` is the supported way to say so — the
+generated API is identical either way.
 
 Behaviour delegates and any plain types the model references (enums, .NET classes) live in the
 **parent** namespace, beside the generated API — as Java's delegates live in the package VMF
@@ -217,9 +237,9 @@ Java narrows a property by overriding its getter with a narrower return type. C#
 asks for the intent to be stated:
 
 ```csharp
-interface WithLocationX : WithLocation
+interface IWithLocationX : IWithLocation
 {
-    [GetterOnly] new LocationX? Location { get; }
+    [GetterOnly] new ILocationX? Location { get; }
 }
 ```
 

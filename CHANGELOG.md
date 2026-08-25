@@ -124,6 +124,29 @@ wires `analyzers/dotnet/cs` itself.
   property of the first disappeared, with nothing reported. It is now an error naming both
   model-side spellings and the generated name they collide on.
 
+### Added — `VMF004`, a warning when a model name gets prefixed
+
+A model named `Parent` generates `IParent`, and nothing in the model file said so. The generator
+now warns:
+
+```
+warning VMF004: Model interface 'Parent' generates 'IParent'. VMF.NET prefixes a model name
+with 'I'. Name it 'IParent' to say that explicitly, or silence this with <NoWarn>VMF004</NoWarn>.
+```
+
+Naming the model interface `IParent` is the recommended style: the file then says what it
+produces. Java needs no such rule — there `Parent` generates `Parent` — so if you prefer that
+spelling, `<NoWarn>VMF004</NoWarn>` is the supported way to say so. The generated API is identical
+either way.
+
+The prefix is not applied unconditionally, and the exception is not a wart: the implementation
+class name is derived by **stripping** the leading `I`, so always prefixing would turn a model
+named `IHorse` into interface `IIHorse` with implementation `IHorseImpl` — a class named like an
+interface.
+
+Model diagnostics previously all reported as `VMF001`, which made them impossible to suppress
+individually; they now carry distinct ids.
+
 ### Added
 
 - **`VMF.NET` metapackage.** One reference replaces the two the setup used to need, matching

@@ -76,6 +76,26 @@ public static class ModelAnalyzer
             }
             claimedBy[iface.Name] = iface.ModelName;
 
+            // Writing `Horse` and getting `IHorse` is a rename the author did not ask for, and
+            // nothing in the model file says it happened. Say so.
+            //
+            // Java has no such rule: there `Horse` generates `Horse`. VMF.NET cannot follow that,
+            // because the implementation class is derived by stripping the leading I -- so a model
+            // named `IHorse` prefixed unconditionally would yield `IIHorse` and, worse,
+            // `IHorseImpl`: a class named like an interface. Leaving an existing `I`+capital alone
+            // is what avoids that, and the cost is this asymmetry.
+            //
+            // VMF004 so it can be silenced on its own by anyone who prefers Java's spelling:
+            //   <NoWarn>VMF004</NoWarn>
+            if (iface.ModelName != iface.Name)
+            {
+                model.AddWarning(
+                    $"Model interface '{iface.ModelName}' generates '{iface.Name}'. VMF.NET prefixes "
+                    + $"a model name with 'I'. Name it '{iface.Name}' to say that explicitly, or "
+                    + "silence this with <NoWarn>" + Diagnostic.NamePrefixedId + "</NoWarn>.",
+                    id: Diagnostic.NamePrefixedId);
+            }
+
             var typeInfo = model.AddType(iface.Name, typeId);
             typeInfo.IsImmutable = iface.IsImmutable;
             typeInfo.IsInterfaceOnly = iface.IsInterfaceOnly;

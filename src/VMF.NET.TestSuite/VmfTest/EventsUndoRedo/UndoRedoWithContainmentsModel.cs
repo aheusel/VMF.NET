@@ -5,32 +5,32 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.EventsUndoRedo.VmfModel;
 
-interface ParentListContainment
+interface IParentListContainment
 {
-    [Contains("ChildListContainment.Parent")]
-    ChildListContainment[] Children { get; }
+    [Contains("IChildListContainment.Parent")]
+    IChildListContainment[] Children { get; }
 }
 
-interface ChildListContainment
+interface IChildListContainment
 {
     // settable: the Java facts drive containment from the child with setParent(parent)
-    [Container("ParentListContainment.Children")]
-    ParentListContainment? Parent { get; set; }
+    [Container("IParentListContainment.Children")]
+    IParentListContainment? Parent { get; set; }
 
     string? Name { get; set; }
 }
 
-interface ParentSingleContainment
+interface IParentSingleContainment
 {
-    [Contains("ChildSingleContainment.Parent")]
-    ChildSingleContainment? Child { get; set; }
+    [Contains("IChildSingleContainment.Parent")]
+    IChildSingleContainment? Child { get; set; }
 }
 
-interface ChildSingleContainment
+interface IChildSingleContainment
 {
     // settable: the Java facts drive containment from the child with setParent(parent)
-    [Container("ParentSingleContainment.Child")]
-    ParentSingleContainment? Parent { get; set; }
+    [Container("IParentSingleContainment.Child")]
+    IParentSingleContainment? Parent { get; set; }
 
     string? Name { get; set; }
 }

@@ -5,14 +5,14 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.PropertyType.VmfModel;
 
-interface EntityWithProperties
+interface IEntityWithProperties
 {
     int[] Ids { get; }
-    ChildEntity[] Children { get; }
-    ChildEntity? Entity { get; set; }
+    IChildEntity[] Children { get; }
+    IChildEntity? Entity { get; set; }
 }
 
-interface ChildEntity
+interface IChildEntity
 {
     string? Name { get; set; }
 }

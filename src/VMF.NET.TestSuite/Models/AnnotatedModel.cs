@@ -9,7 +9,7 @@ namespace VMF.NET.TestSuite.Models.VmfModel;
 /// A service config with various JSON schema annotations for testing.
 /// </summary>
 [VmfModel(Equality = EqualsType.All)]
-interface ServiceConfig
+interface IServiceConfig
 {
     [VmfAnnotation("service_name", Key = "vmf:json:name")]
     string? Name { get; set; }

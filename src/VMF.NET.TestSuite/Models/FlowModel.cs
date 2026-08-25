@@ -10,21 +10,21 @@ namespace VMF.NET.TestSuite.Models.VmfModel;
 /// A flow graph containing nodes and connections.
 /// </summary>
 [VmfModel(Equality = EqualsType.All)]
-interface Flow
+interface IFlow
 {
     string? Title { get; set; }
 
-    [Contains("Node.Flow")]
-    Node[] Nodes { get; }
+    [Contains("INode.Flow")]
+    INode[] Nodes { get; }
 
-    [Contains("Connection.Flow")]
-    Connection[] Connections { get; }
+    [Contains("IConnection.Flow")]
+    IConnection[] Connections { get; }
 }
 
 /// <summary>
 /// A node in a flow graph.
 /// </summary>
-interface Node
+interface INode
 {
     string? Name { get; set; }
 
@@ -32,27 +32,27 @@ interface Node
 
     int Y { get; set; }
 
-    [Container("Flow.Nodes")]
-    Flow? Flow { get; }
+    [Container("IFlow.Nodes")]
+    IFlow? Flow { get; }
 
-    [Refers("Connection.Sender")]
-    Connection[] Outputs { get; }
+    [Refers("IConnection.Sender")]
+    IConnection[] Outputs { get; }
 
-    [Refers("Connection.Receiver")]
-    Connection[] Inputs { get; }
+    [Refers("IConnection.Receiver")]
+    IConnection[] Inputs { get; }
 }
 
 /// <summary>
 /// A connection between two nodes.
 /// </summary>
-interface Connection
+interface IConnection
 {
-    [Container("Flow.Connections")]
-    Flow? Flow { get; }
+    [Container("IFlow.Connections")]
+    IFlow? Flow { get; }
 
-    [Refers("Node.Outputs")]
-    Node? Sender { get; set; }
+    [Refers("INode.Outputs")]
+    INode? Sender { get; set; }
 
-    [Refers("Node.Inputs")]
-    Node? Receiver { get; set; }
+    [Refers("INode.Inputs")]
+    INode? Receiver { get; set; }
 }

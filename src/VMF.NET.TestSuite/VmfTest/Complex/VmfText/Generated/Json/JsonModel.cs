@@ -8,21 +8,21 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.Complex.VmfText.Generated.Json.VmfModel;
 
-interface JSONModel
+interface IJSONModel
 {
-    Json? Root { get; set; }
+    IJson? Root { get; set; }
 }
 
 [Immutable]
-interface CodeRange
+interface ICodeRange
 {
-    CodeLocation? Start { get; }
-    CodeLocation? Stop { get; }
+    ICodeLocation? Start { get; }
+    ICodeLocation? Stop { get; }
     int Length { get; }
 }
 
 [Immutable]
-interface CodeLocation
+interface ICodeLocation
 {
     int Index { get; }
     int Line { get; }
@@ -30,78 +30,78 @@ interface CodeLocation
 }
 
 [InterfaceOnly]
-interface CodeElement
+interface ICodeElement
 {
     [IgnoreToString]
     [IgnoreEquals]
-    CodeRange? CodeRange { get; set; }
+    ICodeRange? CodeRange { get; set; }
 
     [IgnoreEquals]
-    CodeElement? Parent { get; set; }
+    ICodeElement? Parent { get; set; }
 
     [IgnoreEquals]
     object? Payload { get; set; }
 }
 
-interface Json : CodeElement
+interface IJson : ICodeElement
 {
-    [PropertyOrder(0)] Val? Value { get; set; }
+    [PropertyOrder(0)] IVal? Value { get; set; }
 }
 
-interface Obj : CodeElement
+interface IObj : ICodeElement
 {
-    [PropertyOrder(0)] Pair[] Pairs { get; }
+    [PropertyOrder(0)] IPair[] Pairs { get; }
 }
 
-interface Pair : CodeElement
+interface IPair : ICodeElement
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] string? Key { get; set; }
 
-    [PropertyOrder(1)] Val? Value { get; set; }
+    [PropertyOrder(1)] IVal? Value { get; set; }
 }
 
-interface Array : CodeElement
+interface IArray : ICodeElement
 {
-    [PropertyOrder(0)] Val[] Values { get; }
+    [PropertyOrder(0)] IVal[] Values { get; }
 }
 
 [InterfaceOnly]
-interface Val : CodeElement
+interface IVal : ICodeElement
 {
     [GetterOnly]
     [PropertyOrder(0)] object? Value { get; }
 }
 
-interface StringValue : Val
+interface IStringValue : IVal
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new string? Value { get; set; }
 }
 
-interface NumberValue : Val
+interface INumberValue : IVal
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new double? Value { get; set; }
 }
 
-interface ObjectValue : Val
+interface IObjectValue : IVal
 {
-    [PropertyOrder(0)] new Obj? Value { get; set; }
+    [PropertyOrder(0)] new IObj? Value { get; set; }
 }
 
-interface ArrayValue : Val
+interface IArrayValue : IVal
 {
-    [PropertyOrder(0)] new Array? Value { get; set; }
+    [PropertyOrder(0)] new IArray? Value { get; set; }
 }
 
-interface BooleanValue : Val
+interface IBooleanValue : IVal
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new bool? Value { get; set; }
 }
 
-interface NullValue : Val
+interface INullValue : IVal
 {
     [PropertyOrder(0)] new object? Value { get; set; }
 }

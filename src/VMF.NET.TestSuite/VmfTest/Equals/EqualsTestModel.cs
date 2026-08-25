@@ -6,72 +6,72 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Equals.VmfModel;
 
 [VmfModel(Equality = EqualsType.ContainmentAndExternal)]
-interface WithName
+interface IWithName
 {
     string? Name { get; set; }
 }
 
-interface EqualsTestModel : WithName
+interface IEqualsTestModel : IWithName
 {
-    AReference? Reference { get; set; }
+    IAReference? Reference { get; set; }
 
-    [Contains("Child.Parent")]
-    Child? Child { get; set; }
+    [Contains("IChild.Parent")]
+    IChild? Child { get; set; }
 }
 
-interface AReference : WithName
+interface IAReference : IWithName
 {
 }
 
-interface Child : WithName
+interface IChild : IWithName
 {
-    [Container("EqualsTestModel.Child")]
-    EqualsTestModel? Parent { get; }
+    [Container("IEqualsTestModel.Child")]
+    IEqualsTestModel? Parent { get; }
 }
 
-interface EqualsTestModel2 : WithName
+interface IEqualsTestModel2 : IWithName
 {
     int Value { get; set; }
 }
 
 [VmfEquals(EqualsType.All)]
-interface EqualsTestModelAllEq : WithName
+interface IEqualsTestModelAllEq : IWithName
 {
     int Value { get; set; }
-    AReference? Reference { get; set; }
+    IAReference? Reference { get; set; }
 }
 
 [VmfEquals(EqualsType.Instance)]
-interface EqualsTestModelInstanceEq : WithName
+interface IEqualsTestModelInstanceEq : IWithName
 {
     int Value { get; set; }
-    AReference? Reference { get; set; }
+    IAReference? Reference { get; set; }
 }
 
 [VmfEquals(EqualsType.ContainmentAndExternal)]
-interface EqualsTestContainmentEqListChild : WithName
+interface IEqualsTestContainmentEqListChild : IWithName
 {
-    [Container("EqualsTestContainmentEqList.Children")]
-    EqualsTestContainmentEqList? Parent { get; }
+    [Container("IEqualsTestContainmentEqList.Children")]
+    IEqualsTestContainmentEqList? Parent { get; }
 }
 
 [VmfEquals(EqualsType.ContainmentAndExternal)]
-interface EqualsTestContainmentEqList : WithName
+interface IEqualsTestContainmentEqList : IWithName
 {
-    [Contains("EqualsTestContainmentEqListChild.Parent")]
-    EqualsTestContainmentEqListChild[] Children { get; }
+    [Contains("IEqualsTestContainmentEqListChild.Parent")]
+    IEqualsTestContainmentEqListChild[] Children { get; }
 }
 
 [VmfEquals(EqualsType.Instance)]
-interface EqualsTestInstanceEqListChild : WithName
+interface IEqualsTestInstanceEqListChild : IWithName
 {
-    [Container("EqualsTestInstanceEqList.Children")]
-    EqualsTestInstanceEqList? Parent { get; }
+    [Container("IEqualsTestInstanceEqList.Children")]
+    IEqualsTestInstanceEqList? Parent { get; }
 }
 
 [VmfEquals(EqualsType.Instance)]
-interface EqualsTestInstanceEqList : WithName
+interface IEqualsTestInstanceEqList : IWithName
 {
-    [Contains("EqualsTestInstanceEqListChild.Parent")]
-    EqualsTestInstanceEqListChild[] Children { get; }
+    [Contains("IEqualsTestInstanceEqListChild.Parent")]
+    IEqualsTestInstanceEqListChild[] Children { get; }
 }

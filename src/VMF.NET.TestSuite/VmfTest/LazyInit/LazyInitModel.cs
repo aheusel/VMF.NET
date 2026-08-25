@@ -6,13 +6,13 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.LazyInit.VmfModel;
 
 [VmfEquals]
-interface Obj
+interface IObj
 {
-    Entry[] Entries { get; }
+    IEntry[] Entries { get; }
 }
 
 [VmfEquals]
-interface Entry
+interface IEntry
 {
     string? Name { get; set; }
 }

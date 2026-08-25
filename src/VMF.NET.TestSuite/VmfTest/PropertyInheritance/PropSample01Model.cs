@@ -11,86 +11,86 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.PropertyInheritance.VmfModel;
 
 [InterfaceOnly]
-interface WithX
+interface IWithX
 {
     [GetterOnly] double X { get; }
 }
 
 [InterfaceOnly]
-interface WithY
+interface IWithY
 {
     [GetterOnly] double Y { get; }
 }
 
 [InterfaceOnly]
-interface WithXY : WithX, WithY
+interface IWithXY : IWithX, IWithY
 {
 }
 
-interface Location
+interface ILocation
 {
 }
 
-interface LocationX : Location, WithX
+interface ILocationX : ILocation, IWithX
 {
 }
 
-interface LocationY : Location, WithY
+interface ILocationY : ILocation, IWithY
 {
 }
 
-interface LocationXY : WithXY, LocationX, LocationY
+interface ILocationXY : IWithXY, ILocationX, ILocationY
 {
-}
-
-[InterfaceOnly]
-interface WithLocation
-{
-    [GetterOnly] Location? Location { get; }
 }
 
 [InterfaceOnly]
-interface WithLocationX : WithLocation
+interface IWithLocation
 {
-    [GetterOnly] new LocationX? Location { get; }
+    [GetterOnly] ILocation? Location { get; }
 }
 
 [InterfaceOnly]
-interface WithLocationY : WithLocation
+interface IWithLocationX : IWithLocation
 {
-    [GetterOnly] new LocationY? Location { get; }
+    [GetterOnly] new ILocationX? Location { get; }
 }
 
 [InterfaceOnly]
-interface WithLocationXY : WithLocationX, WithLocationY
+interface IWithLocationY : IWithLocation
 {
-    [GetterOnly] new LocationXY? Location { get; }
+    [GetterOnly] new ILocationY? Location { get; }
 }
 
-interface PropSample01
+[InterfaceOnly]
+interface IWithLocationXY : IWithLocationX, IWithLocationY
 {
-    [Contains] GCode1? GCode1 { get; set; }
-    [Contains] GCode2? GCode2 { get; set; }
-    [Contains] GCode3? GCode3 { get; set; }
-    [Contains] GCode4? GCode4 { get; set; }
+    [GetterOnly] new ILocationXY? Location { get; }
 }
 
-interface GCode1 : WithLocationXY
+interface IPropSample01
 {
-    new LocationXY? Location { get; set; }
+    [Contains] IGCode1? GCode1 { get; set; }
+    [Contains] IGCode2? GCode2 { get; set; }
+    [Contains] IGCode3? GCode3 { get; set; }
+    [Contains] IGCode4? GCode4 { get; set; }
 }
 
-interface GCode2 : WithLocationX
+interface IGCode1 : IWithLocationXY
 {
-    new LocationX? Location { get; set; }
+    new ILocationXY? Location { get; set; }
 }
 
-interface GCode3 : WithLocationY
+interface IGCode2 : IWithLocationX
 {
-    new LocationY? Location { get; set; }
+    new ILocationX? Location { get; set; }
 }
 
-interface GCode4 : WithLocation
+interface IGCode3 : IWithLocationY
 {
-    new Location? Location { get; set; }
+    new ILocationY? Location { get; set; }
+}
+
+interface IGCode4 : IWithLocation
+{
+    new ILocation? Location { get; set; }
 }

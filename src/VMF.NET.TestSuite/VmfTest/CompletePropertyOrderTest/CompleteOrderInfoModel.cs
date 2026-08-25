@@ -10,7 +10,7 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.CompletePropertyOrderTest.VmfModel;
 
-interface CompleteOrderInfo
+interface ICompleteOrderInfo
 {
     [PropertyOrder(1)] string? A { get; set; }
     [PropertyOrder(2)] string? B { get; set; }

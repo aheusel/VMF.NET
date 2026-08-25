@@ -4,7 +4,7 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.DefaultValuesAndBuilders.VmfModel;
 
-interface WithDefaultValues
+interface IWithDefaultValues
 {
     [VmfDefaultValue("true")]
     bool Visible { get; set; }

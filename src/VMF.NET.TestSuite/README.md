@@ -60,26 +60,19 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Containment.VmfModel;
 
 [VmfEquals(EqualsType.All)]
-interface Parent
+interface IParent
 {
     string? Name { get; set; }
-    [Contains("Child.Parent")] Child[] Children { get; }
+    [Contains("IChild.Parent")] IChild[] Children { get; }
 }
 
 [VmfEquals(EqualsType.All)]
-interface Child
+interface IChild
 {
     string? Name { get; set; }
-    [Container("Parent.Children")] Parent? Parent { get; }
+    [Container("IParent.Children")] IParent? Parent { get; }
 }
 ```
-
-**Model interfaces carry no `I` prefix**, as in Java — the generator adds it. The test below still
-says `IParent`, because that is the *generated* name; renaming the model changed no test file.
-
-(A model written `IParent` also still generates `IParent`, since the rule leaves an existing
-`I`+capital alone. That affordance exists so an older model migrates by moving its namespace
-alone; new models should not use it.)
 
 `VmfTest/Containment/ContainmentTest.cs` — same namespace, so no `using` for the model:
 
@@ -134,7 +127,7 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 |---|---|
 | package `eu.mihosoft.vmftest.<area>` | namespace `VMF.NET.TestSuite.VmfTest.<Area>` |
 | package `…<area>.vmfmodel` | namespace `…<Area>.VmfModel` |
-| `interface Parent` | `interface Parent` — or `IParent`; both generate `IParent` |
+| `interface Parent` | `interface IParent` — write the `I`; a bare `Parent` also generates `IParent` but warns (`VMF004`) |
 | `getName()` / `setName(x)` | property `Name { get; set; }` |
 | `Parent.newInstance()` / `newBuilder()` | `IParent.NewInstance()` / `IParent.NewBuilder()` |
 | `@Contains(opposite="parent")` | `[Contains("IChild.Parent")]` |
@@ -218,12 +211,12 @@ Translate it by re-declaring the property with `new`:
 
 ```csharp
 [InterfaceOnly]
-interface WithLocation      { [GetterOnly] Location? Location { get; } }
+interface IWithLocation      { [GetterOnly] ILocation? Location { get; } }
 
 [InterfaceOnly]
-interface WithLocationX : WithLocation
+interface IWithLocationX : IWithLocation
 {
-    [GetterOnly] new LocationX? Location { get; }   // `new`, not an override
+    [GetterOnly] new ILocationX? Location { get; }   // `new`, not an override
 }
 ```
 

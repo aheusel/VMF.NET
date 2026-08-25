@@ -5,13 +5,13 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01.VmfModel;
 
-interface Node
+interface INode
 {
-    [Container("Node.Children")]
-    Node? Parent { get; }
+    [Container("INode.Children")]
+    INode? Parent { get; }
 
-    [Contains("Node.Parent")]
-    Node[] Children { get; }
+    [Contains("INode.Parent")]
+    INode[] Children { get; }
 
     string? Name { get; set; }
 }

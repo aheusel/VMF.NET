@@ -144,6 +144,48 @@ namespace MyApp.VmfModel
     }
 
     [Fact]
+    public void AModelNameThatGetsPrefixed_Warns()
+    {
+        // Writing `Horse` and getting `IHorse` is a rename the author did not ask for, and
+        // nothing in the model file records it. VMF004 says so, and is separately suppressible
+        // for anyone who prefers Java's unprefixed spelling.
+        var result = Run(@"
+namespace MyApp.VmfModel
+{
+    interface Horse { string? Name { get; set; } }
+}");
+
+        var warnings = result.Diagnostics
+            .Where(d => d.Severity == DiagnosticSeverity.Warning)
+            .ToList();
+
+        var vmf004 = warnings.Where(d => d.Id == "VMF004").ToList();
+        var all = string.Join("; ", warnings.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+        Assert.True(vmf004.Count == 1, $"expected exactly one VMF004, got: {all}");
+        Assert.True(vmf004[0].GetMessage().Contains("'Horse'"), all);
+        Assert.True(vmf004[0].GetMessage().Contains("'IHorse'"), all);
+
+        // A warning, not an error: the code must still be generated.
+        var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
+        Assert.Contains("MyApp.IHorse.g.cs", files);
+    }
+
+    [Fact]
+    public void AModelNameAlreadyPrefixed_DoesNotWarn()
+    {
+        // The whole point of naming it IHorse is to opt out of the surprise.
+        var result = Run(@"
+namespace MyApp.VmfModel
+{
+    interface IHorse { string? Name { get; set; } }
+}");
+
+        var vmf004 = result.Diagnostics.Where(d => d.Id == "VMF004").ToList();
+        Assert.True(vmf004.Count == 0, string.Join("; ", vmf004.Select(d => d.GetMessage())));
+    }
+
+    [Fact]
     public void TwoModelsThatGenerateTheSameName_IsAnError()
     {
         // The flip side of the rule above: because `Horse` and `IHorse` both yield `IHorse`,

@@ -100,7 +100,7 @@ public sealed class VmfSourceGenerator : IIncrementalGenerator
 
                 context.ReportDiagnostic(Diagnostic.Create(
                     new DiagnosticDescriptor(
-                        "VMF001",
+                        diag.Id,
                         "VMF Model Analysis",
                         diag.Message,
                         "VMF.NET",

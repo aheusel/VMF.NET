@@ -5,7 +5,7 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.NoPropertiesTest.VmfModel;
 
-interface NoProperties
+interface INoProperties
 {
     [DelegateTo(typeof(DelegatedBehavior))]
     void TestDelegation();

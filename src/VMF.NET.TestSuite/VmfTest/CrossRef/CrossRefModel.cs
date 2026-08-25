@@ -5,38 +5,38 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.CrossRef.VmfModel;
 
-interface EntityOneA
+interface IEntityOneA
 {
-    [Refers("EntityTwoA.Ref")]
-    EntityTwoA? Ref { get; set; }
+    [Refers("IEntityTwoA.Ref")]
+    IEntityTwoA? Ref { get; set; }
 }
 
-interface EntityTwoA
+interface IEntityTwoA
 {
-    [Refers("EntityOneA.Ref")]
-    EntityOneA? Ref { get; set; }
+    [Refers("IEntityOneA.Ref")]
+    IEntityOneA? Ref { get; set; }
 }
 
-interface EntityOneB
+interface IEntityOneB
 {
-    [Refers("EntityTwoB.Refs")]
-    EntityTwoB? Ref { get; set; }
+    [Refers("IEntityTwoB.Refs")]
+    IEntityTwoB? Ref { get; set; }
 }
 
-interface EntityTwoB
+interface IEntityTwoB
 {
-    [Refers("EntityOneB.Ref")]
-    EntityOneB[] Refs { get; }
+    [Refers("IEntityOneB.Ref")]
+    IEntityOneB[] Refs { get; }
 }
 
-interface EntityOneC
+interface IEntityOneC
 {
-    [Refers("EntityTwoC.Refs")]
-    EntityTwoC[] Refs { get; }
+    [Refers("IEntityTwoC.Refs")]
+    IEntityTwoC[] Refs { get; }
 }
 
-interface EntityTwoC
+interface IEntityTwoC
 {
-    [Refers("EntityOneC.Refs")]
-    EntityOneC[] Refs { get; }
+    [Refers("IEntityOneC.Refs")]
+    IEntityOneC[] Refs { get; }
 }

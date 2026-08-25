@@ -5,36 +5,36 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.Complex.Library.VmfModel;
 
-interface Library
+interface ILibrary
 {
     string? Name { get; set; }
 
-    [Contains("Book.Library")]
-    Book[] Books { get; }
+    [Contains("IBook.Library")]
+    IBook[] Books { get; }
 
-    [Contains("Writer.Library")]
-    Writer[] Authors { get; }
+    [Contains("IWriter.Library")]
+    IWriter[] Authors { get; }
 }
 
-interface Book
+interface IBook
 {
     string? Title { get; set; }
     int? Pages { get; set; }
 
-    [Container("Library.Books")]
-    Library? Library { get; }
+    [Container("ILibrary.Books")]
+    ILibrary? Library { get; }
 
-    [Refers("Writer.Books")]
-    Writer[] Authors { get; }
+    [Refers("IWriter.Books")]
+    IWriter[] Authors { get; }
 }
 
-interface Writer
+interface IWriter
 {
     string? Name { get; set; }
 
-    [Container("Library.Authors")]
-    Library? Library { get; }
+    [Container("ILibrary.Authors")]
+    ILibrary? Library { get; }
 
-    [Refers("Book.Authors")]
-    Book[] Books { get; }
+    [Refers("IBook.Authors")]
+    IBook[] Books { get; }
 }

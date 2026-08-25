@@ -6,27 +6,27 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.ToString.VmfModel;
 
 // we want to test ToString() with circular dependency and without containment
-interface Parent
+interface IParent
 {
-    Child? Child { get; set; }
+    IChild? Child { get; set; }
     string? Name { get; set; }
 }
 
-interface Child
+interface IChild
 {
-    Parent? Parent { get; set; }
+    IParent? Parent { get; set; }
     string? Name { get; set; }
 }
 
 // and here we test with collections
-interface Parent2
+interface IParent2
 {
-    Child2[] Children { get; }
+    IChild2[] Children { get; }
     string? Name { get; set; }
 }
 
-interface Child2
+interface IChild2
 {
-    Parent2? Parent { get; set; }
+    IParent2? Parent { get; set; }
     string? Name { get; set; }
 }

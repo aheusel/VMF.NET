@@ -6,23 +6,23 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Test2.VmfModel;
 
 [VmfEquals]
-interface Named
+interface INamed
 {
     string? Name { get; set; }
 }
 
 [VmfEquals]
-interface Parent : Named
+interface IParent : INamed
 {
-    [Contains("Child.Parent")]
-    Child[] Children { get; }
+    [Contains("IChild.Parent")]
+    IChild[] Children { get; }
 
-    Named[] Elements { get; }
+    INamed[] Elements { get; }
 }
 
 [VmfEquals]
-interface Child : Named
+interface IChild : INamed
 {
-    [Container("Parent.Children")]
-    Parent? Parent { get; }
+    [Container("IParent.Children")]
+    IParent? Parent { get; }
 }

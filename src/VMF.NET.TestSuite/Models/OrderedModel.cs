@@ -9,7 +9,7 @@ namespace VMF.NET.TestSuite.Models.VmfModel;
 /// A config with ordered properties and documentation.
 /// </summary>
 [Doc("Configuration with ordered properties")]
-interface Config
+interface IConfig
 {
     [PropertyOrder(2)]
     [Doc("The port number")]

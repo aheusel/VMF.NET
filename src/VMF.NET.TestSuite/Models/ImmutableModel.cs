@@ -10,7 +10,7 @@ namespace VMF.NET.TestSuite.Models.VmfModel;
 /// </summary>
 [Immutable]
 [VmfModel(Equality = EqualsType.All)]
-interface Point
+interface IPoint
 {
     double X { get; }
     double Y { get; }
@@ -18,13 +18,13 @@ interface Point
 
 /// <summary>
 /// A mutable figure with a required name and points.
-/// (Renamed from Shape to avoid colliding with the immutable Shape acceptance model.)
+/// (Renamed from IShape to avoid colliding with the immutable IShape acceptance model.)
 /// </summary>
 [VmfModel(Equality = EqualsType.All)]
-interface Figure
+interface IFigure
 {
     [VmfRequired]
     string Name { get; set; }
 
-    Point[] Points { get; }
+    IPoint[] Points { get; }
 }

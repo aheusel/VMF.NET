@@ -5,69 +5,69 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.Containment.VmfModel;
 
-interface ContainerOne
+interface IContainerOne
 {
     [Contains]
-    Element? Element { get; set; }
+    IElement? Element { get; set; }
 
-    [Contains("Element.ParentOne")]
-    Element? Element1 { get; set; }
-
-    [Contains]
-    Element[] Elements1 { get; }
-
-    [Contains("Element.ListParentOne")]
-    Element[] Elements1a { get; }
-}
-
-interface ContainerTwo
-{
-    [Contains]
-    Element? Element { get; set; }
-
-    [Contains("Element.ParentTwo")]
-    Element? Element2 { get; set; }
+    [Contains("IElement.ParentOne")]
+    IElement? Element1 { get; set; }
 
     [Contains]
-    Element[] Elements2 { get; }
+    IElement[] Elements1 { get; }
 
-    [Contains("Element.ListParentTwo")]
-    Element[] Elements2a { get; }
+    [Contains("IElement.ListParentOne")]
+    IElement[] Elements1a { get; }
 }
 
-interface Element
+interface IContainerTwo
 {
-    [Container("ContainerOne.Element1")]
-    ContainerOne? ParentOne { get; }
+    [Contains]
+    IElement? Element { get; set; }
 
-    [Container("ContainerTwo.Element2")]
-    ContainerTwo? ParentTwo { get; }
+    [Contains("IElement.ParentTwo")]
+    IElement? Element2 { get; set; }
 
-    [Container("ContainerOne.Elements1a")]
-    ContainerOne? ListParentOne { get; }
+    [Contains]
+    IElement[] Elements2 { get; }
 
-    [Container("ContainerTwo.Elements2a")]
-    ContainerTwo? ListParentTwo { get; }
+    [Contains("IElement.ListParentTwo")]
+    IElement[] Elements2a { get; }
 }
 
-interface ContainerMultipleOpposites
+interface IElement
 {
-    [Contains("ElementMultipleOpposites.Parent")]
-    ElementMultipleOpposites? Element { get; set; }
+    [Container("IContainerOne.Element1")]
+    IContainerOne? ParentOne { get; }
 
-    [Contains("ElementMultipleOpposites.Parent")]
-    ElementMultipleOpposites? Element1 { get; set; }
+    [Container("IContainerTwo.Element2")]
+    IContainerTwo? ParentTwo { get; }
 
-    [Contains("ElementMultipleOpposites.Parent")]
-    ElementMultipleOpposites[] Elements { get; }
+    [Container("IContainerOne.Elements1a")]
+    IContainerOne? ListParentOne { get; }
 
-    [Contains("ElementMultipleOpposites.Parent")]
-    ElementMultipleOpposites[] Elements1 { get; }
+    [Container("IContainerTwo.Elements2a")]
+    IContainerTwo? ListParentTwo { get; }
 }
 
-interface ElementMultipleOpposites
+interface IContainerMultipleOpposites
+{
+    [Contains("IElementMultipleOpposites.Parent")]
+    IElementMultipleOpposites? Element { get; set; }
+
+    [Contains("IElementMultipleOpposites.Parent")]
+    IElementMultipleOpposites? Element1 { get; set; }
+
+    [Contains("IElementMultipleOpposites.Parent")]
+    IElementMultipleOpposites[] Elements { get; }
+
+    [Contains("IElementMultipleOpposites.Parent")]
+    IElementMultipleOpposites[] Elements1 { get; }
+}
+
+interface IElementMultipleOpposites
 {
     // multiple opposites (unknown at compile-time)
     [Container]
-    ContainerMultipleOpposites? Parent { get; }
+    IContainerMultipleOpposites? Parent { get; }
 }
