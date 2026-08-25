@@ -992,7 +992,11 @@ namespace {{ ns }}
 {{~ end ~}}
                 sb.Append(((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ({{ prop.Name }}[i]?.ToString() ?? "null"));
 {{~ else ~}}
-                sb.Append({{ prop.Name }}[i] is string ? "\"" + {{ prop.Name }}[i] + "\"" : (((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ((((object?){{ prop.Name }}[i])?.ToString()) ?? "null")));
+{{~ # Tested through object, not on the element type itself. `MyType is string` is a test the
+   # compiler knows can never succeed (CS0184), and it warns -- in the consumer's build. Going
+   # through object keeps the runtime meaning exactly, including for an element type that CAN
+   # hold a string, and says nothing at compile time. ~}}
+                sb.Append(((object?){{ prop.Name }}[i]) is string ? "\"" + {{ prop.Name }}[i] + "\"" : (((object?){{ prop.Name }}[i]) is System.IFormattable fi_{{ prop.PropId }} ? fi_{{ prop.PropId }}.ToString(null, System.Globalization.CultureInfo.InvariantCulture) : ((((object?){{ prop.Name }}[i])?.ToString()) ?? "null")));
 {{~ end ~}}
             }
             sb.Append("]");
