@@ -26,8 +26,6 @@ public sealed class TypeSymbolData
     /// <summary>Whether [InterfaceOnly] is present.</summary>
     public bool IsInterfaceOnly { get; set; }
 
-    /// <summary>[ExternalType] namespace, or null if not external.</summary>
-    public string? ExternalTypeNamespace { get; set; }
 
     /// <summary>[VmfModel] attribute data, or null.</summary>
     public VmfModelData? VmfModelAttribute { get; set; }
@@ -154,9 +152,8 @@ public sealed class DelegationSymbolData
 public sealed class VmfModelData
 {
     /// <summary>
-    /// The model-wide equality default, or <c>null</c> when the attribute did not specify
-    /// one. [VmfModel] doubles as the per-interface marker, so a bare [VmfModel] must NOT
-    /// override a default declared elsewhere in the model.
+    /// The model-wide equality default, or <c>null</c> when the attribute did not specify one.
+    /// A bare [VmfModel] must NOT override a default declared elsewhere in the model.
     /// </summary>
     public EqualsStrategy? Value { get; set; }
 }

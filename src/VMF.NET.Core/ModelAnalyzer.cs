@@ -42,19 +42,10 @@ public static class ModelAnalyzer
             }
         }
 
-        // --- PASS 0.0: Separate external types ---
-        var modelInterfaces = new List<TypeSymbolData>();
-        foreach (var iface in interfaces)
-        {
-            if (iface.ExternalTypeNamespace != null)
-            {
-                model.AddExternalType(iface.Name, iface.ExternalTypeNamespace);
-            }
-            else
-            {
-                modelInterfaces.Add(iface);
-            }
-        }
+        // [ExternalType] stand-ins never reach here: they are not model types, so discovery
+        // skips them and SymbolExtractor resolves references to them straight to the type they
+        // name. Nothing to separate.
+        var modelInterfaces = interfaces;
 
         // --- PASS 0.1a: Create ModelTypeInfo for each interface (types only) ---
         int typeId = 0;

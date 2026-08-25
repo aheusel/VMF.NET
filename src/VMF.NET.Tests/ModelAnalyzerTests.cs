@@ -358,21 +358,6 @@ public class ModelAnalyzerTests
         Assert.Equal(EqualsStrategy.Instance, model.Types.First(t => t.TypeName == "IBar").EffectiveEqualsStrategy);
     }
 
-    // --- External types ---
-
-    [Fact]
-    public void ExternalType_RegisteredNotAsModelType()
-    {
-        var ext = MakeInterface("IExternal");
-        ext.ExternalTypeNamespace = "Some.External.Ns";
-        var normal = MakeInterface("IFoo");
-
-        var model = ModelAnalyzer.Analyze(Ns, new[] { ext, normal });
-        Assert.False(model.HasErrors);
-        Assert.Single(model.Types); // Only IFoo
-        Assert.True(model.IsExternalType("IExternal"));
-    }
-
     // --- Immutability ---
 
     [Fact]

@@ -24,7 +24,6 @@ internal static class SymbolExtractor
             IsInterface = symbol.TypeKind == TypeKind.Interface,
             IsImmutable = HasAttribute(symbol, "ImmutableAttribute"),
             IsInterfaceOnly = HasAttribute(symbol, "InterfaceOnlyAttribute"),
-            ExternalTypeNamespace = GetExternalTypeNamespace(symbol),
             VmfModelAttribute = GetVmfModelData(symbol),
             VmfEqualsAttribute = GetVmfEqualsData(symbol),
             Documentation = GetDocAttribute(symbol),
@@ -275,23 +274,6 @@ internal static class SymbolExtractor
         return className == name || className == name.Replace("Attribute", "");
     }
 
-    private static string? GetExternalTypeNamespace(INamedTypeSymbol symbol)
-    {
-        var attr = FindAttribute(symbol, "ExternalTypeAttribute");
-        if (attr == null) return null;
-
-        // ExternalType has a Namespace property
-        foreach (var named in attr.NamedArguments)
-        {
-            if (named.Key == "Namespace" && named.Value.Value is string ns)
-                return ns;
-        }
-        // Or first constructor arg
-        if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string ctorNs)
-            return ctorNs;
-
-        return symbol.ContainingNamespace?.ToDisplayString() ?? "";
-    }
 
     private static VmfModelData? GetVmfModelData(INamedTypeSymbol symbol)
     {

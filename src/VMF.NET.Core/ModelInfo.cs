@@ -15,7 +15,6 @@ namespace VMF.NET.Core;
 public sealed class ModelInfo
 {
     private readonly Dictionary<string, ModelTypeInfo> _types = new();
-    private readonly Dictionary<string, string> _externalTypes = new(); // simpleName -> namespace
 
     public ModelInfo(string namespaceName)
     {
@@ -46,12 +45,6 @@ public sealed class ModelInfo
         return type;
     }
 
-    /// <summary>Registers an external type.</summary>
-    public void AddExternalType(string simpleName, string namespaceName)
-    {
-        _externalTypes[simpleName] = namespaceName;
-    }
-
     /// <summary>Resolves a type by full name.</summary>
     public ModelTypeInfo? ResolveType(string fullName)
     {
@@ -61,9 +54,6 @@ public sealed class ModelInfo
 
     /// <summary>Whether the given full name is a known model type.</summary>
     public bool IsModelType(string fullName) => _types.ContainsKey(fullName);
-
-    /// <summary>Whether the given simple name is an external type.</summary>
-    public bool IsExternalType(string simpleName) => _externalTypes.ContainsKey(simpleName);
 
     /// <summary>
     /// Resolves the opposite property from a "TypeName.PropName" reference.
