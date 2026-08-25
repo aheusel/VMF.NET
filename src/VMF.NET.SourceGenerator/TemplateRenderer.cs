@@ -115,6 +115,7 @@ public sealed class TemplateRenderer
         scriptObject.Import("string_array", new Func<IEnumerable<string>, string>(TemplateHelpers.StringArray));
         scriptObject.Import("csharp_string", new Func<string, string>(TemplateHelpers.CSharpString));
         scriptObject.Import("xml_doc", new Func<string, string>(TemplateHelpers.XmlDoc));
+        scriptObject.Import("elem_type_name", new Func<PropertyInfo, string>(TemplateHelpers.ElementTypeName));
         scriptObject.Import("is_primitive", new Func<PropertyInfo, bool>(p => p.PropType == PropType.Primitive));
         // A property gets a trailing `?` when it is a reference type (Class/Collection) OR a
         // nullable value type (double?/int?/bool?), which is classified Primitive but nullable.
@@ -322,20 +323,54 @@ internal sealed class TemplateHelpers
     /// Returns the C# type name for a property, suitable for generated code.
     /// For collections, returns VList&lt;ElementType&gt;.
     /// </summary>
+    /// <summary>
+    /// The C# keyword for a framework type, where one exists. Roslyn names the symbol
+    /// (<c>String</c>, <c>Int32</c>), which compiles but reads as machine output — and the
+    /// generated interface is public API that someone reads. Only <c>System</c> is remapped, so a
+    /// user type called <c>String</c> keeps its name.
+    /// </summary>
+    private static readonly Dictionary<string, string> CSharpKeywords = new(StringComparer.Ordinal)
+    {
+        ["Boolean"] = "bool",
+        ["Byte"] = "byte",
+        ["SByte"] = "sbyte",
+        ["Char"] = "char",
+        ["Decimal"] = "decimal",
+        ["Double"] = "double",
+        ["Single"] = "float",
+        ["Int16"] = "short",
+        ["Int32"] = "int",
+        ["Int64"] = "long",
+        ["UInt16"] = "ushort",
+        ["UInt32"] = "uint",
+        ["UInt64"] = "ulong",
+        ["Object"] = "object",
+        ["String"] = "string",
+    };
+
+    private static string Keyword(string simpleName, string? namespaceName) =>
+        namespaceName == "System" && CSharpKeywords.TryGetValue(simpleName, out var keyword)
+            ? keyword
+            : simpleName;
+
+    /// <summary>The element type of a collection property, as generated code should write it.</summary>
+    public static string ElementTypeName(PropertyInfo prop)
+    {
+        if (prop.GenericModelType != null) return prop.GenericModelType.TypeName;
+        return prop.GenericTypeName is { } name
+            ? Keyword(name, prop.GenericPackageName)
+            : "object";
+    }
+
     public static string PropTypeName(PropertyInfo prop)
     {
         if (prop.IsCollectionType)
-        {
-            var elementType = prop.GenericModelType != null
-                ? prop.GenericModelType.TypeName
-                : prop.GenericTypeName ?? "object";
-            return $"VList<{elementType}>";
-        }
+            return $"VList<{ElementTypeName(prop)}>";
 
         if (prop.IsModelType)
             return prop.ModelType!.TypeName;
 
-        return prop.SimpleTypeName;
+        return Keyword(prop.SimpleTypeName, prop.PackageName);
     }
 
     /// <summary>

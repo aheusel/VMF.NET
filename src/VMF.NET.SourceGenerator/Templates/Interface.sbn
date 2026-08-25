@@ -35,7 +35,7 @@ namespace {{ ns }}
 {{~ # An immutable type is built once and never written to, so nothing gets a setter. ~}}
 {{~ settable = !type.IsImmutable && !(prop.IsGetterOnly) ~}}
 {{~ if prop.IsCollectionType ~}}
-        {{ hiding }}VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}> {{ prop.Name }} { get; }
+        {{ hiding }}VList<{{ elem_type_name prop }}> {{ prop.Name }} { get; }
 {{~ else if prop.IsContainer ~}}
 {{~ # A container is settable exactly when it has an opposite to drive, which is when the
    # implementation generates a setter. Java always generates one; here there is nothing to
@@ -84,7 +84,7 @@ namespace {{ ns }}
 {{~ for prop in all_props ~}}
 {{~ if !(prop.IsContainer) ~}}
 {{~ if prop.IsCollectionType ~}}
-            Builder With{{ prop.Name }}(params {{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}[] values);
+            Builder With{{ prop.Name }}(params {{ elem_type_name prop }}[] values);
 {{~ if prop.GenericModelType != null && !prop.GenericModelType.IsInterfaceOnly ~}}
             /// <summary>Accepts nested builders unbuilt; they are built by <see cref="Build"/>.</summary>
             Builder With{{ prop.Name }}(params {{ prop.GenericModelType.TypeName }}.Builder[] values);

@@ -75,8 +75,8 @@ namespace {{ ns }}
 {{~ if prop.IsContainer ~}}
         // Container property {{ prop.Name }} uses __vmf_container field
 {{~ else if prop.IsCollectionType ~}}
-        private List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>? {{ raw_list_field_name prop }};
-        private VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>? {{ field_name prop }};
+        private List<{{ elem_type_name prop }}>? {{ raw_list_field_name prop }};
+        private VList<{{ elem_type_name prop }}>? {{ field_name prop }};
 {{~ else ~}}
         private {{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} {{ field_name prop }}{{ if prop.DefaultValueAsString != null && prop.DefaultValueAsString != "" }} = {{ prop.DefaultValueAsString }}{{ end }};
 {{~ end ~}}
@@ -198,14 +198,14 @@ namespace {{ ns }}
 {{~ if type.IsImmutable ~}}
 {{~ # --- IMMUTABLE PROPERTIES --- ~}}
 {{~ if prop.IsCollectionType ~}}
-        public VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}> {{ prop.Name }}
+        public VList<{{ elem_type_name prop }}> {{ prop.Name }}
         {
             get
             {
                 if ({{ field_name prop }} == null)
                 {
                     {{ raw_list_field_name prop }} ??= new();
-                    {{ field_name prop }} = new VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>({{ raw_list_field_name prop }});
+                    {{ field_name prop }} = new VList<{{ elem_type_name prop }}>({{ raw_list_field_name prop }});
                 }
                 return {{ field_name prop }};
             }
@@ -229,7 +229,7 @@ namespace {{ ns }}
             {
                 if ({{ field_name prop }} == null)
                 {
-                    {{ field_name prop }} = new VList<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>(GetOrCreateRawList_{{ prop.Name }}());
+                    {{ field_name prop }} = new VList<{{ elem_type_name prop }}>(GetOrCreateRawList_{{ prop.Name }}());
 {{~ if prop.IsContained && prop.GenericModelType != null ~}}
                     // Containment change listener
                     {{ field_name prop }}.AddChangeListener(evt =>
@@ -357,7 +357,7 @@ namespace {{ ns }}
             }
         }
 
-        private List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}> GetOrCreateRawList_{{ prop.Name }}()
+        private List<{{ elem_type_name prop }}> GetOrCreateRawList_{{ prop.Name }}()
         {
 {{~ if prop.DefaultValueAsString != null && prop.DefaultValueAsString != "" ~}}
             // Seeded from the declared collection default, as Java evaluates its default
@@ -695,7 +695,7 @@ namespace {{ ns }}
 {{~ # "Set" means "differs from the declared default", the same rule as for scalars: a list
    # still holding exactly its default is unset. ~}}
                 case {{ prop.PropId }}: return {{ raw_list_field_name prop }} != null
-                    && !System.Linq.Enumerable.SequenceEqual({{ raw_list_field_name prop }}, new List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>({{ prop.DefaultValueAsString }}));
+                    && !System.Linq.Enumerable.SequenceEqual({{ raw_list_field_name prop }}, new List<{{ elem_type_name prop }}>({{ prop.DefaultValueAsString }}));
 {{~ else ~}}
 {{~ # No declared default. Java compares against null here, which reports an EMPTY list as set;
    # that reads oddly and is unverified against a real Java run, so the existing rule stands. ~}}
@@ -1014,7 +1014,7 @@ namespace {{ ns }}
 {{~ for prop in all_props ~}}
 {{~ if !(prop.IsContainer) ~}}
 {{~ if prop.IsCollectionType ~}}
-            private List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>? __builder_{{ prop.Name }};
+            private List<{{ elem_type_name prop }}>? __builder_{{ prop.Name }};
 {{~ if prop.GenericModelType != null && !prop.GenericModelType.IsInterfaceOnly ~}}
             // nested builders handed over unbuilt; materialised in Build()
             private List<{{ prop.GenericModelType.TypeName }}.Builder>? __builder_{{ prop.Name }}_nested;
@@ -1032,9 +1032,9 @@ namespace {{ ns }}
 {{~ for prop in all_props ~}}
 {{~ if !(prop.IsContainer) ~}}
 {{~ if prop.IsCollectionType ~}}
-            public {{ type.TypeName }}.Builder With{{ prop.Name }}(params {{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}[] values)
+            public {{ type.TypeName }}.Builder With{{ prop.Name }}(params {{ elem_type_name prop }}[] values)
             {
-                __builder_{{ prop.Name }} = new List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>(values);
+                __builder_{{ prop.Name }} = new List<{{ elem_type_name prop }}>(values);
                 return this;
             }
 {{~ if prop.GenericModelType != null && !prop.GenericModelType.IsInterfaceOnly ~}}
@@ -1105,7 +1105,7 @@ namespace {{ ns }}
 {{~ if prop.IsCollectionType ~}}
                 if (__builder_{{ prop.Name }} != null)
                 {
-                    obj.{{ raw_list_field_name prop }} = new List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>(__builder_{{ prop.Name }});
+                    obj.{{ raw_list_field_name prop }} = new List<{{ elem_type_name prop }}>(__builder_{{ prop.Name }});
                 }
 {{~ else ~}}
                 if (__builder_{{ prop.Name }}_set) obj.{{ field_name prop }} = __builder_{{ prop.Name }};
@@ -1136,7 +1136,7 @@ namespace {{ ns }}
 {{~ continue ~}}
 {{~ end ~}}
 {{~ if prop.IsCollectionType ~}}
-                __builder_{{ prop.Name }} = new List<{{ prop.GenericModelType != null ? prop.GenericModelType.TypeName : (prop.GenericTypeName ?? "object") }}>(source.{{ prop.Name }});
+                __builder_{{ prop.Name }} = new List<{{ elem_type_name prop }}>(source.{{ prop.Name }});
 {{~ else ~}}
                 __builder_{{ prop.Name }} = source.{{ prop.Name }};
                 __builder_{{ prop.Name }}_set = true;

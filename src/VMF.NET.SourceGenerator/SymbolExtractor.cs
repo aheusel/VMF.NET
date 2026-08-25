@@ -162,8 +162,8 @@ internal static class SymbolExtractor
                 FullTypeName = constructorDelegation.FullTypeName,
                 CallerTypeName = constructorDelegation.CallerTypeName,
                 MethodName = method.Name,
-                ReturnType = method.ReturnsVoid ? "void" : GetFullName(method.ReturnType),
-                ParamTypes = method.Parameters.Select(p => GetFullName(p.Type)).ToList(),
+                ReturnType = method.ReturnsVoid ? "void" : GetCodeName(method.ReturnType),
+                ParamTypes = method.Parameters.Select(p => GetCodeName(p.Type)).ToList(),
                 ParamNames = method.Parameters.Select(p => p.Name).ToList(),
                 Documentation = GetDocAttribute(method),
             };
@@ -180,8 +180,8 @@ internal static class SymbolExtractor
             MethodName = method.Name,
             // GetFullName would yield "System.Void", which is not writable in C#; the
             // template also compares against the literal "void" to decide whether to return.
-            ReturnType = method.ReturnsVoid ? "void" : GetFullName(method.ReturnType),
-            ParamTypes = method.Parameters.Select(p => GetFullName(p.Type)).ToList(),
+            ReturnType = method.ReturnsVoid ? "void" : GetCodeName(method.ReturnType),
+            ParamTypes = method.Parameters.Select(p => GetCodeName(p.Type)).ToList(),
             ParamNames = method.Parameters.Select(p => p.Name).ToList(),
             Documentation = GetDocAttribute(method),
         };
@@ -452,6 +452,56 @@ internal static class SymbolExtractor
         if (type.ContainingNamespace == null || type.ContainingNamespace.IsGlobalNamespace)
             return null;
         return type.ContainingNamespace.ToDisplayString();
+    }
+
+    /// <summary>
+    /// A type as generated code should <b>write</b> it: C# keywords for the framework types
+    /// (<c>string</c>, not <c>System.String</c>), model types mapped to their generated names.
+    /// <para>
+    /// Distinct from <see cref="GetFullName"/>, which also feeds the reflection metadata — that
+    /// reports <c>System.String</c>, the faithful counterpart of Java's <c>java.lang.String</c>,
+    /// and must keep doing so.
+    /// </para>
+    /// </summary>
+    private static string GetCodeName(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol arrayType)
+            return GetCodeName(arrayType.ElementType) + "[]";
+
+        if (ModelNaming.TryMapModelType(type, out var apiFullName, out _))
+            return apiFullName;
+
+        var keyword = type.SpecialType switch
+        {
+            SpecialType.System_Boolean => "bool",
+            SpecialType.System_Byte => "byte",
+            SpecialType.System_SByte => "sbyte",
+            SpecialType.System_Char => "char",
+            SpecialType.System_Decimal => "decimal",
+            SpecialType.System_Double => "double",
+            SpecialType.System_Single => "float",
+            SpecialType.System_Int16 => "short",
+            SpecialType.System_Int32 => "int",
+            SpecialType.System_Int64 => "long",
+            SpecialType.System_UInt16 => "ushort",
+            SpecialType.System_UInt32 => "uint",
+            SpecialType.System_UInt64 => "ulong",
+            SpecialType.System_Object => "object",
+            SpecialType.System_String => "string",
+            _ => null,
+        };
+        if (keyword != null) return keyword;
+
+        var ns = GetNamespace(type);
+        if (string.IsNullOrEmpty(ns)) return type.Name;
+
+        if (type is INamedTypeSymbol named && named.TypeArguments.Length > 0)
+        {
+            var args = string.Join(", ", named.TypeArguments.Select(GetCodeName));
+            return $"{ns}.{named.Name}<{args}>";
+        }
+
+        return $"{ns}.{type.Name}";
     }
 
     /// <summary>The simple name generated code uses; mapped for model types, as GetFullName is.</summary>
