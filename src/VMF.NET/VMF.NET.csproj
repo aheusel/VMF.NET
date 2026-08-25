@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Metapackage. Java sets a VMF project up with one line — `apply plugin: 'eu.mihosoft.vmf'` —
+    and this is its counterpart: a single PackageReference brings in the runtime and wires the
+    generator as an analyzer.
+
+        <PackageReference Include="VMF.NET" Version="..." />
+
+    It carries no code of its own; IncludeBuildOutput=false keeps the empty lib out of the
+    package, and NU5128 is the warning about exactly that being deliberate here.
+  -->
+
+  <PropertyGroup>
+    <PackageId>VMF.NET</PackageId>
+    <TargetFramework>net6.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <Description>
+      VMF.NET — model-driven code generation for .NET. Reference this one package to get the
+      runtime and the source generator. Declare your model in a namespace ending in `.VmfModel`;
+      the public API is generated into the namespace above it.
+    </Description>
+  </PropertyGroup>
+
+  <!--
+    PrivateAssets="none" is load-bearing. A ProjectReference defaults to excluding the Analyzers
+    and Build assets from the emitted dependency, which would leave a consumer of this package
+    with the runtime and no generator at all — the one thing the package exists to deliver.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\VMF.NET.Runtime\VMF.NET.Runtime.csproj"
+                      PrivateAssets="none" IncludeAssets="all" />
+    <ProjectReference Include="..\VMF.NET.SourceGenerator\VMF.NET.SourceGenerator.csproj"
+                      PrivateAssets="none" IncludeAssets="all" />
+  </ItemGroup>
+
+</Project>
