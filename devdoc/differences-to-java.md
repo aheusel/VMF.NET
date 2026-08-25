@@ -195,7 +195,7 @@ Java narrows a property by overriding its getter with a narrower return type. C#
 asks for the intent to be stated:
 
 ```csharp
-public partial interface IWithLocationX : IWithLocation
+interface IWithLocationX : IWithLocation
 {
     [GetterOnly] new ILocationX? Location { get; }
 }
@@ -259,7 +259,7 @@ Mechanical, expected by anyone writing C#, and **not** divergences:
 
 | Java | VMF.NET |
 |---|---|
-| `interface Parent` | `public partial interface IParent` |
+| `interface Parent` | `interface Parent` — plain, in a `.VmfModel` namespace; generates `IParent` |
 | `getName()` / `setName(x)` | `Name { get; set; }` |
 | `Parent.newInstance()` / `newBuilder()` | `IParent.NewInstance()` / `IParent.NewBuilder()` |
 | `@Contains` / `@Container` / `@Refers` | `[Contains]` / `[Container]` / `[Refers]` |

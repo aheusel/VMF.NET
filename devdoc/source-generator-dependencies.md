@@ -133,7 +133,7 @@ where Scriban 7 happens to work. Reproduce like this:
 
 3. Build a consumer that pins an **older** SDK via `global.json`
    (`{ "sdk": { "version": "8.0.202", "rollForward": "disable" } }`), referencing
-   `VMF.NET.Runtime` + `VMF.NET.SourceGenerator` from that feed, with a `[VmfModel]` interface
+   the `VMF.NET` metapackage from that feed, with a model interface in a `.VmfModel` namespace
    and a call to `NewInstance()`.
 
 **Two traps that produce false results:**
