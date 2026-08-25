@@ -7,17 +7,18 @@ namespace VMF.NET.TestSuite.VmfTest.Annotations;
 
 public class AnnotationsTest
 {
-    // DEVIATION: VMF.NET also exposes its own bookkeeping annotations -- per-property
-    // "vmf:property:containment-info", and per-type "vmf:type:immutable"/"vmf:type:interface-only"
-    // for those kinds of type -- through the public Annotations() lists. None of the types in
-    // this area is immutable or interface-only, so the type-level counts below match Java; the
-    // property-level ones need the filter.
+    // NOT a deviation, though it was recorded as one until 2026-08-25.
     //
-    // Original note: VMF.NET also exposes its own bookkeeping annotation
-    // ("vmf:property:containment-info", emitted for EVERY property) through the public
-    // Annotations() list, so a raw count differs from Java. That is deliberate here --
-    // ShallowCopyAnnotationTests asserts the internal annotation IS visible -- so the ports
-    // assert on the user-declared annotations rather than on the total count.
+    // VMF.NET exposes "vmf:property:containment-info" on every property through the public
+    // Annotations() list -- and so does Java, with identical values (none / contained:<opposite>
+    // / container:<opposite>). Measured against vmf 0.2.9.7-SNAPSHOT; see VMF.NET.JavaProbe.
+    //
+    // Java's own AnnotationsTest is the tell: it asserts an EXACT size for type-level annotations
+    // but filters by key for property-level ones. This filter exists for the same reason Java's
+    // does, so the port stays faithful rather than diverging.
+    //
+    // ShallowCopyAnnotationTests asserts the bookkeeping annotation IS visible, which is why the
+    // filter lives here rather than in the runtime.
     private static System.Collections.Generic.List<VMF.NET.Runtime.IAnnotation> UserAnnotations(
         VMF.NET.Runtime.IVObject o, string propertyName) =>
         o.Vmf().Reflect().PropertyByName(propertyName)!.Annotations()

@@ -239,17 +239,47 @@ evaluation step, so the ported fact asserts what makes the statement uncompilabl
 view exposes no setter. See the note in
 [`DaBeanTest.cs`](../src/VMF.NET.TestSuite/VmfTest/Test1/DaBeanTest.cs).
 
-### Open questions
+### `IsSet` on a collection with no declared default
 
-Two differences are **recorded but not decided** — they are not yet known to be right. Both are
-described in [`java-parity-roadmap.md`](java-parity-roadmap.md), "Parity statement":
+Measured 2026-08-25 against a real Java run (vmf 0.2.9.7-SNAPSHOT), so this is no longer an open
+question. See [`VMF.NET.JavaProbe`](../../VMF.NET.JavaProbe/README.md).
 
-- `IsSet` on a **collection with no declared default**: VMF.NET reports an empty list as unset;
-  Java compares against `null`, which would report it as *set*. Unverified against a real Java
-  run.
-- `Annotations()` includes VMF.NET's own bookkeeping entries
-  (`vmf:property:containment-info`, `vmf:type:immutable`, `vmf:type:interface-only`), which Java
-  does not — so raw annotation counts differ, and ported assertions filter on the `vmf:` prefix.
+| case | Java | VMF.NET |
+|---|---|---|
+| collection **with** a declared default | compares against the default | `SequenceEqual` against the default — **agree** |
+| collection **without** a default, non-empty | `true` | `true` (`Count > 0`) — **agree** |
+| collection **without** a default, **empty** | `true` | `false` — **diverge** |
+| containment collection, empty | `true` | `false` — **diverge** (containment can never declare a default) |
+
+So the divergence is one cell wide: an **empty collection that never declared a default**.
+
+Java's `_vmf_isSetById` is `!Objects.equals(getDefault(), get())`; for such a property the
+generated default is `null` while the getter always materialises a non-null `VList`. The
+comparison can therefore never hold, so `isSet()` is a **constant `true`** — `add`, `remove`,
+`set(empty)` all leave it `true`, and the `unset()` that would be its natural partner throws
+`NullPointerException` (`addAll((String[]) null)`).
+
+**VMF.NET keeps `Count > 0` deliberately.** Adopting Java's answer would import a value that
+cannot vary and a companion method that throws. This is the one place the parity goal (C-1) is
+knowingly not followed, because the Java behaviour is a defect rather than a design. Revisit if
+upstream fixes it.
+
+### `Annotations()` and VMF's bookkeeping entries — **not a difference**
+
+This was recorded as a divergence and was **wrong**. Measured 2026-08-25 on the same run: Java
+emits the bookkeeping annotations exactly as VMF.NET does.
+
+- `vmf:property:containment-info` — emitted by **both**, on **every** property, with the same
+  values: `none`, `contained:<opposite>`, `container:<opposite>`.
+- `vmf:type:immutable` — emitted by **both** on immutable types.
+- `vmf:type:interface-only` — present in both code generators but **unreachable in both**: an
+  interface-only type gets no implementation, and the annotation array lives in the
+  implementation. Dead code on both sides.
+
+Java's own `AnnotationsTest` is the tell: it asserts an **exact** size for type-level annotations
+but **filters by key** for property-level ones — which is what you write when property annotations
+carry an extra entry you do not want to count. The ported assertions filter for the same reason
+Java's do, not because VMF.NET differs.
 
 ---
 

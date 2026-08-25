@@ -707,8 +707,15 @@ namespace {{ ns }}
                 case {{ prop.PropId }}: return {{ raw_list_field_name prop }} != null
                     && !System.Linq.Enumerable.SequenceEqual({{ raw_list_field_name prop }}, new List<{{ elem_type_name prop }}>({{ prop.DefaultValueAsString }}));
 {{~ else ~}}
-{{~ # No declared default. Java compares against null here, which reports an EMPTY list as set;
-   # that reads oddly and is unverified against a real Java run, so the existing rule stands. ~}}
+{{~ # No declared default. This is the one place VMF.NET knowingly does NOT match Java.
+   #
+   # Java compares against null, and the getter always materialises a non-null VList, so its
+   # isSet() here is a CONSTANT true -- add, remove and set(empty) all leave it true, and the
+   # unset() that would be its partner throws NullPointerException on addAll((T[]) null).
+   # Measured 2026-08-25 against vmf 0.2.9.7-SNAPSHOT; see VMF.NET.JavaProbe.
+   #
+   # A value that cannot vary carries no information, so Count > 0 stands. Collections that DO
+   # declare a default use Java's rule, in the branch above. ~}}
                 case {{ prop.PropId }}: return {{ raw_list_field_name prop }} != null && {{ raw_list_field_name prop }}.Count > 0;
 {{~ end ~}}
 {{~ else if prop.IsContainer && !type.IsImmutable ~}}

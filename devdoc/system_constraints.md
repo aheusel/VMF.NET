@@ -41,7 +41,21 @@ A difference is classified as exactly one of:
 - **Surface convention** — `Name` not `name`, `IParent` not `Parent`. Not a divergence.
 
 **Verify:** against Java's *implementation*, not its tests. The tests state what the authors chose
-to pin; the implementation states what actually happens.
+to pin; the implementation states what actually happens. Where neither settles it — because the
+implementation's intent is unclear, or the behaviour is emergent — **run real Java** rather than
+reasoning about templates: [`VMF.NET.JavaProbe`](../../VMF.NET.JavaProbe/README.md) exists for
+exactly that, and has twice overturned what this repo had recorded.
+
+### The one knowing exception
+
+`IsSet` on a **collection with no declared default**. Java reports it as set even when empty; more
+precisely it reports a constant `true` that no operation can change, and the `unset()` that would
+be its partner throws `NullPointerException`. VMF.NET uses `Count > 0` instead.
+
+This is filed under neither "C# forces it" nor "we chose it" — it is a Java **defect** being
+declined. Recording it here rather than in the defect list is deliberate: C-1 says a difference we
+chose is a defect to fix, and this is the standing exception to that rule. Revisit if upstream
+fixes it. Measured 2026-08-25 against vmf 0.2.9.7-SNAPSHOT.
 
 **See:** [`java-parity-roadmap.md`](java-parity-roadmap.md) (design goal, parity statement),
 [`differences-to-java.md`](differences-to-java.md).

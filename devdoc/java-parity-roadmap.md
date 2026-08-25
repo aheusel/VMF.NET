@@ -46,9 +46,9 @@ leave open, such as what happens when you assign the default explicitly (still "
 | Divergence | Status |
 |---|---|
 | `ToString` shape — Java uses an `@type` member and alphabetical properties; VMF.NET puts the type outside the braces and orders as declared | **Align with Java** (M9). Previously filed as "a decision"; under this goal it is a gap |
-| `Annotations()` exposes VMF.NET's own `vmf:property:containment-info`, which Java does not | Reconsider. A Java user counting annotations gets a different number |
+| ~~`Annotations()` exposes VMF.NET's own `vmf:property:containment-info`, which Java does not~~ | **Not a divergence — the entry was wrong.** Measured 2026-08-25: Java emits it too, on every property, with identical values. See [`VMF.NET.JavaProbe`](../../VMF.NET.JavaProbe/README.md) |
 | Cross-reference lists accept duplicates; Java keeps one reference | Defect (M9) |
-| `IsSet` on a **collection** uses `Count > 0`, where Java compares against the default | **Unverified.** Java returns `null` as the default for a collection without a declared one, which would make an empty list report *set* — that reads oddly enough that it needs a probe against a real Java run before being called either way |
+| `IsSet` on a **collection with no declared default** uses `Count > 0`, where Java compares against the default | **Measured 2026-08-25, and kept.** Java does report an empty such collection as *set* — in fact as a constant `true` nothing can change, whose partner `unset()` throws `NullPointerException`. Collections that *do* declare a default already agree. Knowingly not following C-1, because the Java behaviour is a defect rather than a design |
 | ~~A settable `[Container]` needs `{ get; set; }` in the model~~ | **Closed by C-6.** It was filed as C#-forced, and it was not — it followed from the model interface being the public API, which is no longer true. A good example of how much rests on one architectural premise |
 | ~~Container properties were told apart by the container's runtime **type**, where Java uses the container property **id**~~ | **Fixed.** Found while porting VFlow's connect logic. Two container properties naming the same containing type were indistinguishable, and the detach path removed an object from every list of a matching type — including the one it was joining | 
 
@@ -182,13 +182,18 @@ milestone on this roadmap is done.
 | Read-only write attempts fail at compile time, not at runtime | C# resolves members statically |
 | A narrowed property needs `new` on the model interface, and a **collection** cannot be narrowed at all | C# has no covariant override for an interface property, and `VList<T>` is invariant where Java's properties are covariant arrays |
 
-**Known differences that are not forced**, and remain open questions rather than decisions:
+**Known differences that are not forced.** Both were open questions until 2026-08-25, when they
+were settled against a real Java run — see [`VMF.NET.JavaProbe`](../../VMF.NET.JavaProbe/README.md):
 
-- `IsSet` on a collection with **no declared default**: ours reports an empty list as unset,
-  Java compares against null and would report it as set. Unverified against a real Java run.
-- `Annotations()` includes VMF.NET's own bookkeeping entries
-  (`vmf:property:containment-info`, `vmf:type:immutable`, `vmf:type:interface-only`), which Java
-  does not, so raw annotation counts differ.
+- `IsSet` on a collection with **no declared default**: ours reports an empty list as unset, Java
+  reports it as set. **Confirmed, and deliberately kept.** Java's value is a constant `true` that
+  no operation can change, and its `unset()` throws `NullPointerException`. Collections that do
+  declare a default already agree, so the divergence is one cell wide.
+- ~~`Annotations()` includes VMF.NET's own bookkeeping entries, which Java does not~~ —
+  **the entry was wrong; there is no difference.** Java emits `vmf:property:containment-info` on
+  every property and `vmf:type:immutable` on immutable types, with values identical to ours.
+  `vmf:type:interface-only` is unreachable in both, since neither generates an implementation for
+  an interface-only type.
 
 **Coverage gaps, not wiring gaps.** `IChange.Apply` and `ITraversalListener.Traverse` are public
 API that Java also exposes and also never calls internally. They have no ported fact behind them.
