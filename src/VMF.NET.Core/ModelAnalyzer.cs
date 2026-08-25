@@ -33,9 +33,9 @@ public static class ModelAnalyzer
         // --- Find model config ---
         foreach (var iface in interfaces)
         {
-            // [VmfModel] is also the per-interface marker, so only an interface that
-            // EXPLICITLY sets Equality declares the model-wide default. Otherwise every bare
-            // [VmfModel] would reset it, and the one deliberate declaration would be lost.
+            // [VmfModel] is no longer a marker -- the namespace decides that (C-6). It survives
+            // only as model-wide configuration, so an interface declares the default for its
+            // whole namespace by setting Equality explicitly.
             if (iface.VmfModelAttribute?.Value is { } equalsDefault)
             {
                 model.Config = new ModelConfig { EqualsDefault = equalsDefault };

@@ -31,50 +31,53 @@ A VMF.NET model consists of annotated C# interfaces. Just define the interface a
 
 Checkout the [tutorial](https://github.com/aheusel/VMF.NET.Tutorials) projects.
 
-Add the NuGet packages to your project:
+Add the NuGet package to your project:
 
 ```xml
-<PackageReference Include="VMF.NET.Runtime" Version="*" />
-<PackageReference Include="VMF.NET.SourceGenerator" Version="*" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+<PackageReference Include="VMF.NET" Version="*" />
 ```
 
-> Replace `*` with a specific version (e.g., `0.1.1`) for reproducible builds. See [NuGet](https://www.nuget.org/packages/VMF.NET.Runtime) for the latest version.
+> Replace `*` with a specific version for reproducible builds. See [NuGet](https://www.nuget.org/packages/VMF.NET) for the latest.
 
-Define your model as annotated `partial` interfaces. The interfaces must be marked with `[VmfModel]` and the namespace must end with `.VmfModel`:
+Define your model as C# interfaces in a namespace ending in `.VmfModel`. That namespace is what
+marks them as a model — no attribute is needed, and the interfaces need not be `public` or
+`partial`, because the model is **build input**, not the API you use:
 
 ```csharp
-using VMF.NET.Runtime.Core;
+using VMF.NET.Runtime;
+using VMF.NET.Runtime.Attributes;
 
 namespace MyApp.VmfModel;
 
-[VmfModel]
-public partial interface IParent
+interface Parent
 {
-    [Contains(Opposite = nameof(IChild.Parent))]
-    IList<IChild> Children { get; }
+    string? Name { get; set; }
 
-    string Name { get; set; }
+    [Contains("Child.Parent")]
+    VList<Child> Children { get; }
 }
 
-[VmfModel]
-public partial interface IChild
+interface Child
 {
-    [Container(Opposite = nameof(IParent.Children))]
-    IParent? Parent { get; }
-
     int Value { get; set; }
+
+    [Container("Parent.Children")]
+    Parent? Parent { get; }
 }
 ```
 
-The source generator runs automatically on every build — no task to invoke. The generated implementation is immediately available:
+VMF.NET generates the public API into the namespace **above** the model — `MyApp` here — prefixing
+each name with `I`. That is what your code uses:
 
 ```csharp
+using MyApp;
+
 // Create via factory method
 var parent = IParent.NewInstance();
 parent.Name = "Root";
 
 // Or use the builder
-var child = IChild.Build()
+var child = IChild.NewBuilder()
     .WithValue(42)
     .Build();
 
@@ -94,6 +97,8 @@ var copy = parent.Clone();
 // Read-only wrapper
 IReadOnlyParent ro = parent.AsReadOnly();
 ```
+
+The source generator runs automatically on every build — no task to invoke.
 
 ### JSON Serialization
 
