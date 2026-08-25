@@ -56,10 +56,10 @@ namespace {{ ns }}
 
 {{~ if !(type.IsInterfaceOnly) ~}}
         /// <summary>Creates a new builder for this type.</summary>
-        static {{ type.TypeName }}.Builder NewBuilder() => new {{ type.ImplClassName }}.BuilderImpl();
+        {{ if hides_factories }}new {{ end }}static {{ type.TypeName }}.Builder NewBuilder() => new {{ type.ImplClassName }}.BuilderImpl();
 
         /// <summary>Creates a new instance of this type.</summary>
-        static {{ type.TypeName }} NewInstance() => new {{ type.ImplClassName }}();
+        {{ if hides_factories }}new {{ end }}static {{ type.TypeName }} NewInstance() => new {{ type.ImplClassName }}();
 
         /// <summary>
         /// Returns the type object for this model type, which supports reflection without an
@@ -70,7 +70,7 @@ namespace {{ ns }}
         /// interface. <c>ModelType</c> is the collision-free equivalent.
         /// </para>
         /// </summary>
-        static VmfType ModelType() => new {{ type.ImplClassName }}().GetVmfType();
+        {{ if hides_factories }}new {{ end }}static VmfType ModelType() => new {{ type.ImplClassName }}().GetVmfType();
 
         /// <summary>Typed deep clone.</summary>
         new {{ type.TypeName }} Clone();
@@ -79,7 +79,7 @@ namespace {{ ns }}
         new {{ type.ReadOnlyInterfaceName }} AsReadOnly();
 
         /// <summary>Builder interface for {{ type.TypeName }}.</summary>
-        interface Builder : IBuilder
+        {{ if hides_factories }}new {{ end }}interface Builder : IBuilder
         {
 {{~ for prop in all_props ~}}
 {{~ if !(prop.IsContainer) ~}}

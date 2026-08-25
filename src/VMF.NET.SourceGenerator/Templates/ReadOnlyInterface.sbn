@@ -29,14 +29,17 @@ namespace {{ ns }}
 {{~ if prop.IsDocumented ~}}
         /// <summary>{{ xml_doc prop.Documentation }}</summary>
 {{~ end ~}}
+{{~ # `new` where a base declares the same name, so a narrowed or re-stated property does not
+   # leave CS0108 in the consumer's build. ~}}
+{{~ hiding = hides_base prop.Name ? "new " : "" ~}}
 {{~ if prop.IsCollectionType ~}}
-        IReadOnlyList<{{ prop.GenericModelType != null ? prop.GenericModelType.ReadOnlyInterfaceName : (prop.GenericTypeName ?? "object") }}> {{ prop.Name }} { get; }
+        {{ hiding }}{{ read_only_prop_type_name prop }} {{ prop.Name }} { get; }
 {{~ else if prop.IsContainer ~}}
-        IVObject? {{ prop.Name }} { get; }
+        {{ hiding }}IVObject? {{ prop.Name }} { get; }
 {{~ else if prop.IsModelType ~}}
-        {{ prop.ModelType.ReadOnlyInterfaceName }}? {{ prop.Name }} { get; }
+        {{ hiding }}{{ prop.ModelType.ReadOnlyInterfaceName }}? {{ prop.Name }} { get; }
 {{~ else ~}}
-        {{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} {{ prop.Name }} { get; }
+        {{ hiding }}{{ prop_type_name prop }}{{ if (is_nullable prop) }}?{{ end }} {{ prop.Name }} { get; }
 {{~ end ~}}
 {{~ end ~}}
 

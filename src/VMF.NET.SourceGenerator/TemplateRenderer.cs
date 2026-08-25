@@ -142,6 +142,11 @@ public sealed class TemplateRenderer
         }
         scriptObject.Import("hides_base", new Func<string, bool>(baseMemberNames.Contains));
 
+        // NewInstance/NewBuilder/ModelType/Builder are generated onto every non-interface-only
+        // type, so a derived interface hides its base's. Stating it with `new` is what keeps
+        // CS0108 out of the consumer's build.
+        scriptObject.Add("hides_factories", type.AllInheritedTypes.Any(t => !t.IsInterfaceOnly));
+
         // Pre-compute string arrays for static readonly fields
         scriptObject.Add("prop_names_literal", TemplateHelpers.StringArray(allProps.Select(p => p.Name)));
         scriptObject.Add("prop_type_names_literal", TemplateHelpers.StringArray(allProps.Select(p => TemplateHelpers.PropTypeFullName(p))));

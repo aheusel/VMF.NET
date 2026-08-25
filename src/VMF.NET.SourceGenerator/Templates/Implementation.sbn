@@ -84,7 +84,14 @@ namespace {{ ns }}
 
         // Per-instance default values, as in Java's _VMF_DEFAULT_VALUES: null means "no override,
         // use the compile-time default". Allocated only when SetDefaultValueById is first used.
+        //
+        // CS0649 is suppressed because whether anything assigns this depends on the model, not on
+        // the generated code: a type with no writable default never reaches SetDefaultValueById.
+        // The warning carries no signal here, and it would otherwise appear in the consumer's own
+        // build output.
+#pragma warning disable CS0649
         private object?[]? __vmf_defaultOverrides;
+#pragma warning restore CS0649
 
         // Set while this object is updated as the opposite side of a cross-reference, so the
         // resulting change is classified as an echo. See IChangeInternal.IsCrossRefEchoChange.
@@ -106,8 +113,11 @@ namespace {{ ns }}
         // Read-only wrapper
         private {{ type.ReadOnlyImplClassName }}? __vmf_readOnlyWrapper;
 
-        // Property change event
+        // Property change event. CS0067 is suppressed for the same reason as CS0649 above: only a
+        // property setter raises it, so a model whose properties are all getter-only never does.
+#pragma warning disable CS0067
         public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore CS0067
 {{~ end ~}}
 
         // --- Delegates ---
