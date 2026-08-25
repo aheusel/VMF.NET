@@ -2,8 +2,25 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+
+    <!--
+      Writes the generated sources to obj/<cfg>/<tfm>/generated so they can be read. Worth keeping:
+      almost every generator bug this project has had was diagnosed by looking at the output.
+
+      The catch is that these files are NOT tracked as build outputs, so nothing ever deletes them.
+      Rename a model type and the old file stays on disk beside the new one forever. Measured
+      2026-08-25 after renaming 260 models: 1772 files present where a clean run emits 1168, with
+      259 stale interfaces still sitting there under their previous names.
+
+      That is not a compile hazard (obj is outside the default compile glob) but it is a first-rate
+      red herring when something looks wrong, so `Clean` now removes them.
+    -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
+
+  <Target Name="_RemoveGeneratedFilesOnClean" AfterTargets="Clean">
+    <RemoveDir Directories="$(CompilerGeneratedFilesOutputPath)" ContinueOnError="true" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
