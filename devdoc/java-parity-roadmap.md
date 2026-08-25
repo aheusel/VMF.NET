@@ -2,6 +2,9 @@
 
 **Goal:** the .NET suite covers what the Java project's `test-suite` module covers.
 **Status:** port complete (M2″); every milestone done. **0 skipped facts.**
+> Work continued past this roadmap. What came after — the build-setup rework that made the
+> model build input rather than API — is recorded in
+> [`system_constraints.md`](system_constraints.md) as **C-6**, not here.
 **Last updated:** 2026-08-24.
 
 > Companion docs: [`source-generator-dependencies.md`](source-generator-dependencies.md),
@@ -46,7 +49,7 @@ leave open, such as what happens when you assign the default explicitly (still "
 | `Annotations()` exposes VMF.NET's own `vmf:property:containment-info`, which Java does not | Reconsider. A Java user counting annotations gets a different number |
 | Cross-reference lists accept duplicates; Java keeps one reference | Defect (M9) |
 | `IsSet` on a **collection** uses `Count > 0`, where Java compares against the default | **Unverified.** Java returns `null` as the default for a collection without a declared one, which would make an empty list report *set* — that reads oddly enough that it needs a probe against a real Java run before being called either way |
-| A settable `[Container]` needs `{ get; set; }` in the model; Java always generates the setter | C#-forced: the model interface *is* the public API here, and a partial interface cannot add a setter to a property already declared `{ get; }` |
+| ~~A settable `[Container]` needs `{ get; set; }` in the model~~ | **Closed by C-6.** It was filed as C#-forced, and it was not — it followed from the model interface being the public API, which is no longer true. A good example of how much rests on one architectural premise |
 | ~~Container properties were told apart by the container's runtime **type**, where Java uses the container property **id**~~ | **Fixed.** Found while porting VFlow's connect logic. Two container properties naming the same containing type were indistinguishable, and the detach path removed an object from every list of a matching type — including the one it was joining | 
 
 ## Correction, 2026-08-23
@@ -80,7 +83,7 @@ comes before further feature work.
 | Test classes | 31; 29 portable after 2 deliberate non-ports | **31 in the TestSuite, plus 1 in `VMF.NET.Tests`** |
 | Facts | 104; **101 portable** | **97 in the TestSuite** (all running) **+ 5 validation facts in `VMF.NET.Tests`** |
 
-Suite totals today: **325 passing**, 0 skipped, 0 failing (237 TestSuite + 88 Tests).
+Suite totals today: **328 passing**, 0 skipped, 0 failing (237 TestSuite + 91 Tests).
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
 splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
@@ -91,8 +94,9 @@ Some C# facts have no Java counterpart and are extra coverage rather than parity
 cross-reference regression facts guarding the recursion fix, the `FSMTest` clone/`ToString`
 split, `UnparserModelTest`'s from-the-child-side variant, five `VList` batch-operation unit tests,
 eight `ModelAnalyzerTests` facts pinning the delegation-inheritance rules M6 introduced and the
-narrowing rules M7 introduced, and five `ContainerPropertyIdTests` facts guarding the
-container-property-identity fix.
+narrowing rules M7 introduced, five `ContainerPropertyIdTests` facts guarding the
+container-property-identity fix, and three `ModelDiscoveryTests` facts pinning what makes an
+interface a model type (C-6).
 
 ### The parity gap: none
 
@@ -174,7 +178,6 @@ milestone on this roadmap is done.
 |---|---|
 | `ModelType()` rather than Java's `type()` | a model may declare a property named `Type`, and a method cannot share a name with a property |
 | A member inherited from two unrelated interfaces must be re-declared | `CS0229` |
-| A settable `[Container]` needs `{ get; set; }` in the model | the model interface *is* the public API; a partial interface cannot add a setter |
 | `Name` rather than `name`, `IParent` rather than `Parent`, `[Contains]` rather than `@Contains` | surface convention, not behaviour |
 | Read-only write attempts fail at compile time, not at runtime | C# resolves members statically |
 | A narrowed property needs `new` on the model interface, and a **collection** cannot be narrowed at all | C# has no covariant override for an interface property, and `VList<T>` is invariant where Java's properties are covariant arrays |
