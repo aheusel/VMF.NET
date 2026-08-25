@@ -157,6 +157,26 @@ Either spelling of the type works — the model's own name, or the generated one
 [Contains("IChild.Parent")]     VList<IChild> Children { get; }  // generated names
 ```
 
+### `[ExternalType]` names a type outside the model
+
+Java's model package is compiled on its own, so a type declared elsewhere needs a stand-in:
+
+```java
+@ExternalType(pkgName = "com.example") interface Payload {}
+```
+
+VMF.NET has the same device, and it works the same way — the stand-in lives in the model
+namespace, carries the attribute, and generated code references `com.example.Payload`:
+
+```csharp
+[ExternalType("Com.Example")] interface Payload { }
+```
+
+**In practice you rarely need it.** A C# model can name the real type directly, because the model
+is compiled alongside it and Roslyn resolves it — which is what every ported model does, and why
+`DevCom`'s enums and `ExternalTypes`' `MyType` are plain declarations in the parent namespace
+rather than stand-ins. Reach for `[ExternalType]` when porting a Java model verbatim.
+
 ### `[Container]` setters are generated, as in Java
 
 Nothing to declare. A `[Container]` with an opposite gets a setter on the generated interface, the
