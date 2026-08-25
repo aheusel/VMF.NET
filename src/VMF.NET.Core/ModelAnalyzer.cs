@@ -50,6 +50,13 @@ public static class ModelAnalyzer
         // --- PASS 0.1a: Create ModelTypeInfo for each interface (types only) ---
         int typeId = 0;
         var symbolMap = new Dictionary<string, TypeSymbolData>();
+
+        // `Horse` and `IHorse` both generate `IHorse`, because the generator adds the prefix and
+        // leaves an existing "I"+capital alone. Declaring both is therefore a name clash, and
+        // AddType would simply overwrite: the second declaration wins and the first vanishes
+        // along with all its properties, with nothing reported.
+        var claimedBy = new Dictionary<string, string>();
+
         foreach (var iface in modelInterfaces)
         {
             if (!iface.IsInterface)
@@ -57,6 +64,17 @@ public static class ModelAnalyzer
                 model.AddError($"Model may only contain interfaces, but found '{iface.Name}'.");
                 continue;
             }
+
+            if (claimedBy.TryGetValue(iface.Name, out var firstModelName))
+            {
+                model.AddError(
+                    $"Model interfaces '{firstModelName}' and '{iface.ModelName}' both generate "
+                    + $"'{namespaceName}.{iface.Name}'. The generator prefixes a model name with 'I', "
+                    + "and leaves a name that already starts with 'I' followed by a capital alone, so "
+                    + "these two collide. Rename one of them.");
+                continue;
+            }
+            claimedBy[iface.Name] = iface.ModelName;
 
             var typeInfo = model.AddType(iface.Name, typeId);
             typeInfo.IsImmutable = iface.IsImmutable;

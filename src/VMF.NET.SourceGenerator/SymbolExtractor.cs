@@ -20,6 +20,7 @@ internal static class SymbolExtractor
         var data = new TypeSymbolData
         {
             Name = ModelNaming.ApiName(symbol),
+            ModelName = symbol.Name,
             FullName = ModelNaming.ApiFullName(symbol),
             IsInterface = symbol.TypeKind == TypeKind.Interface,
             IsImmutable = HasAttribute(symbol, "ImmutableAttribute"),

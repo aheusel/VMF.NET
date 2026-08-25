@@ -142,4 +142,38 @@ namespace MyApp.VmfModel
         Assert.Contains("MyApp.IChild.g.cs", files);
         Assert.DoesNotContain("MyApp.IIChild.g.cs", files);
     }
+
+    [Fact]
+    public void TwoModelsThatGenerateTheSameName_IsAnError()
+    {
+        // The flip side of the rule above: because `Horse` and `IHorse` both yield `IHorse`,
+        // declaring both is a name clash.
+        //
+        // This used to be silent. ModelInfo.AddType assigns into a dictionary keyed by the
+        // generated name, so the second declaration simply replaced the first -- `Horse` and its
+        // Name property vanished, one set of files was emitted, and no diagnostic was reported.
+        var result = Run(@"
+namespace MyApp.VmfModel
+{
+    interface Horse  { string? Name { get; set; } }
+    interface IHorse { int Age { get; set; } }
+}");
+
+        var errors = result.Diagnostics
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.GetMessage())
+            .ToList();
+
+        var message = string.Join("; ", errors);
+        Assert.True(errors.Count > 0, "expected an error, got none");
+
+        // Both model-side spellings must appear, or the message cannot be acted on: the
+        // generated name alone does not say which two declarations are at fault.
+        Assert.True(message.Contains("'Horse'"), message);
+        Assert.True(message.Contains("'IHorse'"), message);
+        Assert.True(message.Contains("MyApp.IHorse"), message);
+
+        // An error must stop generation rather than emit half a model.
+        Assert.Empty(result.GeneratedTrees);
+    }
 }

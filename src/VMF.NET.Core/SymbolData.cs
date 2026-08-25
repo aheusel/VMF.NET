@@ -11,8 +11,15 @@ namespace VMF.NET.Core;
 /// </summary>
 public sealed class TypeSymbolData
 {
-    /// <summary>Simple name (e.g. "IParent").</summary>
+    /// <summary>The generated API name (e.g. "IParent").</summary>
     public string Name { get; set; } = "";
+
+    /// <summary>
+    /// The name as written in the model (e.g. "Parent", or "IParent" in a model migrated from the
+    /// older convention). Both spellings produce the same <see cref="Name"/>, so this is what a
+    /// diagnostic must quote to be actionable.
+    /// </summary>
+    public string ModelName { get; set; } = "";
 
     /// <summary>Full name including namespace.</summary>
     public string FullName { get; set; } = "";

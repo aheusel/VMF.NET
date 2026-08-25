@@ -118,6 +118,11 @@ wires `analyzers/dotnet/cs` itself.
   `VMF.NET.Runtime.Attributes` namespace, and discovery no longer looks at attributes at all.
 - **A model interface carrying no attribute was invisible**, which is why `[VmfModel]` was
   mandatory in the common case. A plain `interface Named { string Name { get; set; } }` now works.
+- **Two model interfaces generating the same name were silently merged.** Because `Horse` and
+  `IHorse` both generate `IHorse`, declaring both is a clash — but the type table was keyed by the
+  generated name and simply overwritten, so the second declaration replaced the first and every
+  property of the first disappeared, with nothing reported. It is now an error naming both
+  model-side spellings and the generated name they collide on.
 
 ### Added
 
