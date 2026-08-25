@@ -11,26 +11,26 @@ namespace VMF.NET.TestSuite.VmfTest.ParentContainment01.VmfModel;
 
 [InterfaceOnly]
 [DelegateTo(typeof(CodeEntityDelegate))]
-interface ICodeEntity
+interface CodeEntity
 {
-    ICodeEntity? Parent { get; set; }
+    CodeEntity? Parent { get; set; }
 
     [DelegateTo(typeof(CodeEntityDelegate))]
-    ICodeEntity? Root();
+    CodeEntity? Root();
 }
 
 [InterfaceOnly]
-interface IExpression : ICodeEntity
+interface Expression : CodeEntity
 {
 }
 
-interface IOperatorExpression : IExpression
+interface OperatorExpression : Expression
 {
-    IExpression? Left { get; set; }
-    IExpression? Right { get; set; }
+    Expression? Left { get; set; }
+    Expression? Right { get; set; }
 }
 
-interface INumberExpression : IExpression
+interface NumberExpression : Expression
 {
     double? Value { get; set; }
 }

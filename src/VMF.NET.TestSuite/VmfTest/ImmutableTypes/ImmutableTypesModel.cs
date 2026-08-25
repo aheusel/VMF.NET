@@ -6,14 +6,14 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.ImmutableTypes.VmfModel;
 
 [Immutable]
-interface IImmutableType
+interface ImmutableType
 {
     string? Name { get; }
 }
 
 // should compile, see https://github.com/miho/VMF/issues/48
 [Immutable]
-interface IImmutableTypeWithList
+interface ImmutableTypeWithList
 {
     string[] Names { get; }
 }

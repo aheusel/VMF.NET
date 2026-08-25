@@ -8,56 +8,56 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Complex.Supplier.VmfModel;
 
 [Doc("Supplier has customers and processes orders.")]
-interface ISupplier
+interface Supplier
 {
     string? Name { get; set; }
 
-    [Contains("ICustomer.Supplier")]
-    ICustomer[] Customers { get; }
+    [Contains("Customer.Supplier")]
+    Customer[] Customers { get; }
 
-    [Contains("IPurchaseOrder.Supplier")]
-    IPurchaseOrder[] Orders { get; }
+    [Contains("PurchaseOrder.Supplier")]
+    PurchaseOrder[] Orders { get; }
 }
 
 [Doc("Customer of a supplier. It has a unique id.")]
-interface ICustomer
+interface Customer
 {
-    [Container("ISupplier.Customers")]
-    ISupplier? Supplier { get; }
+    [Container("Supplier.Customers")]
+    Supplier? Supplier { get; }
 
     int? CustomerID { get; set; }
 
-    [Refers("IPurchaseOrder.Customer")]
-    IPurchaseOrder[] Orders { get; }
+    [Refers("PurchaseOrder.Customer")]
+    PurchaseOrder[] Orders { get; }
 }
 
 [Doc("A purchase order.")]
-interface IPurchaseOrder
+interface PurchaseOrder
 {
     string? Comment { get; set; }
     DateTime? Date { get; set; }
     string? Status { get; set; }
 
-    [Refers("ICustomer.Orders")]
-    ICustomer? Customer { get; set; }
+    [Refers("Customer.Orders")]
+    Customer? Customer { get; set; }
 
-    IPurchaseOrder? PreviousOrder { get; set; }
+    PurchaseOrder? PreviousOrder { get; set; }
 
-    [Contains("IItem.PurchaseOrder")]
-    IItem[] Items { get; }
-
-    [Contains]
-    IAddress? BillTo { get; set; }
+    [Contains("Item.PurchaseOrder")]
+    Item[] Items { get; }
 
     [Contains]
-    IAddress? ShipTo { get; set; }
+    Address? BillTo { get; set; }
 
-    [Container("ISupplier.Orders")]
-    ISupplier? Supplier { get; }
+    [Contains]
+    Address? ShipTo { get; set; }
+
+    [Container("Supplier.Orders")]
+    Supplier? Supplier { get; }
 }
 
 [Doc("Item provided by a supplier.")]
-interface IItem
+interface Item
 {
     string? ProductName { get; set; }
     int? Quantity { get; set; }
@@ -66,19 +66,19 @@ interface IItem
     DateTime? ShipDate { get; set; }
     string? PartNumber { get; set; }
 
-    [Container("IPurchaseOrder.Items")]
-    IPurchaseOrder? PurchaseOrder { get; }
+    [Container("PurchaseOrder.Items")]
+    PurchaseOrder? PurchaseOrder { get; }
 }
 
 [Doc("An address used for shippment and billing.")]
 [InterfaceOnly]
-interface IAddress
+interface Address
 {
     string? Name { get; set; }
 }
 
 [Doc("US address")]
-interface IUSAddress : IAddress
+interface USAddress : Address
 {
     int? Zip { get; set; }
     string? City { get; set; }
@@ -87,7 +87,7 @@ interface IUSAddress : IAddress
 }
 
 [Doc("Global address.")]
-interface IGlobalAddress : IAddress
+interface GlobalAddress : Address
 {
     string? Country { get; set; }
     int? Zip { get; set; }

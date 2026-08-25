@@ -4,55 +4,55 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.PropertyOrder.VmfModel;
 
-interface IDefaultOrder
+interface DefaultOrder
 {
     string? Z { get; set; }
-    IElement? B { get; set; }
+    Element? B { get; set; }
     int? D { get; set; }
     double X { get; set; }
 }
 
-interface ICustomOrder
+interface CustomOrder
 {
     [PropertyOrder(3)] int? D { get; set; }
     [PropertyOrder(1)] string? Z { get; set; }
-    [PropertyOrder(2)] IElement? B { get; set; }
+    [PropertyOrder(2)] Element? B { get; set; }
     [PropertyOrder(4)] double X { get; set; }
 }
 
-interface IElement
+interface Element
 {
 }
 
-interface IInheritedBaseWithoutCustomOrder
+interface InheritedBaseWithoutCustomOrder
 {
     string? BaseA { get; set; }
     string? BaseZ { get; set; }
     string? BaseB { get; set; }
 }
 
-interface IInheritedOrderSubClassWithoutBaseOrder : IInheritedBaseWithoutCustomOrder
+interface InheritedOrderSubClassWithoutBaseOrder : InheritedBaseWithoutCustomOrder
 {
     [PropertyOrder(0)] string? A { get; set; }
     [PropertyOrder(1)] string? Z { get; set; }
     [PropertyOrder(2)] string? B { get; set; }
 }
 
-interface IInheritedBaseWithCustomOrder
+interface InheritedBaseWithCustomOrder
 {
     [PropertyOrder(0)] string? BaseA { get; set; }
     [PropertyOrder(1)] string? BaseZ { get; set; }
     [PropertyOrder(2)] string? BaseB { get; set; }
 }
 
-interface IInheritedOrderSubClassWithBaseOrder : IInheritedBaseWithCustomOrder
+interface InheritedOrderSubClassWithBaseOrder : InheritedBaseWithCustomOrder
 {
     [PropertyOrder(0)] string? A { get; set; }
     [PropertyOrder(1)] string? Z { get; set; }
     [PropertyOrder(2)] string? B { get; set; }
 }
 
-interface IInheritedOrderSubClassWithRedefinedBaseOrder : IInheritedOrderSubClassWithBaseOrder
+interface InheritedOrderSubClassWithRedefinedBaseOrder : InheritedOrderSubClassWithBaseOrder
 {
     [PropertyOrder(0)] new string? Z { get; set; }
     [PropertyOrder(1)] new string? B { get; set; }
@@ -60,7 +60,7 @@ interface IInheritedOrderSubClassWithRedefinedBaseOrder : IInheritedOrderSubClas
 }
 
 // redeclare property order unchanged -> compile-only test
-interface IInheritedOrderSubClassWithRedefinedBaseOrderUnchanged : IInheritedOrderSubClassWithBaseOrder
+interface InheritedOrderSubClassWithRedefinedBaseOrderUnchanged : InheritedOrderSubClassWithBaseOrder
 {
     [PropertyOrder(0)] new string? A { get; set; }
     [PropertyOrder(1)] new string? Z { get; set; }
@@ -68,14 +68,14 @@ interface IInheritedOrderSubClassWithRedefinedBaseOrderUnchanged : IInheritedOrd
 }
 
 [InterfaceOnly]
-interface IBaseClass
+interface BaseClass
 {
     [PropertyOrder(0)]
     [GetterOnly]
     object? Value { get; }
 }
 
-interface IInherited : IBaseClass
+interface Inherited : BaseClass
 {
     // this should be allowed
     // -> until v0.2.6.1 it wasn't

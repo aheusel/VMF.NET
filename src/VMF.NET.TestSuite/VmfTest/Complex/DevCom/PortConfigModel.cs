@@ -16,7 +16,7 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.DevCom.VmfModel;
 
 
 [InterfaceOnly]
-interface IWithName
+interface WithName
 {
     [Doc("The port name used to identify the port, e.g. 'COM3'.")]
     [VmfDefaultValue("\"COM0\"")]
@@ -25,7 +25,7 @@ interface IWithName
 }
 
 [InterfaceOnly]
-interface IWithExtendedName
+interface WithExtendedName
 {
     [Doc("The extended port name, e.g., 'COM3 - Arduino UNO'")]
     [VmfDefaultValue("\"\"")]
@@ -35,7 +35,7 @@ interface IWithExtendedName
 
 [Doc("COM port configuration used to configure a physical or virtual COM port.")]
 [Immutable]
-interface IPortConfig : IWithName
+interface PortConfig : WithName
 {
     [Doc("The number of data bits (usually 8).")]
     [VmfDefaultValue("8")]
@@ -68,7 +68,7 @@ interface IPortConfig : IWithName
 
 [Immutable]
 [VmfEquals]
-interface IPortInfo : IWithName, IWithExtendedName
+interface PortInfo : WithName, WithExtendedName
 {
     [Doc("The port description. Some devices add the serial number (e.g. FTDI chips).")]
     [VmfDefaultValue("\"\"")]
@@ -83,7 +83,7 @@ interface IPortInfo : IWithName, IWithExtendedName
 
 [Doc("Denotes a device accessed with this library")]
 [Immutable]
-interface IDeviceInfo
+interface DeviceInfo
 {
     [Doc("Returns the device class")]
     string? DeviceClass { get; }
@@ -100,21 +100,21 @@ interface IDeviceInfo
 
 [Doc("Port event.")]
 [Immutable]
-interface IPortEvent
+interface PortEvent
 {
     [Doc("Timestamp (milliseconds since January 1st, 1970).")]
     long Timestamp { get; }
 
     [Doc("port infos of ports added since the last scan.")]
-    IPortInfo[] Added { get; }
+    PortInfo[] Added { get; }
 
     [Doc("port infos of ports removed since the last scan.")]
-    IPortInfo[] Removed { get; }
+    PortInfo[] Removed { get; }
 }
 
 [Doc("State changed event.")]
 [Immutable]
-interface IStateChangedEvent
+interface StateChangedEvent
 {
     [Doc("Timestamp (milliseconds since January 1st, 1970).")]
     long Timestamp { get; }

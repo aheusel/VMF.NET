@@ -55,6 +55,11 @@ declaration: **no attribute marks a model type**, exactly as no annotation marks
 The generated name is `I` + the model's name, unless the model already starts with `I` followed by
 a capital — so a model named `IParent` still yields `IParent`.
 
+**Write the model without the `I` prefix**, as Java does; the generator adds it. The exception
+above is a migration affordance, not a style: it lets a model written the old way move by changing
+its namespace alone. The ported test suite dropped the prefix from all 271 of its model interfaces
+without a single test file changing, since the generated names were identical either way.
+
 Behaviour delegates and any plain types the model references (enums, .NET classes) live in the
 **parent** namespace, beside the generated API — as Java's delegates live in the package VMF
 generates into. A model file resolves them by looking outward, so it needs no `using`.
@@ -212,9 +217,9 @@ Java narrows a property by overriding its getter with a narrower return type. C#
 asks for the intent to be stated:
 
 ```csharp
-interface IWithLocationX : IWithLocation
+interface WithLocationX : WithLocation
 {
-    [GetterOnly] new ILocationX? Location { get; }
+    [GetterOnly] new LocationX? Location { get; }
 }
 ```
 

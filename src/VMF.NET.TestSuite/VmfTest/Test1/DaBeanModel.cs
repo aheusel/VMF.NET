@@ -4,7 +4,7 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.Test1.VmfModel;
 
-interface IDaBean
+interface DaBean
 {
     string? Name { get; set; }
 }

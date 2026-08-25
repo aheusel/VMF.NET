@@ -60,19 +60,26 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Containment.VmfModel;
 
 [VmfEquals(EqualsType.All)]
-interface IParent
+interface Parent
 {
     string? Name { get; set; }
-    [Contains("IChild.Parent")] IChild[] Children { get; }
+    [Contains("Child.Parent")] Child[] Children { get; }
 }
 
 [VmfEquals(EqualsType.All)]
-interface IChild
+interface Child
 {
     string? Name { get; set; }
-    [Container("IParent.Children")] IParent? Parent { get; }
+    [Container("Parent.Children")] Parent? Parent { get; }
 }
 ```
+
+**Model interfaces carry no `I` prefix**, as in Java — the generator adds it. The test below still
+says `IParent`, because that is the *generated* name; renaming the model changed no test file.
+
+(A model written `IParent` also still generates `IParent`, since the rule leaves an existing
+`I`+capital alone. That affordance exists so an older model migrates by moving its namespace
+alone; new models should not use it.)
 
 `VmfTest/Containment/ContainmentTest.cs` — same namespace, so no `using` for the model:
 
@@ -211,12 +218,12 @@ Translate it by re-declaring the property with `new`:
 
 ```csharp
 [InterfaceOnly]
-interface IWithLocation      { [GetterOnly] ILocation? Location { get; } }
+interface WithLocation      { [GetterOnly] Location? Location { get; } }
 
 [InterfaceOnly]
-interface IWithLocationX : IWithLocation
+interface WithLocationX : WithLocation
 {
-    [GetterOnly] new ILocationX? Location { get; }   // `new`, not an override
+    [GetterOnly] new LocationX? Location { get; }   // `new`, not an override
 }
 ```
 
