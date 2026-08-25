@@ -13,7 +13,7 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void AsReadOnly_ReturnsReadOnlyWrapper()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         flow.Title = "Test";
 
         var ro = flow.AsReadOnly();
@@ -25,8 +25,8 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void ReadOnly_CollectionsAreMapped()
     {
-        var flow = IFlow.NewInstance();
-        var node = INode.NewInstance();
+        var flow = Flow.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "N1";
         flow.Nodes.Add(node);
 
@@ -39,9 +39,9 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void ReadOnly_EqualsMatchesMutable()
     {
-        var f1 = IFlow.NewInstance();
+        var f1 = Flow.NewInstance();
         f1.Title = "Same";
-        var f2 = IFlow.NewInstance();
+        var f2 = Flow.NewInstance();
         f2.Title = "Same";
 
         Assert.Equal(f1.AsReadOnly(), f2.AsReadOnly());
@@ -51,7 +51,7 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void ReadOnly_SameWrapperReturned()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         var ro1 = flow.AsReadOnly();
         var ro2 = flow.AsReadOnly();
 
@@ -61,7 +61,7 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void Reflect_Properties()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         var reflect = flow.VMF.Reflect;
 
         var props = reflect.Properties();
@@ -73,7 +73,7 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void Reflect_PropertyValueById()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "Test";
         node.X = 42;
 
@@ -88,19 +88,19 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void Reflect_Type()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         var reflect = flow.VMF.Reflect;
 
-        Assert.Contains("IFlow", reflect.Type().Name);
+        Assert.Contains("Flow", reflect.Type().Name);
     }
 
     [Fact]
     public void Content_Stream_ReturnsContainedObjects()
     {
-        var flow = IFlow.NewInstance();
-        var n1 = INode.NewInstance();
+        var flow = Flow.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "A";
-        var n2 = INode.NewInstance();
+        var n2 = Node.NewInstance();
         n2.Name = "B";
         flow.Nodes.Add(n1);
         flow.Nodes.Add(n2);
@@ -117,13 +117,13 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void Content_StreamTyped_FiltersCorrectly()
     {
-        var flow = IFlow.NewInstance();
-        var n1 = INode.NewInstance();
-        var conn = IConnection.NewInstance();
+        var flow = Flow.NewInstance();
+        var n1 = Node.NewInstance();
+        var conn = Connection.NewInstance();
         flow.Nodes.Add(n1);
         flow.Connections.Add(conn);
 
-        var nodes = flow.VMF.Content.Stream<INode>().ToList();
+        var nodes = flow.VMF.Content.Stream<Node>().ToList();
         Assert.Single(nodes);
         Assert.Same(n1, nodes[0]);
     }
@@ -131,13 +131,13 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void Content_DeepCopy_CreatesIndependentCopy()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         flow.Title = "Original";
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "N";
         flow.Nodes.Add(node);
 
-        var copy = flow.VMF.Content.DeepCopy<IFlow>();
+        var copy = flow.VMF.Content.DeepCopy<Flow>();
 
         Assert.NotSame(flow, copy);
         Assert.Equal("Original", copy.Title);
@@ -151,15 +151,15 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void CrossRef_Sender_Receiver()
     {
-        var flow = IFlow.NewInstance();
-        var n1 = INode.NewInstance();
+        var flow = Flow.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "Sender";
-        var n2 = INode.NewInstance();
+        var n2 = Node.NewInstance();
         n2.Name = "Receiver";
         flow.Nodes.Add(n1);
         flow.Nodes.Add(n2);
 
-        var conn = IConnection.NewInstance();
+        var conn = Connection.NewInstance();
         flow.Connections.Add(conn);
 
         conn.Sender = n1;
@@ -173,13 +173,13 @@ public class ReadOnlyReflectionTests
     [Fact]
     public void CrossRef_Unset_RemovesFromOpposite()
     {
-        var flow = IFlow.NewInstance();
-        var n1 = INode.NewInstance();
-        var n2 = INode.NewInstance();
+        var flow = Flow.NewInstance();
+        var n1 = Node.NewInstance();
+        var n2 = Node.NewInstance();
         flow.Nodes.Add(n1);
         flow.Nodes.Add(n2);
 
-        var conn = IConnection.NewInstance();
+        var conn = Connection.NewInstance();
         flow.Connections.Add(conn);
 
         conn.Sender = n1;

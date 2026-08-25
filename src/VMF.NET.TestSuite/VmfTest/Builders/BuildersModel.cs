@@ -5,20 +5,20 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.Builders.VmfModel;
 
-interface IAClass
+interface AClass
 {
     string? Name { get; set; }
     string[] Ids { get; }
-    IChild[] Children { get; }
-    IChild2? Child { get; set; }
+    Child[] Children { get; }
+    Child2? Child { get; set; }
 }
 
-interface IChild
+interface Child
 {
     int Value { get; set; }
 }
 
-interface IChild2
+interface Child2
 {
     int Value { get; set; }
 }

@@ -9,7 +9,7 @@ public class ToStringTest
     [Fact]
     public void TestIgnoreTo()
     {
-        var instance = ISampleClass.NewBuilder()
+        var instance = SampleClass.NewBuilder()
             .WithName("my name")
             .WithIgnoredProp("ignored prop")
             .Build();

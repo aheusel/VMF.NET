@@ -9,17 +9,17 @@ public class BuilderTest
     [Fact]
     public void TestWithNestedBuilders()
     {
-        var b = IAClass.NewBuilder()
+        var b = AClass.NewBuilder()
             .WithName("my name")
             .WithIds("id1", "id2", "id3")
             .WithChildren(
                 // lazy also for properties
-                IChild.NewBuilder().WithValue(1),
-                IChild.NewBuilder().WithValue(2),
-                IChild.NewBuilder().WithValue(3))
+                Child.NewBuilder().WithValue(1),
+                Child.NewBuilder().WithValue(2),
+                Child.NewBuilder().WithValue(3))
             .WithChild(
                 // lazy also for properties
-                IChild2.NewBuilder().WithValue(4));
+                Child2.NewBuilder().WithValue(4));
 
         var anInstance = b.Build();
 
@@ -38,15 +38,15 @@ public class BuilderTest
     [Fact]
     public void TestWithProperties()
     {
-        var b = IAClass.NewBuilder()
+        var b = AClass.NewBuilder()
             .WithName("my name")
             .WithIds("id1", "id2", "id3")
             .WithChildren(
-                IChild.NewBuilder().WithValue(1).Build(),
-                IChild.NewBuilder().WithValue(2).Build(),
-                IChild.NewBuilder().WithValue(3).Build())
+                Child.NewBuilder().WithValue(1).Build(),
+                Child.NewBuilder().WithValue(2).Build(),
+                Child.NewBuilder().WithValue(3).Build())
             .WithChild(
-                IChild2.NewBuilder().WithValue(4).Build());
+                Child2.NewBuilder().WithValue(4).Build());
 
         var anInstance = b.Build();
 

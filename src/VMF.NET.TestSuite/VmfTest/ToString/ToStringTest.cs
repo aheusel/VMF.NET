@@ -12,9 +12,9 @@ public class ToStringTest
     [Fact]
     public void TestToStringCircular()
     {
-        var p = IParent.NewInstance();
+        var p = Parent.NewInstance();
         p.Name = "parent";
-        var c = IChild.NewInstance();
+        var c = Child.NewInstance();
         c.Name = "child";
         p.Child = c;
         c.Parent = p;
@@ -29,9 +29,9 @@ public class ToStringTest
     [Fact]
     public void TestToStringCircularCollection()
     {
-        var p = IParent2.NewInstance();
+        var p = Parent2.NewInstance();
         p.Name = "parent";
-        var c = IChild2.NewInstance();
+        var c = Child2.NewInstance();
         c.Name = "child";
         p.Children.Add(c);
         c.Parent = p;

@@ -166,43 +166,6 @@ namespace MyApp.VmfModel
     }
 
     [Fact]
-    public void StrippingThePrefixForTheImplementation_Warns()
-    {
-        // The one place a name still changes without being asked for. VMF004 so it can be
-        // silenced on its own by anyone who wants C#-style interface names.
-        var result = Run(@"
-namespace MyApp.VmfModel
-{
-    interface IHorse { string? Name { get; set; } }
-}");
-
-        var vmf004 = result.Diagnostics.Where(d => d.Id == "VMF004").ToList();
-        var all = string.Join("; ", result.Diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
-
-        Assert.True(vmf004.Count == 1, $"expected exactly one VMF004, got: {all}");
-        Assert.True(vmf004[0].GetMessage().Contains("'IHorse'"), all);
-        Assert.True(vmf004[0].GetMessage().Contains("'HorseImpl'"), all);
-
-        // A warning, not an error: the code must still be generated.
-        var files = result.GeneratedTrees.Select(t => Path.GetFileName(t.FilePath)).ToList();
-        Assert.Contains("MyApp.IHorse.g.cs", files);
-    }
-
-    [Fact]
-    public void AnUnprefixedModelName_DoesNotWarn()
-    {
-        // Nothing is stripped, so nothing to report.
-        var result = Run(@"
-namespace MyApp.VmfModel
-{
-    interface Horse { string? Name { get; set; } }
-}");
-
-        var vmf004 = result.Diagnostics.Where(d => d.Id == "VMF004").ToList();
-        Assert.True(vmf004.Count == 0, string.Join("; ", vmf004.Select(d => d.GetMessage())));
-    }
-
-    [Fact]
     public void TwoModelsThatShareAnImplementationName_IsAnError()
     {
         // `Horse` and `IHorse` generate DISTINCT interfaces now, but both would be implemented by

@@ -9,14 +9,14 @@ interface ILibrary
 {
     string? Name { get; set; }
 
-    [Contains("IBook.Library")]
-    IBook[] Books { get; }
+    [Contains("Book.Library")]
+    Book[] Books { get; }
 
-    [Contains("IWriter.Library")]
-    IWriter[] Authors { get; }
+    [Contains("Writer.Library")]
+    Writer[] Authors { get; }
 }
 
-interface IBook
+interface Book
 {
     string? Title { get; set; }
     int? Pages { get; set; }
@@ -24,17 +24,17 @@ interface IBook
     [Container("ILibrary.Books")]
     ILibrary? Library { get; }
 
-    [Refers("IWriter.Books")]
-    IWriter[] Authors { get; }
+    [Refers("Writer.Books")]
+    Writer[] Authors { get; }
 }
 
-interface IWriter
+interface Writer
 {
     string? Name { get; set; }
 
     [Container("ILibrary.Authors")]
     ILibrary? Library { get; }
 
-    [Refers("IBook.Authors")]
-    IBook[] Books { get; }
+    [Refers("Book.Authors")]
+    Book[] Books { get; }
 }

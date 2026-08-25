@@ -13,8 +13,8 @@ public class UnparserModelTest
     {
         // containment across an inheritance hierarchy: the property id depends on the runtime
         // type, not the statically declared one
-        var alternative = IAlternative.NewInstance();
-        var sre = IUPSubRuleElement.NewInstance();
+        var alternative = Alternative.NewInstance();
+        var sre = UPSubRuleElement.NewInstance();
         alternative.Elements.Add(sre);
 
         Assert.NotNull(sre.ParentAlt);
@@ -25,8 +25,8 @@ public class UnparserModelTest
     public void ContainmentWithInheritanceTest1_FromChildSide()
     {
         // the same containment, driven from the child instead of the parent
-        var alternative = IAlternative.NewInstance();
-        var sre = IUPSubRuleElement.NewInstance();
+        var alternative = Alternative.NewInstance();
+        var sre = UPSubRuleElement.NewInstance();
 
         sre.ParentAlt = alternative;
 
@@ -36,7 +36,7 @@ public class UnparserModelTest
         // Elements should contain sre
         Assert.Contains(sre, alternative.Elements);
 
-        var a1 = IAlternative.NewInstance();
+        var a1 = Alternative.NewInstance();
         sre.Alternatives.Add(a1);
 
         // Alternative a1 should have sre as parent
@@ -53,10 +53,10 @@ public class UnparserModelTest
     [Fact]
     public void TestRemoveDuringAddEventTest()
     {
-        var cls = IRuleClass.NewBuilder().WithName("RC1").Build();
+        var cls = RuleClass.NewBuilder().WithName("RC1").Build();
 
-        var pa1 = IProperty.NewBuilder().WithName("pa").Build();
-        var pa2 = IProperty.NewBuilder().WithName("pa").Build();
+        var pa1 = Property.NewBuilder().WithName("pa").Build();
+        var pa2 = Property.NewBuilder().WithName("pa").Build();
 
         cls.Properties.AddRange([pa1, pa2]);
         cls.Properties.AddRange([pa1, pa2]);
@@ -64,9 +64,9 @@ public class UnparserModelTest
         cls.Properties.AddChangeListener(evt =>
         {
             // remove duplicate properties
-            foreach (IProperty p1 in evt.Added)
+            foreach (Property p1 in evt.Added)
             {
-                foreach (IProperty p2 in new List<IProperty>(evt.Source!.Cast<IProperty>()))
+                foreach (Property p2 in new List<Property>(evt.Source!.Cast<Property>()))
                 {
                     if (!ReferenceEquals(p1, p2) && p1.Name == p2.Name)
                     {

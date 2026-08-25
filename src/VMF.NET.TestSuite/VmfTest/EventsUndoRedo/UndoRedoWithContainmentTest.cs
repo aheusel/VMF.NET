@@ -15,7 +15,7 @@ public class UndoRedoWithContainmentTest
     [Fact]
     public void UnoRedoWithListContainmentTestViaListAdd()
     {
-        var parent = IParentListContainment.NewInstance();
+        var parent = ParentListContainment.NewInstance();
 
         // count total change events
         int numChanges = 0;
@@ -25,7 +25,7 @@ public class UndoRedoWithContainmentTest
         parent.VMF.Changes.Start();
 
         // create child
-        var child = IChildListContainment.NewInstance();
+        var child = ChildListContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
@@ -54,7 +54,7 @@ public class UndoRedoWithContainmentTest
     [Fact]
     public void UnoRedoWithListContainmentTestViaSetParent()
     {
-        var parent = IParentListContainment.NewInstance();
+        var parent = ParentListContainment.NewInstance();
 
         // count total change events
         int numChanges = 0;
@@ -64,7 +64,7 @@ public class UndoRedoWithContainmentTest
         parent.VMF.Changes.Start();
 
         // create child
-        var child = IChildListContainment.NewInstance();
+        var child = ChildListContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
@@ -91,7 +91,7 @@ public class UndoRedoWithContainmentTest
     [Fact]
     public void UnoRedoWithSingleContainmentTest1()
     {
-        var parent = IParentSingleContainment.NewInstance();
+        var parent = ParentSingleContainment.NewInstance();
 
         // count total change events
         int numChanges = 0;
@@ -101,7 +101,7 @@ public class UndoRedoWithContainmentTest
         parent.VMF.Changes.Start();
 
         // create child
-        var child = IChildSingleContainment.NewInstance();
+        var child = ChildSingleContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
@@ -128,7 +128,7 @@ public class UndoRedoWithContainmentTest
     [Fact]
     public void UnoRedoWithSingleContainmentTest2()
     {
-        var parent = IParentSingleContainment.NewInstance();
+        var parent = ParentSingleContainment.NewInstance();
 
         // count total change events
         int numChanges = 0;
@@ -138,7 +138,7 @@ public class UndoRedoWithContainmentTest
         parent.VMF.Changes.Start();
 
         // create child
-        var child = IChildSingleContainment.NewInstance();
+        var child = ChildSingleContainment.NewInstance();
 
         // count changes received by 'parent' properties
         int numChangesProp = 0;
@@ -165,7 +165,7 @@ public class UndoRedoWithContainmentTest
     [Fact]
     public void UnoRedoWithSingleContainmentTestwithadditionalListener()
     {
-        var parent = IParentSingleContainment.NewInstance();
+        var parent = ParentSingleContainment.NewInstance();
 
         // register non-recursive listener to reproduce issue #30
         // see https://github.com/miho/VMF/issues/30
@@ -175,7 +175,7 @@ public class UndoRedoWithContainmentTest
         parent.VMF.Changes.Start();
 
         // create child
-        var child = IChildSingleContainment.NewInstance();
+        var child = ChildSingleContainment.NewInstance();
 
         // set the parent which sets the opposite as well
         child.Parent = parent;

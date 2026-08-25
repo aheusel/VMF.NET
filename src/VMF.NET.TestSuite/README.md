@@ -29,7 +29,7 @@ VMF.NET.TestSuite/
 
 **A model lives in a `.VmfModel` namespace**, mirroring Java's `vmfmodel` package; the generator
 emits the public API into the namespace above it. So `…VmfTest.Containment.VmfModel` declares the
-model and `…VmfTest.Containment` is where `IParent` lands — which is where the tests are.
+model and `…VmfTest.Containment` is where `Parent` lands — which is where the tests are.
 
 `VmfTest/` mirrors the Java package tree so it is obvious which parts have a Java equivalent.
 
@@ -44,7 +44,7 @@ VmfTest/Containment/
 ```
 
 The tests sit in the namespace the API is generated into, so they need no `using` to see it, and
-the area is one self-contained unit — which is what lets `IParent` here and `IParent` in another
+the area is one self-contained unit — which is what lets `Parent` here and `Parent` in another
 area coexist.
 
 Behaviour delegates and any plain types the model references (enums, .NET classes) go in a
@@ -60,19 +60,24 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Containment.VmfModel;
 
 [VmfEquals(EqualsType.All)]
-interface IParent
+interface Parent
 {
     string? Name { get; set; }
-    [Contains("IChild.Parent")] IChild[] Children { get; }
+    [Contains("Child.Parent")] Child[] Children { get; }
 }
 
 [VmfEquals(EqualsType.All)]
-interface IChild
+interface Child
 {
     string? Name { get; set; }
-    [Container("IParent.Children")] IParent? Parent { get; }
+    [Container("Parent.Children")] Parent? Parent { get; }
 }
 ```
+
+**The generated interface keeps the model's name**, so the test below says `Parent`, not
+`IParent`. Write `IFoo` only where the plain name would collide — with the area's own namespace,
+or with a BCL type. Eleven of this suite's 271 models need that; see
+[`../../devdoc/differences-to-java.md`](../../devdoc/differences-to-java.md).
 
 `VmfTest/Containment/ContainmentTest.cs` — same namespace, so no `using` for the model:
 
@@ -86,12 +91,12 @@ public class ContainmentTest
     [Fact]
     public void Containment_is_unique()
     {
-        var a = IParent.NewInstance();
-        var child = IChild.NewInstance();
+        var a = Parent.NewInstance();
+        var child = Child.NewInstance();
         a.Children.Add(child);
         Assert.Same(a, child.Parent);
 
-        var b = IParent.NewInstance();
+        var b = Parent.NewInstance();
         b.Children.Add(child);          // containment is unique -> moves out of a
         Assert.Empty(a.Children);
         Assert.Same(b, child.Parent);
@@ -111,8 +116,8 @@ The generator groups model interfaces **by namespace** and analyses each namespa
 independent model (`VmfSourceGenerator.Execute` → `byNamespace` → `ModelAnalyzer.Analyze(ns, …)`),
 emitting hint names as `{namespace}.{Type}.g.cs`.
 
-So a namespace is exactly what a Java package is here: an isolation boundary. `IParent` in
-`VmfTest.Containment` and `IParent` in `VmfTest.Equals` can have completely different shapes and
+So a namespace is exactly what a Java package is here: an isolation boundary. `Parent` in
+`VmfTest.Containment` and `Parent` in `VmfTest.Equals` can have completely different shapes and
 never collide — which is what lets the Java suite reuse `Parent`, `Child` and `Element` across
 32 packages.
 
@@ -127,19 +132,19 @@ fine — but watch `Complex/VmfText/*`, which spans sub-packages in Java.
 |---|---|
 | package `eu.mihosoft.vmftest.<area>` | namespace `VMF.NET.TestSuite.VmfTest.<Area>` |
 | package `…<area>.vmfmodel` | namespace `…<Area>.VmfModel` |
-| `interface Parent` | `interface IParent` — write the `I`; a bare `Parent` also generates `IParent` but warns (`VMF004`) |
+| `interface Parent` | `interface Parent` — kept verbatim; use `IParent` only to dodge a collision |
 | `getName()` / `setName(x)` | property `Name { get; set; }` |
-| `Parent.newInstance()` / `newBuilder()` | `IParent.NewInstance()` / `IParent.NewBuilder()` |
-| `@Contains(opposite="parent")` | `[Contains("IChild.Parent")]` |
+| `Parent.newInstance()` / `newBuilder()` | `Parent.NewInstance()` / `Parent.NewBuilder()` |
+| `@Contains(opposite="parent")` | `[Contains("Child.Parent")]` |
 | `@Contains` (no opposite) | `[Contains]` |
-| `@Container(opposite="child")` | `[Container("IParent.Children")]` |
+| `@Container(opposite="child")` | `[Container("Parent.Children")]` |
 | a container's generated `setParent(x)` | generated too — nothing to declare |
-| `@Refers(opposite="…")` | `[Refers("IOther.Prop")]` |
+| `@Refers(opposite="…")` | `[Refers("Other.Prop")]` |
 | `@GetterOnly` / `@IgnoreEquals` / `@IgnoreToString` | `[GetterOnly]` / `[IgnoreEquals]` / `[IgnoreToString]` |
 | `@Immutable` / `@InterfaceOnly` / `@ExternalType` | `[Immutable]` / `[InterfaceOnly]` / `[ExternalType]` |
 | `@DelegateTo(className="…")` | `[DelegateTo(typeof(…))]` |
-| a delegate's `on<Type>Instantiated()` hook | `On<Type>Instantiated()` — same name, `I` stripped from the interface |
-| `implements DelegatedBehavior<Foo>` | `: IDelegatedBehavior<IFoo>` — declare it **once**, at whichever model type suits it |
+| a delegate's `on<Type>Instantiated()` hook | `On<Type>Instantiated()` — same name, any leading `I` stripped |
+| `implements DelegatedBehavior<Foo>` | `: IDelegatedBehavior<Foo>` — declare it **once**, at whichever model type suits it |
 | JUnit `@Test` | xUnit `[Fact]` |
 | `assertThat(actual, equalTo(expected))` | `Assert.Equal(expected, actual)` — **argument order flips** |
 | `Assert.assertTrue(x)` | `Assert.True(x)` |
@@ -211,12 +216,12 @@ Translate it by re-declaring the property with `new`:
 
 ```csharp
 [InterfaceOnly]
-interface IWithLocation      { [GetterOnly] ILocation? Location { get; } }
+interface WithLocation      { [GetterOnly] Location? Location { get; } }
 
 [InterfaceOnly]
-interface IWithLocationX : IWithLocation
+interface WithLocationX : WithLocation
 {
-    [GetterOnly] new ILocationX? Location { get; }   // `new`, not an override
+    [GetterOnly] new LocationX? Location { get; }   // `new`, not an override
 }
 ```
 

@@ -12,9 +12,9 @@ public class CloneEqualsChangesTests
     [Fact]
     public void Clone_DeepCopiesGraph()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         flow.Title = "Original";
-        var n1 = INode.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "N1";
         n1.X = 10;
         flow.Nodes.Add(n1);
@@ -34,9 +34,9 @@ public class CloneEqualsChangesTests
     [Fact]
     public void Clone_IndependentOfOriginal()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         flow.Title = "V1";
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "A";
         flow.Nodes.Add(node);
 
@@ -51,9 +51,9 @@ public class CloneEqualsChangesTests
     [Fact]
     public void ContentEquals_SameContent_ReturnsTrue()
     {
-        var f1 = IFlow.NewInstance();
+        var f1 = Flow.NewInstance();
         f1.Title = "Test";
-        var n1 = INode.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "A";
         n1.X = 5;
         f1.Nodes.Add(n1);
@@ -67,10 +67,10 @@ public class CloneEqualsChangesTests
     [Fact]
     public void ContentEquals_DifferentContent_ReturnsFalse()
     {
-        var f1 = IFlow.NewInstance();
+        var f1 = Flow.NewInstance();
         f1.Title = "A";
 
-        var f2 = IFlow.NewInstance();
+        var f2 = Flow.NewInstance();
         f2.Title = "B";
 
         Assert.NotEqual(f1, f2);
@@ -79,7 +79,7 @@ public class CloneEqualsChangesTests
     [Fact]
     public void ToString_ContainsPropertyValues()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "TestNode";
         node.X = 42;
 
@@ -91,7 +91,7 @@ public class CloneEqualsChangesTests
     [Fact]
     public void Changes_ListenerFires_OnPropertyChange()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         var changes = new List<IChange>();
 
         node.VMF.Changes.AddListener(c => changes.Add(c));
@@ -107,11 +107,11 @@ public class CloneEqualsChangesTests
     [Fact]
     public void Changes_ListenerFires_OnListChange()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         var changes = new List<IChange>();
 
         flow.VMF.Changes.AddListener(c => changes.Add(c));
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         flow.Nodes.Add(node);
 
         Assert.True(changes.Count >= 1);
@@ -121,7 +121,7 @@ public class CloneEqualsChangesTests
     [Fact]
     public void Changes_Recording()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         var ch = flow.VMF.Changes;
         ch.Start();
 

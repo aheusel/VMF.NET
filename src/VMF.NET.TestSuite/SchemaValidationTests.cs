@@ -25,7 +25,7 @@ public class SchemaValidationTests
     [Fact]
     public void ArrayDefault_RendersAsJsonArray_NotString()
     {
-        var deviceIds = PropSchema<IArrayDefaultConfig>("DeviceIds");
+        var deviceIds = PropSchema<ArrayDefaultConfig>("DeviceIds");
 
         var def = Assert.IsType<JsonElement>(deviceIds["default"]);
         Assert.Equal(JsonValueKind.Array, def.ValueKind);
@@ -37,7 +37,7 @@ public class SchemaValidationTests
     [Fact]
     public void ValidPattern_IsAccepted()
     {
-        var code = PropSchema<IValidPatternConfig>("Code");
+        var code = PropSchema<ValidPatternConfig>("Code");
         Assert.Equal("^\\d{3}$", code["pattern"]);
     }
 
@@ -45,7 +45,7 @@ public class SchemaValidationTests
     public void UnknownScalarKeyword_IsAcceptedVerbatim()
     {
         // The constraint catch-all stays open-ended: unknown keywords are not rejected.
-        var legacy = PropSchema<IUnknownKeywordConfig>("Legacy");
+        var legacy = PropSchema<UnknownKeywordConfig>("Legacy");
         Assert.Equal(true, legacy["deprecated"]);
     }
 
@@ -55,7 +55,7 @@ public class SchemaValidationTests
     public void NonNumericMinimum_Throws()
     {
         var ex = Assert.Throws<VmfSchemaAnnotationException>(
-            () => new VmfJsonSchemaGenerator().GenerateSchema<IBadMinimumConfig>());
+            () => new VmfJsonSchemaGenerator().GenerateSchema<BadMinimumConfig>());
         Assert.Contains("minimum", ex.Message);
         Assert.Contains("numeric", ex.Message);
     }
@@ -64,7 +64,7 @@ public class SchemaValidationTests
     public void UncompilablePattern_Throws()
     {
         var ex = Assert.Throws<VmfSchemaAnnotationException>(
-            () => new VmfJsonSchemaGenerator().GenerateSchema<IBadPatternConfig>());
+            () => new VmfJsonSchemaGenerator().GenerateSchema<BadPatternConfig>());
         Assert.Contains("pattern", ex.Message);
     }
 
@@ -72,7 +72,7 @@ public class SchemaValidationTests
     public void ConstraintWithoutEquals_Throws()
     {
         var ex = Assert.Throws<VmfSchemaAnnotationException>(
-            () => new VmfJsonSchemaGenerator().GenerateSchema<IBadConstraintFormConfig>());
+            () => new VmfJsonSchemaGenerator().GenerateSchema<BadConstraintFormConfig>());
         Assert.Contains("keyword=value", ex.Message);
     }
 
@@ -80,7 +80,7 @@ public class SchemaValidationTests
     public void NonBooleanUniqueItems_Throws()
     {
         var ex = Assert.Throws<VmfSchemaAnnotationException>(
-            () => new VmfJsonSchemaGenerator().GenerateSchema<IBadUniqueItemsConfig>());
+            () => new VmfJsonSchemaGenerator().GenerateSchema<BadUniqueItemsConfig>());
         Assert.Contains("uniqueItems", ex.Message);
     }
 
@@ -88,7 +88,7 @@ public class SchemaValidationTests
     public void MalformedInjectJson_Throws()
     {
         var ex = Assert.Throws<VmfSchemaAnnotationException>(
-            () => new VmfJsonSchemaGenerator().GenerateSchema<IBadInjectConfig>());
+            () => new VmfJsonSchemaGenerator().GenerateSchema<BadInjectConfig>());
         Assert.Contains("valid JSON", ex.Message);
     }
 }

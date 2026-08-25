@@ -5,16 +5,16 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.RecursiveListener01.NoContainment.VmfModel;
 
-interface INodeNoContainment
+interface NodeNoContainment
 {
     // Settable so the fact can detach a node with Parent = null (Java: setParent(null)).
-    [Container("INodeNoContainment.Children")]
-    INodeNoContainment? Parent { get; set; }
+    [Container("NodeNoContainment.Children")]
+    NodeNoContainment? Parent { get; set; }
 
-    [Contains("INodeNoContainment.Parent")]
-    INodeNoContainment[] Children { get; }
+    [Contains("NodeNoContainment.Parent")]
+    NodeNoContainment[] Children { get; }
 
-    INodeNoContainment? Node { get; set; }
+    NodeNoContainment? Node { get; set; }
 
     string? Name { get; set; }
 }

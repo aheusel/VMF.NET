@@ -124,25 +124,36 @@ wires `analyzers/dotnet/cs` itself.
   property of the first disappeared, with nothing reported. It is now an error naming both
   model-side spellings and the generated name they collide on.
 
-### Added — `VMF004`, a warning when a model name gets prefixed
+### Changed — the generated interface keeps the model's name (breaking)
 
-A model named `Parent` generates `IParent`, and nothing in the model file said so. The generator
-now warns:
+**The generator no longer renames your model types.** `Parent` generates `Parent` — the same name
+Java generates — and `IParent` generates `IParent`. Previously an unprefixed name was silently
+turned into `IParent`, a rename nothing in the model file recorded.
 
-```
-warning VMF004: Model interface 'Parent' generates 'IParent'. VMF.NET prefixes a model name
-with 'I'. Name it 'IParent' to say that explicitly, or silence this with <NoWarn>VMF004</NoWarn>.
-```
+Only the **implementation** name is derived, by dropping a leading `I`, because `IParentImpl`
+would be a class named like an interface:
 
-Naming the model interface `IParent` is the recommended style: the file then says what it
-produces. Java needs no such rule — there `Parent` generates `Parent` — so if you prefer that
-spelling, `<NoWarn>VMF004</NoWarn>` is the supported way to say so. The generated API is identical
-either way.
+| model | interface | implementation | read-only interface |
+|---|---|---|---|
+| `Parent` | `Parent` | `ParentImpl` | `ReadOnlyParent` |
+| `IParent` | `IParent` | `ParentImpl` | `IReadOnlyParent` |
 
-The prefix is not applied unconditionally, and the exception is not a wart: the implementation
-class name is derived by **stripping** the leading `I`, so always prefixing would turn a model
-named `IHorse` into interface `IIHorse` with implementation `IHorseImpl` — a class named like an
-interface.
+Read-only names follow whichever convention the model chose, so a model is never half one style
+and half the other.
+
+**Migrating:** if your models are unprefixed, every generated type loses its `I` — rename
+references, or add the `I` to the model to keep today's names. If your models are already written
+`IFoo`, nothing changes at all.
+
+Declaring both `Horse` and `IHorse` in one namespace is an error: their interfaces differ but both
+want `HorseImpl`.
+
+**One caveat, measured.** An unprefixed name shares a namespace with everything else, and can
+collide. Across the ported suite's 271 models, 11 could not drop the prefix — 8 were named after
+their own namespace (`namespace …Complex.Library` cannot also hold a type `Library`), and 3
+collided with implicitly-imported BCL types (`Action`, `Array`, `Type`). `Array` was the
+instructive one: it broke *generated code elsewhere*, because `Array.Empty<T>()` resolved to the
+model type. Prefer the plain name; reach for `IFoo` where it would collide.
 
 Model diagnostics previously all reported as `VMF001`, which made them impossible to suppress
 individually; they now carry distinct ids.

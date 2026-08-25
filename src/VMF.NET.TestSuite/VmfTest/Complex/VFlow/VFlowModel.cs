@@ -11,136 +11,136 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Complex.VFlow.VmfModel;
 
 [InterfaceOnly]
-interface IWithLocation
+interface WithLocation
 {
     [VmfDefaultValue("0")] int? X { get; set; }
     [VmfDefaultValue("0")] int? Y { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithDimensions
+interface WithDimensions
 {
     [VmfDefaultValue("0")] int? Width { get; set; }
     [VmfDefaultValue("0")] int? Height { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithId
+interface WithId
 {
     string? Id { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithName
+interface WithName
 {
     string? Name { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithType
+interface WithType
 {
     [VmfDefaultValue("\"default\"")] string? Type { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithValue
+interface WithValue
 {
     object? Value { get; set; }
 }
 
 [InterfaceOnly]
 [DelegateTo(typeof(ConnectorDelegate))]
-interface IConnector : IWithId, IWithType, IWithValue
+interface Connector : WithId, WithType, WithValue
 {
-    [GetterOnly] IVNode? Parent { get; }
+    [GetterOnly] VNode? Parent { get; }
 
-    [GetterOnly] IConnection[] Connections { get; }
+    [GetterOnly] Connection[] Connections { get; }
 
     [DelegateTo(typeof(ConnectorDelegate))]
-    IConnectionResult? TryConnect(IConnector c);
+    ConnectionResult? TryConnect(Connector c);
 
     [DelegateTo(typeof(ConnectorDelegate))]
-    IConnectionResult? Connect(IConnector c);
+    ConnectionResult? Connect(Connector c);
 }
 
-interface IInput : IConnector
+interface Input : Connector
 {
-    [Container("IVNode.Inputs")]
-    new IVNode? Parent { get; }
+    [Container("VNode.Inputs")]
+    new VNode? Parent { get; }
 
-    [Contains("IConnection.Receiver")]
-    new IConnection[] Connections { get; }
+    [Contains("Connection.Receiver")]
+    new Connection[] Connections { get; }
 }
 
-interface IOutput : IConnector
+interface Output : Connector
 {
-    [Container("IVNode.Outputs")]
-    new IVNode? Parent { get; }
+    [Container("VNode.Outputs")]
+    new VNode? Parent { get; }
 
-    [Contains("IConnection.Sender")]
-    new IConnection[] Connections { get; }
+    [Contains("Connection.Sender")]
+    new Connection[] Connections { get; }
 }
 
 [DelegateTo(typeof(ConnectionDelegate))]
-interface IConnection : IWithId, IWithType
+interface Connection : WithId, WithType
 {
     // Settable, because ConnectorDelegate.Connect assigns them. Java generates a container
     // setter automatically; here a model opts in by declaring the property `{ get; set; }`.
-    [Container("IOutput.Connections")]
-    IOutput? Sender { get; set; }
+    [Container("Output.Connections")]
+    Output? Sender { get; set; }
 
-    [Container("IInput.Connections")]
-    IInput? Receiver { get; set; }
+    [Container("Input.Connections")]
+    Input? Receiver { get; set; }
 
     [Container("IVFlow.Connections")]
     IVFlow? Flow { get; }
 }
 
-interface IConnectionResult
+interface ConnectionResult
 {
-    IConnection? Connection { get; set; }
+    Connection? Connection { get; set; }
     bool Successful { get; set; }
     [VmfDefaultValue("\"\"")] string? Message { get; set; }
 }
 
-interface IVNode : IWithLocation, IWithDimensions, IWithId, IWithType, IWithValue, IWithName
+interface VNode : WithLocation, WithDimensions, WithId, WithType, WithValue, WithName
 {
-    [Contains("IInput.Parent")]
-    IInput[] Inputs { get; }
+    [Contains("Input.Parent")]
+    Input[] Inputs { get; }
 
-    [Contains("IOutput.Parent")]
-    IOutput[] Outputs { get; }
+    [Contains("Output.Parent")]
+    Output[] Outputs { get; }
 
     [Container("IVFlow.Nodes")]
     IVFlow? Parent { get; }
 
     [DelegateTo(typeof(VNodeDelegate))]
-    IInput? AddInput(string type);
+    Input? AddInput(string type);
 
     [DelegateTo(typeof(VNodeDelegate))]
-    IOutput? AddOutput(string type);
+    Output? AddOutput(string type);
 }
 
 [DelegateTo(typeof(VFlowDelegate))]
-interface IVFlow : IVNode
+interface IVFlow : VNode
 {
-    [Contains("IVNode.Parent")]
-    IVNode[] Nodes { get; }
+    [Contains("VNode.Parent")]
+    VNode[] Nodes { get; }
 
-    [Contains("IConnection.Flow")]
-    IConnection[] Connections { get; }
-
-    [DelegateTo(typeof(VFlowDelegate))]
-    IConnectionResult? Connect(IConnector c1, IConnector c2);
+    [Contains("Connection.Flow")]
+    Connection[] Connections { get; }
 
     [DelegateTo(typeof(VFlowDelegate))]
-    IConnectionResult? TryConnect(IConnector c1, IConnector c2);
+    ConnectionResult? Connect(Connector c1, Connector c2);
 
     [DelegateTo(typeof(VFlowDelegate))]
-    IConnectionResult? Connect(IVNode n1, IVNode n2, string type);
+    ConnectionResult? TryConnect(Connector c1, Connector c2);
 
     [DelegateTo(typeof(VFlowDelegate))]
-    IVNode? NewNode(object o);
+    ConnectionResult? Connect(VNode n1, VNode n2, string type);
+
+    [DelegateTo(typeof(VFlowDelegate))]
+    VNode? NewNode(object o);
 
     [DelegateTo(typeof(VFlowDelegate))]
     IVFlow? NewSubFlow(object o);

@@ -17,5 +17,5 @@ public sealed class ControlFlowChildNodeDelegate : IDelegatedBehavior<IVObject>
 
     public void SetCaller(IVObject caller) => _obj = caller;
 
-    public VList<IControlFlowScope>? ParentScopes() => null;
+    public VList<ControlFlowScope>? ParentScopes() => null;
 }

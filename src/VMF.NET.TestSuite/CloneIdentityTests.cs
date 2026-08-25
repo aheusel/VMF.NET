@@ -15,18 +15,18 @@ namespace VMF.NET.TestSuite;
 
 public class CloneIdentityTests
 {
-    private static IFSM BuildFsm(int transitions)
+    private static FSM BuildFsm(int transitions)
     {
-        var fsm = IFSM.NewInstance();
+        var fsm = FSM.NewInstance();
         for (int i = 0; i < transitions; i++)
         {
-            var s = IState.NewInstance();
+            var s = State.NewInstance();
             s.Name = "State " + i;
             fsm.OwnedState.Add(s);
 
             if (i > 0)
             {
-                var t = ITransition.NewInstance();
+                var t = Transition.NewInstance();
                 var a = IAction.NewInstance();
                 // every action carries the SAME name, so all of them are content-equal
                 a.Name = "action";
@@ -42,7 +42,7 @@ public class CloneIdentityTests
         return fsm;
     }
 
-    private static int DistinctActions(IFSM fsm) =>
+    private static int DistinctActions(FSM fsm) =>
         fsm.OwnedState
             .SelectMany(s => s.OutgoingTransitions.Concat(s.IncomingTransitions))
             .SelectMany(t => t.Actions)
@@ -64,7 +64,7 @@ public class CloneIdentityTests
     public void DeepCopy_ContentEqualButDistinctObjects_StayDistinct()
     {
         var fsm = BuildFsm(4);
-        var copy = fsm.VMF.Content.DeepCopy<IFSM>();
+        var copy = fsm.VMF.Content.DeepCopy<FSM>();
 
         Assert.Equal(DistinctActions(fsm), DistinctActions(copy));
     }
@@ -73,8 +73,8 @@ public class CloneIdentityTests
     public void Clone_SharedObject_StaysShared()
     {
         // the behaviour the map exists for: one object reached twice yields ONE copy
-        var fsm = IFSM.NewInstance();
-        var s = IState.NewInstance();
+        var fsm = FSM.NewInstance();
+        var s = State.NewInstance();
         s.Name = "s";
         fsm.OwnedState.Add(s);
         fsm.InitialState = s;

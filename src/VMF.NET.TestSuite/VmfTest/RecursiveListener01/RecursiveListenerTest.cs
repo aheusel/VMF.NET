@@ -14,18 +14,18 @@ public class RecursiveListenerTest
     public void RecursiveVsNonRecursiveListenerTest()
     {
         // build a tree: root + 3 layers of 10 children each
-        var root = INode.NewInstance();
+        var root = Node.NewInstance();
         root.Name = "ROOT";
 
-        var parents = new List<INode> { root };
+        var parents = new List<Node> { root };
         for (int depth = 0; depth < 3; depth++)
         {
-            var layer = new List<INode>();
+            var layer = new List<Node>();
             foreach (var p in parents)
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    var n = INode.NewInstance();
+                    var n = Node.NewInstance();
                     n.Name = $"d={depth}, i={i}";
                     p.Children.Add(n);
                     layer.Add(n);
@@ -45,7 +45,7 @@ public class RecursiveListenerTest
         Assert.Equal(1, nonRecursiveChanges);
         Assert.Equal(1, recursiveChanges);
 
-        root.Children.Add(INode.NewBuilder().WithName("evt node").Build());
+        root.Children.Add(Node.NewBuilder().WithName("evt node").Build());
         Assert.Equal(2, nonRecursiveChanges);
         Assert.Equal(2, recursiveChanges);
 
@@ -58,7 +58,7 @@ public class RecursiveListenerTest
         Assert.Equal(0, nonRecursiveChanges);
         Assert.Equal(1, recursiveChanges);
 
-        descendant.Children.Add(INode.NewBuilder().WithName("evt node").Build());
+        descendant.Children.Add(Node.NewBuilder().WithName("evt node").Build());
         Assert.Equal(0, nonRecursiveChanges);
         Assert.Equal(2, recursiveChanges);
     }
@@ -70,13 +70,13 @@ public class RecursiveListenerTest
         // from the root through CONTAINMENT -- a plain reference is not enough
         int changeCounter = 0;
 
-        var root = NoContainment.INodeNoContainment.NewInstance();
+        var root = NoContainment.NodeNoContainment.NewInstance();
         root.VMF.Changes.AddListener(change =>
         {
             if (change.PropertyName == "Name") changeCounter++;
         });
 
-        var n1 = NoContainment.INodeNoContainment.NewInstance();
+        var n1 = NoContainment.NodeNoContainment.NewInstance();
 
         root.Node = n1;
 

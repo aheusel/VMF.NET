@@ -5,10 +5,10 @@ using VMF.NET.Runtime;
 
 namespace VMF.NET.TestSuite.VmfTest.NoPropertiesTest;
 
-public sealed class DelegatedBehavior : IDelegatedBehavior<INoProperties>
+public sealed class DelegatedBehavior : IDelegatedBehavior<NoProperties>
 {
-    private INoProperties? _caller;
-    public void SetCaller(INoProperties caller) => _caller = caller;
+    private NoProperties? _caller;
+    public void SetCaller(NoProperties caller) => _caller = caller;
 
     public int CallCount { get; private set; }
     public void TestDelegation() => CallCount++;

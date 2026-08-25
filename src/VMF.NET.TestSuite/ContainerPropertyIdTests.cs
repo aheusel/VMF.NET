@@ -16,14 +16,14 @@ public class ContainerPropertyIdTests
     [Fact]
     public void ContainerProperty_AnswersOnlyForThePropertyThatContains()
     {
-        var shelf = IShelf.NewInstance();
-        var book = IBook.NewInstance();
+        var shelf = Shelf.NewInstance();
+        var book = Book.NewInstance();
         book.Title = "Moby-Dick";
 
         shelf.Back.Add(book);
 
         Assert.Same(shelf, book.BackShelf);
-        // both of these reported `shelf`, because IShelf matched on type
+        // both of these reported `shelf`, because Shelf matched on type
         Assert.Null(book.FrontShelf);
         Assert.Null(book.Featured);
     }
@@ -31,8 +31,8 @@ public class ContainerPropertyIdTests
     [Fact]
     public void ContainerProperty_FollowsTheObjectWhenItMoves()
     {
-        var shelf = IShelf.NewInstance();
-        var book = IBook.NewInstance();
+        var shelf = Shelf.NewInstance();
+        var book = Book.NewInstance();
 
         shelf.Front.Add(book);
         Assert.Same(shelf, book.FrontShelf);
@@ -48,8 +48,8 @@ public class ContainerPropertyIdTests
     [Fact]
     public void ContainerProperty_ScalarContainmentIsAlsoDistinguished()
     {
-        var shelf = IShelf.NewInstance();
-        var book = IBook.NewInstance();
+        var shelf = Shelf.NewInstance();
+        var book = Book.NewInstance();
 
         shelf.Featured = book;
 
@@ -61,8 +61,8 @@ public class ContainerPropertyIdTests
     [Fact]
     public void SettingAContainerProperty_DrivesTheMatchingOpposite()
     {
-        var shelf = IShelf.NewInstance();
-        var book = IBook.NewInstance();
+        var shelf = Shelf.NewInstance();
+        var book = Book.NewInstance();
 
         book.BackShelf = shelf;
 
@@ -82,8 +82,8 @@ public class ContainerPropertyIdTests
     [Fact]
     public void Reflection_AgreesWithTheGetter()
     {
-        var shelf = IShelf.NewInstance();
-        var book = IBook.NewInstance();
+        var shelf = Shelf.NewInstance();
+        var book = Book.NewInstance();
         shelf.Back.Add(book);
 
         var reflect = book.VMF.Reflect;

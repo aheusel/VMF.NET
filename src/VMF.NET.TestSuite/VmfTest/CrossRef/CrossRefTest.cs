@@ -28,8 +28,8 @@ public class CrossRefTest
     {
         // one-to-one, initiated from the A side
         {
-            var entityOneA = IEntityOneA.NewInstance();
-            var entityTwoA = IEntityTwoA.NewInstance();
+            var entityOneA = EntityOneA.NewInstance();
+            var entityTwoA = EntityTwoA.NewInstance();
             var numEvtOneA = CountChangeEvents(entityOneA);
             var numEvtTwoA = CountChangeEvents(entityTwoA);
             entityOneA.VMF.Changes.Start();
@@ -46,8 +46,8 @@ public class CrossRefTest
         }
         // ...and symmetrically, initiated from the B side
         {
-            var entityOneA = IEntityOneA.NewInstance();
-            var entityTwoA = IEntityTwoA.NewInstance();
+            var entityOneA = EntityOneA.NewInstance();
+            var entityTwoA = EntityTwoA.NewInstance();
             var numEvtOneA = CountChangeEvents(entityOneA);
             var numEvtTwoA = CountChangeEvents(entityTwoA);
             entityOneA.VMF.Changes.Start();
@@ -68,8 +68,8 @@ public class CrossRefTest
     {
         // one-to-many, initiated from the list side
         {
-            var entityOneB = IEntityOneB.NewInstance();
-            var entityTwoB = IEntityTwoB.NewInstance();
+            var entityOneB = EntityOneB.NewInstance();
+            var entityTwoB = EntityTwoB.NewInstance();
             var numEvtOneB = CountChangeEvents(entityOneB);
             var numEvtTwoB = CountChangeEvents(entityTwoB);
             entityOneB.VMF.Changes.Start();
@@ -85,8 +85,8 @@ public class CrossRefTest
         }
         // ...and from the single side
         {
-            var entityOneB = IEntityOneB.NewInstance();
-            var entityTwoB = IEntityTwoB.NewInstance();
+            var entityOneB = EntityOneB.NewInstance();
+            var entityTwoB = EntityTwoB.NewInstance();
             var numEvtOneB = CountChangeEvents(entityOneB);
             var numEvtTwoB = CountChangeEvents(entityTwoB);
             entityOneB.VMF.Changes.Start();
@@ -108,8 +108,8 @@ public class CrossRefTest
     {
         // many-to-many, initiated from either side
         {
-            var entityOneC = IEntityOneC.NewInstance();
-            var entityTwoC = IEntityTwoC.NewInstance();
+            var entityOneC = EntityOneC.NewInstance();
+            var entityTwoC = EntityTwoC.NewInstance();
             var numEvtOneC = CountChangeEvents(entityOneC);
             var numEvtTwoC = CountChangeEvents(entityTwoC);
             entityOneC.VMF.Changes.Start();
@@ -125,8 +125,8 @@ public class CrossRefTest
             Assert.Single(entityOneC.VMF.Changes.All());
         }
         {
-            var entityOneC = IEntityOneC.NewInstance();
-            var entityTwoC = IEntityTwoC.NewInstance();
+            var entityOneC = EntityOneC.NewInstance();
+            var entityTwoC = EntityTwoC.NewInstance();
             var numEvtOneC = CountChangeEvents(entityOneC);
             var numEvtTwoC = CountChangeEvents(entityTwoC);
             entityOneC.VMF.Changes.Start();
@@ -152,8 +152,8 @@ public class CrossRefTest
     [Fact]
     public void SingleRef_SetsOppositeWithoutRecursing()
     {
-        var one = IEntityOneA.NewInstance();
-        var two = IEntityTwoA.NewInstance();
+        var one = EntityOneA.NewInstance();
+        var two = EntityTwoA.NewInstance();
 
         one.Ref = two;
 
@@ -164,8 +164,8 @@ public class CrossRefTest
     [Fact]
     public void SingleRef_SetsOppositeWhenAssignedFromTheOtherSide()
     {
-        var one = IEntityOneA.NewInstance();
-        var two = IEntityTwoA.NewInstance();
+        var one = EntityOneA.NewInstance();
+        var two = EntityTwoA.NewInstance();
 
         two.Ref = one;
 
@@ -176,15 +176,15 @@ public class CrossRefTest
     [Fact]
     public void SingleToMany_SetsBothSides()
     {
-        var one = IEntityOneB.NewInstance();
-        var two = IEntityTwoB.NewInstance();
+        var one = EntityOneB.NewInstance();
+        var two = EntityTwoB.NewInstance();
 
         two.Refs.Add(one);
         Assert.Same(two, one.Ref);
         Assert.Contains(one, two.Refs);
 
-        var one2 = IEntityOneB.NewInstance();
-        var two2 = IEntityTwoB.NewInstance();
+        var one2 = EntityOneB.NewInstance();
+        var two2 = EntityTwoB.NewInstance();
         one2.Ref = two2;
         Assert.Contains(one2, two2.Refs);
         Assert.Same(two2, one2.Ref);
@@ -193,8 +193,8 @@ public class CrossRefTest
     [Fact]
     public void ManyToMany_SetsBothSides()
     {
-        var one = IEntityOneC.NewInstance();
-        var two = IEntityTwoC.NewInstance();
+        var one = EntityOneC.NewInstance();
+        var two = EntityTwoC.NewInstance();
 
         one.Refs.Add(two);
 

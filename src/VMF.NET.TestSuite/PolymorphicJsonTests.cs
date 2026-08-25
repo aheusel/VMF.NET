@@ -26,29 +26,29 @@ public class PolymorphicJsonTests
     [Fact]
     public void Mutable_heterogeneous_containment_list_round_trips_concrete_types()
     {
-        var zoo = IZoo.NewInstance();
+        var zoo = Zoo.NewInstance();
         zoo.Name = "City Zoo";
 
-        var dog = IDog.NewInstance(); dog.Name = "Rex"; dog.Age = 3; dog.Breed = "Lab";
-        var cat = ICat.NewInstance(); cat.Name = "Mia"; cat.Age = 2; cat.Indoor = true;
+        var dog = Dog.NewInstance(); dog.Name = "Rex"; dog.Age = 3; dog.Breed = "Lab";
+        var cat = Cat.NewInstance(); cat.Name = "Mia"; cat.Age = 2; cat.Indoor = true;
         zoo.Animals.Add(dog);
         zoo.Animals.Add(cat);
 
         var options = Options();
         var json = JsonSerializer.Serialize<IVObject>(zoo, options);
 
-        // The declared element type is IAnimal but the runtime types differ → discriminator required.
+        // The declared element type is Animal but the runtime types differ → discriminator required.
         Assert.Contains("@vmf-type", json);
 
-        var restored = JsonSerializer.Deserialize<IZoo>(json, options)!;
+        var restored = JsonSerializer.Deserialize<Zoo>(json, options)!;
 
         Assert.Equal(2, restored.Animals.Count);
-        Assert.True(restored.Animals[0] is IDog, "Animals[0] must round-trip as IDog, not the base IAnimal");
-        Assert.True(restored.Animals[1] is ICat, "Animals[1] must round-trip as ICat, not the base IAnimal");
+        Assert.True(restored.Animals[0] is Dog, "Animals[0] must round-trip as Dog, not the base Animal");
+        Assert.True(restored.Animals[1] is Cat, "Animals[1] must round-trip as Cat, not the base Animal");
 
         // subtype-specific state preserved
-        Assert.Equal("Lab", ((IDog)restored.Animals[0]).Breed);
-        Assert.True(((ICat)restored.Animals[1]).Indoor);
+        Assert.Equal("Lab", ((Dog)restored.Animals[0]).Breed);
+        Assert.True(((Cat)restored.Animals[1]).Indoor);
 
         // inherited state preserved
         Assert.Equal("Rex", restored.Animals[0].Name);
@@ -58,11 +58,11 @@ public class PolymorphicJsonTests
     [Fact]
     public void Immutable_heterogeneous_value_list_round_trips_concrete_types()
     {
-        var drawing = IDrawing.NewBuilder()
+        var drawing = Drawing.NewBuilder()
             .WithTitle("sketch")
             .WithShapes(
-                ICircle.NewBuilder().WithLabel("c1").WithRadius(2.5).Build(),
-                IRectangle.NewBuilder().WithLabel("r1").WithWidth(3.0).WithHeight(4.0).Build())
+                Circle.NewBuilder().WithLabel("c1").WithRadius(2.5).Build(),
+                Rectangle.NewBuilder().WithLabel("r1").WithWidth(3.0).WithHeight(4.0).Build())
             .Build();
 
         var options = Options();
@@ -70,14 +70,14 @@ public class PolymorphicJsonTests
 
         Assert.Contains("@vmf-type", json);
 
-        var restored = JsonSerializer.Deserialize<IDrawing>(json, options)!;
+        var restored = JsonSerializer.Deserialize<Drawing>(json, options)!;
 
         Assert.Equal(2, restored.Shapes.Count);
-        Assert.True(restored.Shapes[0] is ICircle, "Shapes[0] must round-trip as ICircle");
-        Assert.True(restored.Shapes[1] is IRectangle, "Shapes[1] must round-trip as IRectangle");
+        Assert.True(restored.Shapes[0] is Circle, "Shapes[0] must round-trip as Circle");
+        Assert.True(restored.Shapes[1] is Rectangle, "Shapes[1] must round-trip as Rectangle");
 
-        Assert.Equal(2.5, ((ICircle)restored.Shapes[0]).Radius);
-        Assert.Equal(4.0, ((IRectangle)restored.Shapes[1]).Height);
-        Assert.Equal("c1", restored.Shapes[0].Label);   // inherited from IShape
+        Assert.Equal(2.5, ((Circle)restored.Shapes[0]).Radius);
+        Assert.Equal(4.0, ((Rectangle)restored.Shapes[1]).Height);
+        Assert.Equal("c1", restored.Shapes[0].Label);   // inherited from Shape
     }
 }

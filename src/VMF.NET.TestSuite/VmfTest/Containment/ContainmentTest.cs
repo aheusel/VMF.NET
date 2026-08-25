@@ -15,7 +15,7 @@ public class ContainmentTest
     public void ContainmentWithBuilderTest()
     {
         // check that containment works with builder (i.e. that builder calls containment methods)
-        var ca = IContainerOne.NewBuilder().WithElement1(IElement.NewInstance()).Build();
+        var ca = ContainerOne.NewBuilder().WithElement1(Element.NewInstance()).Build();
         var e = ca.Element1;
 
         Assert.Same(ca, e!.ParentOne);
@@ -25,13 +25,13 @@ public class ContainmentTest
     public void ContainmentTest_IsUnique()
     {
         // containment should be unique -- first check that containment works
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Element1 = e;
         Assert.Same(ca, e.ParentOne);
 
         // if we set to a second container instance...
-        var cb = IContainerOne.NewInstance();
+        var cb = ContainerOne.NewInstance();
         // ...should work like before and...
         cb.Element1 = e;
         Assert.Same(cb, e.ParentOne);
@@ -44,11 +44,11 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTest1()
     {
         // case 1: containments with opposites only
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Element1 = e;
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Element2 = e;
 
         Assert.Same(cb, e.ParentTwo);
@@ -59,12 +59,12 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTest2()
     {
         // case 2: mixing containments with and without opposites
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Element1 = e;
         Assert.Same(e, ca.Element1);
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Element = e;
         Assert.Same(e, cb.Element);
 
@@ -75,12 +75,12 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTest3()
     {
         // case 3: mixing containments with and without opposites (order swapped vs. case 1)
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Element = e;
         Assert.Same(e, ca.Element);
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Element2 = e;
         Assert.Same(cb, e.ParentTwo);
 
@@ -91,12 +91,12 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTest4()
     {
         // case 4: single without opposite, then element list WITH opposite
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Element = e;
         Assert.Same(e, ca.Element);
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Elements2a.Add(e);
         Assert.Contains(e, cb.Elements2a);
 
@@ -107,12 +107,12 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTest5()
     {
         // case 5: containments without opposites (single prop, then list)
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Element = e;
         Assert.Same(e, ca.Element);
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Elements2.Add(e);
         Assert.Contains(e, cb.Elements2);
 
@@ -123,12 +123,12 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTest6()
     {
         // case 6: one list without opposite, the other with
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Elements1.Add(e);
         Assert.Contains(e, ca.Elements1);
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Elements2a.Add(e);
         Assert.Contains(e, cb.Elements2a);
 
@@ -139,12 +139,12 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTest7()
     {
         // case 7: one list with opposite, the other without (reverse order of case 6)
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Elements1a.Add(e);
         Assert.Contains(e, ca.Elements1a);
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Elements2.Add(e);
 
         Assert.DoesNotContain(e, ca.Elements1a);
@@ -155,12 +155,12 @@ public class ContainmentTest
     public void ContainmentMultiplePropsTestNoOpposite()
     {
         // containments without opposites only
-        var ca = IContainerOne.NewInstance();
-        var e = IElement.NewInstance();
+        var ca = ContainerOne.NewInstance();
+        var e = Element.NewInstance();
         ca.Element = e;
         Assert.Same(e, ca.Element);
 
-        var cb = IContainerTwo.NewInstance();
+        var cb = ContainerTwo.NewInstance();
         cb.Element = e;
         Assert.Same(e, cb.Element);
 
@@ -174,14 +174,14 @@ public class ContainmentTest
         // where the element's [Container] has no single opposite
 
         // ONE-TO-ONE
-        var ca = IContainerMultipleOpposites.NewInstance();
-        var e = IElementMultipleOpposites.NewInstance();
+        var ca = ContainerMultipleOpposites.NewInstance();
+        var e = ElementMultipleOpposites.NewInstance();
         ca.Element = e;
 
         Assert.Same(e, ca.Element);
         Assert.Same(ca, e.Parent);
 
-        var cb = IContainerMultipleOpposites.NewInstance();
+        var cb = ContainerMultipleOpposites.NewInstance();
         cb.Element = e;
 
         Assert.Null(ca.Element);

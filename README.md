@@ -48,41 +48,40 @@ using VMF.NET.Runtime.Attributes;
 
 namespace MyApp.VmfModel;
 
-interface IParent
+interface Parent
 {
     string? Name { get; set; }
 
-    // A multi-valued property is an array here; the generated API exposes it as VList<IChild>.
-    [Contains("IChild.Parent")]
-    IChild[] Children { get; }
+    // A multi-valued property is an array here; the generated API exposes it as VList<Child>.
+    [Contains("Child.Parent")]
+    Child[] Children { get; }
 }
 
-interface IChild
+interface Child
 {
     int Value { get; set; }
 
-    [Container("IParent.Children")]
-    IParent? Parent { get; }
+    [Container("Parent.Children")]
+    Parent? Parent { get; }
 }
 ```
 
-Name the model interface what it will generate. VMF.NET prefixes a model name with `I`, and leaves
-a name that already starts with `I` plus a capital alone — so `Parent` and `IParent` both produce
-`IParent`, and writing the `I` yourself is what makes the file say so. A bare `Parent` still works
-but warns (`VMF004`).
+The generated interface keeps the name you gave it — `Parent` generates `Parent`, and `IParent`
+generates `IParent` if you prefer C#'s convention. Only the implementation name drops a leading
+`I`, since `IParentImpl` would be a class named like an interface.
 
-VMF.NET generates the public API into the namespace **above** the model — `MyApp` here — prefixing
-each name with `I`. That is what your code uses:
+VMF.NET generates the public API into the namespace **above** the model — `MyApp` here. That is
+what your code uses:
 
 ```csharp
 using MyApp;
 
 // Create via factory method
-var parent = IParent.NewInstance();
+var parent = Parent.NewInstance();
 parent.Name = "Root";
 
 // Or use the builder
-var child = IChild.NewBuilder()
+var child = Child.NewBuilder()
     .WithValue(42)
     .Build();
 
@@ -100,7 +99,7 @@ parent.VMF.Changes.AddListener(change => {
 var copy = parent.Clone();
 
 // Read-only wrapper
-IReadOnlyParent ro = parent.AsReadOnly();
+ReadOnlyParent ro = parent.AsReadOnly();
 ```
 
 The source generator runs automatically on every build — no task to invoke.
@@ -121,7 +120,7 @@ var options = new JsonSerializerOptions
 };
 
 string json = JsonSerializer.Serialize(parent, options);
-IParent restored = JsonSerializer.Deserialize<IParent>(json, options)!;
+Parent restored = JsonSerializer.Deserialize<Parent>(json, options)!;
 ```
 
 ## Building VMF.NET
@@ -150,4 +149,4 @@ dotnet pack --configuration Release
 dotnet test --configuration Release --verbosity normal
 ```
 
-The test suite includes 163 tests across unit and integration projects.
+The test suite includes 334 tests across the generator and behavioural projects.

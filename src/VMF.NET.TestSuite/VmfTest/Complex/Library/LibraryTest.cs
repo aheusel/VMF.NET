@@ -12,8 +12,8 @@ public class LibraryTest
         var library = ILibrary.NewInstance();
         library.Name = "My Library";
 
-        var b1 = IBook.NewBuilder().WithTitle("Mastering VMF").WithPages(350).Build();
-        var w1 = IWriter.NewBuilder().WithName("The Author").WithBooks(b1).Build();
+        var b1 = Book.NewBuilder().WithTitle("Mastering VMF").WithPages(350).Build();
+        var w1 = Writer.NewBuilder().WithName("The Author").WithBooks(b1).Build();
 
         library.Authors.Add(w1);
         library.Books.Add(b1);

@@ -16,17 +16,17 @@ public class HorsesTest
     [Fact]
     public void HorseTest()
     {
-        var horse1 = IHorse.NewBuilder().WithName("Larissa").Build();
-        var horse2 = IHorse.NewBuilder().WithName("Dynastie").Build();
-        var horse3 = IHorse.NewBuilder().WithName("Mike").Build();
+        var horse1 = Horse.NewBuilder().WithName("Larissa").Build();
+        var horse2 = Horse.NewBuilder().WithName("Dynastie").Build();
+        var horse3 = Horse.NewBuilder().WithName("Mike").Build();
 
-        var owner1 = IOwner.NewBuilder().WithName("Horst Müller").WithHorses(horse1).Build();
-        var owner2 = IOwner.NewBuilder().WithName("Berta Schmidt").WithHorses(horse2, horse3).Build();
+        var owner1 = Owner.NewBuilder().WithName("Horst Müller").WithHorses(horse1).Build();
+        var owner2 = Owner.NewBuilder().WithName("Berta Schmidt").WithHorses(horse2, horse3).Build();
 
-        var barn1 = IHorseBarn.NewBuilder().WithHorses(horse1, horse2).Build();
-        var barn2 = IHorseBarn.NewBuilder().WithHorses(horse3).Build();
+        var barn1 = HorseBarn.NewBuilder().WithHorses(horse1, horse2).Build();
+        var barn2 = HorseBarn.NewBuilder().WithHorses(horse3).Build();
 
-        var tournament1 = ITournament.NewBuilder()
+        var tournament1 = Tournament.NewBuilder()
             .WithName("Spring Tournament")
             .WithHorses(horse1, horse2, horse3)
             .Build();
@@ -63,7 +63,7 @@ public class HorsesTest
 
         // now we attend a second tournament. but since tournaments are only references we can be
         // referenced by multiple tournament objects
-        var tournament2 = ITournament.NewBuilder()
+        var tournament2 = Tournament.NewBuilder()
             .WithName("Summer Tournament")
             .WithHorses(horse1, horse2, horse3)
             .Build();
@@ -84,8 +84,8 @@ public class HorsesTest
     [Fact]
     public void CrossRefTestForLists()
     {
-        var owner = IOwner.NewBuilder().WithName("Larry Smith").Build();
-        var horse1 = IHorse.NewBuilder().WithName("Lady").Build();
+        var owner = Owner.NewBuilder().WithName("Larry Smith").Build();
+        var horse1 = Horse.NewBuilder().WithName("Lady").Build();
 
         // adding a horse to the same list multiple times should still result
         // in only one reference to this horse being contained

@@ -5,14 +5,14 @@ using VMF.NET.Runtime;
 
 namespace VMF.NET.TestSuite.VmfTest.DelegationInherit;
 
-public sealed class DeviceDelegate : IDelegatedBehavior<IDevice>
+public sealed class DeviceDelegate : IDelegatedBehavior<Device>
 {
     public void Consume() { }
     public void Produce() { }
     public void Process() { }
 }
 
-public sealed class CircuitDeviceDelegate : IDelegatedBehavior<IDevice>
+public sealed class CircuitDeviceDelegate : IDelegatedBehavior<Device>
 {
     public void OnCircuitDeviceInstantiated()
     {

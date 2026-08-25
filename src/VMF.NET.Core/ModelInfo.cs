@@ -152,11 +152,8 @@ public sealed class Diagnostic
     /// <summary>Diagnostic id used when none is given: general model analysis.</summary>
     public const string DefaultId = "VMF001";
 
-    /// <summary>
-    /// A leading <c>I</c> was stripped to name the implementation class, so
-    /// <c>IHorse</c> is implemented by <c>HorseImpl</c>.
-    /// </summary>
-    public const string PrefixStrippedId = "VMF004";
+    // VMF002 and VMF003 are reported by the generator itself, not through this type.
+    // VMF004 was a naming warning, withdrawn -- see ModelAnalyzer.
 
     public Diagnostic(DiagnosticSeverity severity, string message, string? location = null,
         string id = DefaultId)

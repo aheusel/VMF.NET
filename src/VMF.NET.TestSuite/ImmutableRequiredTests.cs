@@ -15,7 +15,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_NewInstance_CreatesDefaultInstance()
     {
-        var point = IPoint.NewInstance();
+        var point = Point.NewInstance();
         Assert.Equal(0.0, point.X);
         Assert.Equal(0.0, point.Y);
     }
@@ -23,7 +23,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_Builder_SetsProperties()
     {
-        var point = IPoint.NewBuilder()
+        var point = Point.NewBuilder()
             .WithX(3.0)
             .WithY(4.0)
             .Build();
@@ -35,7 +35,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_Clone_ReturnsSelf()
     {
-        var point = IPoint.NewBuilder().WithX(1.0).WithY(2.0).Build();
+        var point = Point.NewBuilder().WithX(1.0).WithY(2.0).Build();
         var clone = point.Clone();
 
         Assert.Same(point, clone);
@@ -44,7 +44,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_AsReadOnly_ReturnsSelf()
     {
-        var point = IPoint.NewBuilder().WithX(1.0).WithY(2.0).Build();
+        var point = Point.NewBuilder().WithX(1.0).WithY(2.0).Build();
         var ro = point.AsReadOnly();
 
         Assert.Same(point, ro);
@@ -53,7 +53,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_IsReadOnly_ReturnsTrue()
     {
-        var point = IPoint.NewInstance();
+        var point = Point.NewInstance();
         var intern = (IVObjectInternal)point;
 
         Assert.True(intern.IsReadOnly);
@@ -62,8 +62,8 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_ContentEquals_Works()
     {
-        var p1 = IPoint.NewBuilder().WithX(3.0).WithY(4.0).Build();
-        var p2 = IPoint.NewBuilder().WithX(3.0).WithY(4.0).Build();
+        var p1 = Point.NewBuilder().WithX(3.0).WithY(4.0).Build();
+        var p2 = Point.NewBuilder().WithX(3.0).WithY(4.0).Build();
 
         Assert.Equal(p1, p2);
         Assert.Equal(p1.GetHashCode(), p2.GetHashCode());
@@ -72,8 +72,8 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_ContentNotEquals_Works()
     {
-        var p1 = IPoint.NewBuilder().WithX(1.0).WithY(2.0).Build();
-        var p2 = IPoint.NewBuilder().WithX(3.0).WithY(4.0).Build();
+        var p1 = Point.NewBuilder().WithX(1.0).WithY(2.0).Build();
+        var p2 = Point.NewBuilder().WithX(3.0).WithY(4.0).Build();
 
         Assert.NotEqual(p1, p2);
     }
@@ -81,7 +81,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_ToString_ContainsValues()
     {
-        var point = IPoint.NewBuilder().WithX(3.14).WithY(2.71).Build();
+        var point = Point.NewBuilder().WithX(3.14).WithY(2.71).Build();
         var str = point.ToString();
 
         Assert.Contains("3.14", str);
@@ -91,7 +91,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_Annotations_IncludesImmutableMarker()
     {
-        var point = IPoint.NewInstance();
+        var point = Point.NewInstance();
         var intern = (IVObjectInternal)point;
         var annotations = intern.GetAnnotations();
 
@@ -101,14 +101,14 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_Changes_Throws()
     {
-        var point = IPoint.NewInstance();
+        var point = Point.NewInstance();
         Assert.Throws<InvalidOperationException>(() => point.VMF.Changes);
     }
 
     [Fact]
     public void Immutable_SetPropertyValueById_Throws()
     {
-        var point = IPoint.NewInstance();
+        var point = Point.NewInstance();
         var mod = (IVObjectInternalModifiable)point;
 
         Assert.Throws<InvalidOperationException>(() => mod.SetPropertyValueById(0, 5.0));
@@ -117,7 +117,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_Reflect_Works()
     {
-        var point = IPoint.NewBuilder().WithX(1.0).WithY(2.0).Build();
+        var point = Point.NewBuilder().WithX(1.0).WithY(2.0).Build();
         var reflect = point.VMF.Reflect;
 
         Assert.Equal(2, reflect.Properties().Count);
@@ -128,8 +128,8 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_DeepCopy_ReturnsSelf()
     {
-        var point = IPoint.NewBuilder().WithX(1.0).WithY(2.0).Build();
-        var copy = point.VMF.Content.DeepCopy<IPoint>();
+        var point = Point.NewBuilder().WithX(1.0).WithY(2.0).Build();
+        var copy = point.VMF.Content.DeepCopy<Point>();
 
         Assert.Same(point, copy);
     }
@@ -137,7 +137,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Immutable_ImplementsIImmutable()
     {
-        var point = IPoint.NewInstance();
+        var point = Point.NewInstance();
         Assert.IsAssignableFrom<IImmutable>(point);
     }
 
@@ -146,7 +146,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Required_Builder_ThrowsWhenNotSet()
     {
-        var builder = IFigure.NewBuilder();
+        var builder = Figure.NewBuilder();
         // Name is required but not set
         Assert.Throws<InvalidOperationException>(() => builder.Build());
     }
@@ -154,7 +154,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Required_Builder_SucceedsWhenSet()
     {
-        var shape = IFigure.NewBuilder()
+        var shape = Figure.NewBuilder()
             .WithName("Triangle")
             .Build();
 
@@ -164,10 +164,10 @@ public class ImmutableRequiredTests
     [Fact]
     public void Required_Builder_WithPoints()
     {
-        var p1 = IPoint.NewBuilder().WithX(0).WithY(0).Build();
-        var p2 = IPoint.NewBuilder().WithX(1).WithY(0).Build();
+        var p1 = Point.NewBuilder().WithX(0).WithY(0).Build();
+        var p2 = Point.NewBuilder().WithX(1).WithY(0).Build();
 
-        var shape = IFigure.NewBuilder()
+        var shape = Figure.NewBuilder()
             .WithName("Line")
             .WithPoints(p1, p2)
             .Build();
@@ -179,7 +179,7 @@ public class ImmutableRequiredTests
     [Fact]
     public void Shape_IsMutable()
     {
-        var shape = IFigure.NewBuilder().WithName("Test").Build();
+        var shape = Figure.NewBuilder().WithName("Test").Build();
         Assert.IsAssignableFrom<IMutable>(shape);
 
         // Can change name

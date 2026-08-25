@@ -24,7 +24,7 @@ public class JsonAnnotationTests
     [Fact]
     public void Serialize_Rename_UsesAnnotatedFieldName()
     {
-        var config = IServiceConfig.NewInstance();
+        var config = ServiceConfig.NewInstance();
         config.Name = "MyService";
 
         var options = CreateOptions();
@@ -47,7 +47,7 @@ public class JsonAnnotationTests
         var json = """{"service_name":"MyService","port":9090}""";
 
         var options = CreateOptions();
-        var config = JsonSerializer.Deserialize<IServiceConfig>(json, options)!;
+        var config = JsonSerializer.Deserialize<ServiceConfig>(json, options)!;
 
         Assert.Equal("MyService", config.Name);
         Assert.Equal(9090, config.Port);
@@ -56,13 +56,13 @@ public class JsonAnnotationTests
     [Fact]
     public void RoundTrip_Rename()
     {
-        var original = IServiceConfig.NewInstance();
+        var original = ServiceConfig.NewInstance();
         original.Name = "RoundTrip";
         original.Port = 3000;
 
         var options = CreateOptions();
         var json = JsonSerializer.Serialize<IVObject>(original, options);
-        var deserialized = JsonSerializer.Deserialize<IServiceConfig>(json, options)!;
+        var deserialized = JsonSerializer.Deserialize<ServiceConfig>(json, options)!;
 
         Assert.Equal("RoundTrip", deserialized.Name);
         Assert.Equal(3000, deserialized.Port);
@@ -74,7 +74,7 @@ public class JsonAnnotationTests
     public void Schema_Description()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         var portSchema = (Dictionary<string, object>)properties["Port"];
@@ -85,7 +85,7 @@ public class JsonAnnotationTests
     public void Schema_Constraints()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         var portSchema = (Dictionary<string, object>)properties["Port"];
@@ -97,7 +97,7 @@ public class JsonAnnotationTests
     public void Schema_Format()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         var hostSchema = (Dictionary<string, object>)properties["Host"];
@@ -108,7 +108,7 @@ public class JsonAnnotationTests
     public void Schema_Title()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         var hostSchema = (Dictionary<string, object>)properties["Host"];
@@ -119,7 +119,7 @@ public class JsonAnnotationTests
     public void Schema_UniqueItems()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         var tagsSchema = (Dictionary<string, object>)properties["Tags"];
@@ -130,7 +130,7 @@ public class JsonAnnotationTests
     public void Schema_PropertyOrder()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         var enabledSchema = (Dictionary<string, object>)properties["Enabled"];
@@ -141,7 +141,7 @@ public class JsonAnnotationTests
     public void Schema_DefaultValue()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         var portSchema = (Dictionary<string, object>)properties["Port"];
@@ -152,7 +152,7 @@ public class JsonAnnotationTests
     public void Schema_RenamedField()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<IServiceConfig>();
+        var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
         // Name should appear under its renamed field name "service_name"

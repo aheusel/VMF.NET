@@ -13,10 +13,10 @@ public class ContainmentTest
     [Fact]
     public void TestContainmentBehaviorGetParent()
     {
-        var operatorExpression = IOperatorExpression.NewInstance();
+        var operatorExpression = OperatorExpression.NewInstance();
 
-        var leftValue = INumberExpression.NewBuilder().WithValue(3.2).Build();
-        var rightValue = INumberExpression.NewBuilder().WithValue(1.2).Build();
+        var leftValue = NumberExpression.NewBuilder().WithValue(3.2).Build();
+        var rightValue = NumberExpression.NewBuilder().WithValue(1.2).Build();
 
         Assert.Null(operatorExpression.Parent);
         Assert.Null(leftValue.Parent);
@@ -33,10 +33,10 @@ public class ContainmentTest
     [Fact]
     public void TestContainmentBehaviorFindRoot()
     {
-        var root = IOperatorExpression.NewInstance();
+        var root = OperatorExpression.NewInstance();
 
-        var l0 = INumberExpression.NewBuilder().WithValue(3.2).Build();
-        var r0 = IOperatorExpression.NewInstance();
+        var l0 = NumberExpression.NewBuilder().WithValue(3.2).Build();
+        var r0 = OperatorExpression.NewInstance();
 
         root.Left = l0;
         root.Right = r0;
@@ -44,8 +44,8 @@ public class ContainmentTest
         Assert.Same(root, l0.Root());
         Assert.Same(root, r0.Root());
 
-        var l1 = INumberExpression.NewBuilder().WithValue(1.2).Build();
-        var r1 = INumberExpression.NewBuilder().WithValue(5.6).Build();
+        var l1 = NumberExpression.NewBuilder().WithValue(1.2).Build();
+        var r1 = NumberExpression.NewBuilder().WithValue(5.6).Build();
 
         r0.Left = l1;
         r0.Right = r1;

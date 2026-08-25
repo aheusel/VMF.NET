@@ -8,17 +8,17 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.VFlow;
 
 // --- behavior delegates ---
 
-public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
+public sealed class ConnectorDelegate : IDelegatedBehavior<Connector>
 {
-    private IConnector? _caller;
-    public void SetCaller(IConnector caller) => _caller = caller;
+    private Connector? _caller;
+    public void SetCaller(Connector caller) => _caller = caller;
 
     public void OnConnectorInstantiated()
     {
         // prevent duplicates & set id
         _caller!.Connections.AddChangeListener(evt =>
         {
-            foreach (IConnection cnn in evt.Added.Cast<IConnection>())
+            foreach (Connection cnn in evt.Added.Cast<Connection>())
             {
                 if (_caller.Connections.Count(cnn2 => ReferenceEquals(cnn, cnn2)) > 1)
                 {
@@ -30,38 +30,38 @@ public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
 
     private sealed class ConnectorTuple
     {
-        public IInput? Input;
-        public IOutput? Output;
+        public Input? Input;
+        public Output? Output;
 
-        public ConnectorTuple(IInput? input, IOutput? output)
+        public ConnectorTuple(Input? input, Output? output)
         {
             Input = input;
             Output = output;
         }
     }
 
-    private ConnectorTuple Sort(IConnector? c1, IConnector? c2)
+    private ConnectorTuple Sort(Connector? c1, Connector? c2)
     {
-        IInput? input = null;
-        IOutput? output = null;
+        Input? input = null;
+        Output? output = null;
 
-        if (c1 is IInput && c2 is IOutput)
+        if (c1 is Input && c2 is Output)
         {
-            input = (IInput)c1;
-            output = (IOutput)c2;
+            input = (Input)c1;
+            output = (Output)c2;
         }
-        else if (c1 is IOutput && c2 is IInput)
+        else if (c1 is Output && c2 is Input)
         {
-            input = (IInput)c2;
-            output = (IOutput)c1;
+            input = (Input)c2;
+            output = (Output)c1;
         }
 
         return new ConnectorTuple(input, output);
     }
 
-    public IConnectionResult? Connect(IConnector c2)
+    public ConnectionResult? Connect(Connector c2)
     {
-        IConnector? c1 = _caller;
+        Connector? c1 = _caller;
 
         var result = TryConnect(c2)!;
 
@@ -72,11 +72,11 @@ public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
 
         var connectors = Sort(c1, c2);
 
-        IInput input = connectors.Input!;
-        IOutput output = connectors.Output!;
+        Input input = connectors.Input!;
+        Output output = connectors.Output!;
 
         string connectionType = input.Type!;
-        var connection = IConnection.NewBuilder().WithType(connectionType).Build();
+        var connection = Connection.NewBuilder().WithType(connectionType).Build();
 
         connection.Sender = output;
         connection.Receiver = input;
@@ -86,11 +86,11 @@ public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
         return result;
     }
 
-    public IConnectionResult? TryConnect(IConnector c2)
+    public ConnectionResult? TryConnect(Connector c2)
     {
-        IConnector? c1 = _caller;
+        Connector? c1 = _caller;
 
-        var result = IConnectionResult.NewInstance();
+        var result = ConnectionResult.NewInstance();
         result.Successful = true;
 
         if (c1 == null || c2 == null)
@@ -124,8 +124,8 @@ public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
 
         result.Successful = true;
 
-        IInput? input = null;
-        IOutput? output = null;
+        Input? input = null;
+        Output? output = null;
 
         var connectors = Sort(c1, c2);
         input = connectors.Input;
@@ -150,10 +150,10 @@ public sealed class ConnectorDelegate : IDelegatedBehavior<IConnector>
     }
 }
 
-public sealed class ConnectionDelegate : IDelegatedBehavior<IConnection>
+public sealed class ConnectionDelegate : IDelegatedBehavior<Connection>
 {
-    private IConnection? _caller;
-    public void SetCaller(IConnection caller) => _caller = caller;
+    private Connection? _caller;
+    public void SetCaller(Connection caller) => _caller = caller;
 
     public void OnConnectionInstantiated()
     {
@@ -174,21 +174,21 @@ public sealed class ConnectionDelegate : IDelegatedBehavior<IConnection>
     }
 }
 
-public sealed class VNodeDelegate : IDelegatedBehavior<IVNode>
+public sealed class VNodeDelegate : IDelegatedBehavior<VNode>
 {
-    private IVNode? _caller;
-    public void SetCaller(IVNode caller) => _caller = caller;
+    private VNode? _caller;
+    public void SetCaller(VNode caller) => _caller = caller;
 
-    public IInput? AddInput(string type)
+    public Input? AddInput(string type)
     {
-        var input = IInput.NewBuilder().WithType(type).Build();
+        var input = Input.NewBuilder().WithType(type).Build();
         _caller!.Inputs.Add(input);
         return input;
     }
 
-    public IOutput? AddOutput(string type)
+    public Output? AddOutput(string type)
     {
-        var outputs = IOutput.NewBuilder().WithType(type).Build();
+        var outputs = Output.NewBuilder().WithType(type).Build();
         _caller!.Outputs.Add(outputs);
         return outputs;
     }
@@ -204,7 +204,7 @@ public sealed class VFlowDelegate : IDelegatedBehavior<IVFlow>
         // prevent duplicates & set id
         _caller!.Nodes.AddChangeListener(evt =>
         {
-            foreach (IVNode n in evt.Added.Cast<IVNode>())
+            foreach (VNode n in evt.Added.Cast<VNode>())
             {
                 if (_caller.Nodes.Count(m => ReferenceEquals(n, m)) > 1)
                 {
@@ -214,13 +214,13 @@ public sealed class VFlowDelegate : IDelegatedBehavior<IVFlow>
         });
     }
 
-    public IConnectionResult? Connect(IConnector c1, IConnector c2) => null;
-    public IConnectionResult? TryConnect(IConnector c1, IConnector c2) => null;
-    public IConnectionResult? Connect(IVNode n1, IVNode n2, string type) => null;
+    public ConnectionResult? Connect(Connector c1, Connector c2) => null;
+    public ConnectionResult? TryConnect(Connector c1, Connector c2) => null;
+    public ConnectionResult? Connect(VNode n1, VNode n2, string type) => null;
 
-    public IVNode? NewNode(object o)
+    public VNode? NewNode(object o)
     {
-        var n = IVNode.NewInstance();
+        var n = VNode.NewInstance();
         n.Value = o;
         _caller!.Nodes.Add(n);
         return n;

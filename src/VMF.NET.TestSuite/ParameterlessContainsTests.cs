@@ -27,11 +27,11 @@ public class ParameterlessContainsTests
     [Fact]
     public void Items_can_be_added_and_read()
     {
-        var box = IBox.NewInstance();
+        var box = Box.NewInstance();
         box.Label = "crate";
 
-        var a = IBoxItem.NewInstance(); a.Name = "a";
-        var b = IBoxItem.NewInstance(); b.Name = "b";
+        var a = BoxItem.NewInstance(); a.Name = "a";
+        var b = BoxItem.NewInstance(); b.Name = "b";
         box.Items.Add(a);
         box.Items.Add(b);
 
@@ -47,10 +47,10 @@ public class ParameterlessContainsTests
         // from its previous container when added to a new one. With NO opposite back-reference this
         // is driven entirely by the internal parent link + the containing_props_without_opposite
         // cleanup in UnregisterFromContainers.
-        var box1 = IBox.NewInstance(); box1.Label = "first";
-        var box2 = IBox.NewInstance(); box2.Label = "second";
+        var box1 = Box.NewInstance(); box1.Label = "first";
+        var box2 = Box.NewInstance(); box2.Label = "second";
 
-        var item = IBoxItem.NewInstance(); item.Name = "movable";
+        var item = BoxItem.NewInstance(); item.Name = "movable";
         box1.Items.Add(item);
         Assert.Equal(1, box1.Items.Count);
 
@@ -64,8 +64,8 @@ public class ParameterlessContainsTests
     [Fact]
     public void Removing_an_item_detaches_it()
     {
-        var box = IBox.NewInstance(); box.Label = "crate";
-        var item = IBoxItem.NewInstance(); item.Name = "x";
+        var box = Box.NewInstance(); box.Label = "crate";
+        var item = BoxItem.NewInstance(); item.Name = "x";
         box.Items.Add(item);
         Assert.Equal(1, box.Items.Count);
 
@@ -73,7 +73,7 @@ public class ParameterlessContainsTests
         Assert.Equal(0, box.Items.Count);
 
         // Detached → can be placed into another container without complaint.
-        var other = IBox.NewInstance(); other.Label = "other";
+        var other = Box.NewInstance(); other.Label = "other";
         other.Items.Add(item);
         Assert.Equal(1, other.Items.Count);
     }
@@ -81,16 +81,16 @@ public class ParameterlessContainsTests
     [Fact]
     public void Items_round_trip_through_json()
     {
-        var box = IBox.NewInstance();
+        var box = Box.NewInstance();
         box.Label = "crate";
-        var a = IBoxItem.NewInstance(); a.Name = "a";
-        var b = IBoxItem.NewInstance(); b.Name = "b";
+        var a = BoxItem.NewInstance(); a.Name = "a";
+        var b = BoxItem.NewInstance(); b.Name = "b";
         box.Items.Add(a);
         box.Items.Add(b);
 
         var options = Options();
         var json = JsonSerializer.Serialize<IVObject>(box, options);
-        var restored = JsonSerializer.Deserialize<IBox>(json, options)!;
+        var restored = JsonSerializer.Deserialize<Box>(json, options)!;
 
         Assert.Equal("crate", restored.Label);
         Assert.Equal(2, restored.Items.Count);
@@ -104,18 +104,18 @@ public class ParameterlessContainsTests
         // There is no public back-reference to assert the parent directly, so prove the internal
         // containment link was rebuilt on read: moving a restored item into a new container must
         // remove it from the deserialized one.
-        var box = IBox.NewInstance();
+        var box = Box.NewInstance();
         box.Label = "crate";
-        var a = IBoxItem.NewInstance(); a.Name = "a";
-        var b = IBoxItem.NewInstance(); b.Name = "b";
+        var a = BoxItem.NewInstance(); a.Name = "a";
+        var b = BoxItem.NewInstance(); b.Name = "b";
         box.Items.Add(a);
         box.Items.Add(b);
 
         var options = Options();
         var json = JsonSerializer.Serialize<IVObject>(box, options);
-        var restored = JsonSerializer.Deserialize<IBox>(json, options)!;
+        var restored = JsonSerializer.Deserialize<Box>(json, options)!;
 
-        var dest = IBox.NewInstance(); dest.Label = "dest";
+        var dest = Box.NewInstance(); dest.Label = "dest";
         dest.Items.Add(restored.Items[0]);   // move 'a' out of the restored box
 
         Assert.Equal(1, dest.Items.Count);

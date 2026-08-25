@@ -12,9 +12,9 @@ public class InheritanceCodegenTests
     [Fact]
     public void Subtype_exposes_inherited_and_own_properties()
     {
-        var dog = IDog.NewInstance();
-        dog.Name = "Rex";   // inherited from IAnimal
-        dog.Age = 3;        // inherited from IAnimal
+        var dog = Dog.NewInstance();
+        dog.Name = "Rex";   // inherited from Animal
+        dog.Age = 3;        // inherited from Animal
         dog.Breed = "Lab";  // own
 
         Assert.Equal("Rex", dog.Name);
@@ -25,40 +25,40 @@ public class InheritanceCodegenTests
     [Fact]
     public void Subtype_is_assignable_to_base()
     {
-        IAnimal animal = ICat.NewInstance();
+        Animal animal = Cat.NewInstance();
         animal.Name = "Mia";
 
-        Assert.IsAssignableFrom<IAnimal>(animal);
-        Assert.True(animal is ICat);
+        Assert.IsAssignableFrom<Animal>(animal);
+        Assert.True(animal is Cat);
         Assert.Equal("Mia", animal.Name);
     }
 
     [Fact]
     public void Clone_via_base_interface_preserves_concrete_type_and_state()
     {
-        var dog = IDog.NewInstance();
+        var dog = Dog.NewInstance();
         dog.Name = "Rex";
         dog.Age = 3;
         dog.Breed = "Lab";
 
-        IAnimal asBase = dog;
-        var clone = asBase.Clone();          // IAnimal.Clone() must be implemented on the subtype impl
+        Animal asBase = dog;
+        var clone = asBase.Clone();          // Animal.Clone() must be implemented on the subtype impl
 
         Assert.False(ReferenceEquals(dog, clone));
-        Assert.True(clone is IDog, "clone of an IDog (via IAnimal) must still be an IDog");
+        Assert.True(clone is Dog, "clone of an Dog (via Animal) must still be an Dog");
         Assert.Equal("Rex", clone.Name);
-        Assert.Equal("Lab", ((IDog)clone).Breed);
+        Assert.Equal("Lab", ((Dog)clone).Breed);
     }
 
     [Fact]
     public void AsReadOnly_via_base_interface_works()
     {
-        var cat = ICat.NewInstance();
+        var cat = Cat.NewInstance();
         cat.Name = "Mia";
         cat.Indoor = true;
 
-        IAnimal asBase = cat;
-        var readOnly = asBase.AsReadOnly();  // IAnimal.AsReadOnly() must be implemented on the subtype impl
+        Animal asBase = cat;
+        var readOnly = asBase.AsReadOnly();  // Animal.AsReadOnly() must be implemented on the subtype impl
 
         Assert.Equal("Mia", readOnly.Name);
     }
@@ -66,12 +66,12 @@ public class InheritanceCodegenTests
     [Fact]
     public void Containment_of_subtypes_in_base_typed_list_tracks_parent()
     {
-        var zoo = IZoo.NewInstance();
+        var zoo = Zoo.NewInstance();
         zoo.Name = "City Zoo";
 
-        var dog = IDog.NewInstance();
+        var dog = Dog.NewInstance();
         dog.Name = "Rex";
-        var cat = ICat.NewInstance();
+        var cat = Cat.NewInstance();
         cat.Name = "Mia";
 
         zoo.Animals.Add(dog);
@@ -85,9 +85,9 @@ public class InheritanceCodegenTests
     [Fact]
     public void Equals_and_hashcode_account_for_subtype_state()
     {
-        var d1 = IDog.NewInstance(); d1.Name = "Rex"; d1.Breed = "Lab";
-        var d2 = IDog.NewInstance(); d2.Name = "Rex"; d2.Breed = "Lab";
-        var d3 = IDog.NewInstance(); d3.Name = "Rex"; d3.Breed = "Poodle";
+        var d1 = Dog.NewInstance(); d1.Name = "Rex"; d1.Breed = "Lab";
+        var d2 = Dog.NewInstance(); d2.Name = "Rex"; d2.Breed = "Lab";
+        var d3 = Dog.NewInstance(); d3.Name = "Rex"; d3.Breed = "Poodle";
 
         Assert.Equal(d1, d2);
         Assert.Equal(d1.GetHashCode(), d2.GetHashCode());

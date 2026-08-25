@@ -14,8 +14,8 @@ public class PropertyTypeTest
     [Fact]
     public void TestPropertyTypes()
     {
-        var e = IEntityWithProperties.NewInstance();
-        var cE = IChildEntity.NewInstance();
+        var e = EntityWithProperties.NewInstance();
+        var cE = ChildEntity.NewInstance();
 
         var ids = e.VMF.Reflect.PropertyByName("Ids");
         var children = e.VMF.Reflect.PropertyByName("Children");
@@ -38,7 +38,7 @@ public class PropertyTypeTest
         // single model type
         Assert.False(entity!.Type.IsListType, "Entity is no list type but is flagged as such");
         Assert.True(entity.Type.IsModelType, "Entity is a model type but is not flagged as such");
-        Assert.Equal(Ns + "IChildEntity", entity.Type.Name);
+        Assert.Equal(Ns + "ChildEntity", entity.Type.Name);
 
         // plain scalar
         Assert.False(name!.Type.IsListType, "Name is no list type but is flagged as such");
@@ -46,6 +46,6 @@ public class PropertyTypeTest
 
         // an element type name is reported for lists only
         Assert.Null(name.Type.GetElementTypeName());
-        Assert.Equal(Ns + "IChildEntity", children.Type.GetElementTypeName());
+        Assert.Equal(Ns + "ChildEntity", children.Type.GetElementTypeName());
     }
 }

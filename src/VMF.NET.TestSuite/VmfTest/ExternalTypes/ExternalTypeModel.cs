@@ -9,7 +9,7 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.ExternalTypes.VmfModel;
 
-interface IModel
+interface Model
 {
     string? Name { get; set; }
     MyType? Entry { get; set; }

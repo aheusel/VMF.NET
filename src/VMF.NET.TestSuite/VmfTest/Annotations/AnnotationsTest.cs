@@ -17,7 +17,7 @@ public class AnnotationsTest
     // but filters by key for property-level ones. This filter exists for the same reason Java's
     // does, so the port stays faithful rather than diverging.
     //
-    // ShallowCopyAnnotationTests asserts the bookkeeping annotation IS visible, which is why the
+    // ShallowCopyAnnotationTests asserts the bookkeeping annotation S visible, which is why the
     // filter lives here rather than in the runtime.
     private static System.Collections.Generic.List<VMF.NET.Runtime.IAnnotation> UserAnnotations(
         VMF.NET.Runtime.IVObject o, string propertyName) =>
@@ -27,7 +27,7 @@ public class AnnotationsTest
     [Fact]
     public void BasicAnnotationTest()
     {
-        var annotatedModel = IAnnotatedModel.NewInstance();
+        var annotatedModel = AnnotatedModel.NewInstance();
 
         var annotations = annotatedModel.VMF.Reflect.Annotations();
 
@@ -51,7 +51,7 @@ public class AnnotationsTest
     [Fact]
     public void MultipleAnnotationsPerKeyTest()
     {
-        var annotatedObject = IMultipleAnnotationsPerKey.NewInstance();
+        var annotatedObject = MultipleAnnotationsPerKey.NewInstance();
 
         var annotations = annotatedObject.VMF.Reflect.Annotations();
 
@@ -70,7 +70,7 @@ public class AnnotationsTest
     [Fact]
     public void AnnotationInheritanceTest()
     {
-        var annotatedObjectParent = IAnnotationInheritance1Parent.NewInstance();
+        var annotatedObjectParent = AnnotationInheritance1Parent.NewInstance();
 
         var annotations = annotatedObjectParent.VMF.Reflect.Annotations();
 
@@ -80,7 +80,7 @@ public class AnnotationsTest
         Assert.True(annotations[1].Equals("key 2", "my parent value 2"),
             $"Not as expected, got: {annotations[1]}");
 
-        var annotatedObjectChild = IAnnotationInheritance1Child.NewInstance();
+        var annotatedObjectChild = AnnotationInheritance1Child.NewInstance();
 
         annotations = annotatedObjectChild.VMF.Reflect.Annotations();
 
@@ -96,7 +96,7 @@ public class AnnotationsTest
     {
         // annotations declared on a property are visible through reflection, and a subtype
         // that re-declares the property carries its own
-        var parent = IAnnotationInheritance2Parent.NewInstance();
+        var parent = AnnotationInheritance2Parent.NewInstance();
         var parentAnnotations = UserAnnotations(parent, "Name");
 
         Assert.Equal(2, parentAnnotations.Count);
@@ -105,7 +105,7 @@ public class AnnotationsTest
         Assert.Equal("key 2", parentAnnotations[1].Key);
         Assert.Equal("my parent value 2", parentAnnotations[1].Value);
 
-        var child = IAnnotationInheritance2Child.NewInstance();
+        var child = AnnotationInheritance2Child.NewInstance();
         var childAnnotations = UserAnnotations(child, "Name");
 
         Assert.Equal(2, childAnnotations.Count);

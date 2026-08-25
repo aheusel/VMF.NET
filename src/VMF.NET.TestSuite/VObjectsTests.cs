@@ -9,7 +9,7 @@ public class VObjectsTests
     [Fact]
     public void Equals_SameInstance_ReturnsTrue()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         Assert.True(VObjects.Equals(node, node));
     }
 
@@ -22,7 +22,7 @@ public class VObjectsTests
     [Fact]
     public void Equals_OneNull_ReturnsFalse()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         Assert.False(VObjects.Equals(node, null));
         Assert.False(VObjects.Equals(null, node));
     }
@@ -31,17 +31,17 @@ public class VObjectsTests
     public void Equals_DifferentInstances_SameContent_ReturnsTrue()
     {
         // Generated equals compares content, so two empty nodes with same defaults are equal
-        var n1 = INode.NewInstance();
-        var n2 = INode.NewInstance();
+        var n1 = Node.NewInstance();
+        var n2 = Node.NewInstance();
         Assert.True(VObjects.Equals(n1, n2));
     }
 
     [Fact]
     public void Equals_DifferentInstances_DifferentContent_ReturnsFalse()
     {
-        var n1 = INode.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "A";
-        var n2 = INode.NewInstance();
+        var n2 = Node.NewInstance();
         n2.Name = "B";
         Assert.False(VObjects.Equals(n1, n2));
     }

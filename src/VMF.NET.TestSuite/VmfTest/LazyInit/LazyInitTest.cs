@@ -12,8 +12,8 @@ public class LazyInitTest
     [Fact]
     public void TestLazyInitOfLists1()
     {
-        var o1 = IObj.NewInstance();
-        var o2 = IObj.NewInstance();
+        var o1 = Obj.NewInstance();
+        var o2 = Obj.NewInstance();
 
         // read Entries so o1's list is materialised; o2's stays null
         Assert.Empty(o1.Entries);
@@ -24,8 +24,8 @@ public class LazyInitTest
     [Fact]
     public void TestLazyInitOfLists2()
     {
-        var o1 = IObj.NewInstance();
-        var o2 = IObj.NewInstance();
+        var o1 = Obj.NewInstance();
+        var o2 = Obj.NewInstance();
 
         // the same, with the roles reversed
         Assert.Empty(o2.Entries);

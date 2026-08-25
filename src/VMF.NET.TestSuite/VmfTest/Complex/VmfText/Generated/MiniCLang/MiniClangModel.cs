@@ -12,43 +12,43 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.VmfText.Generated.MiniCLang.VmfModel
 // --- mixins -------------------------------------------------------------------
 
 [InterfaceOnly]
-interface IWithVarName { string? VarName { get; set; } }
+interface WithVarName { string? VarName { get; set; } }
 
 [InterfaceOnly]
-interface IWithFunctionName { string? FunctionName { get; set; } }
+interface WithFunctionName { string? FunctionName { get; set; } }
 
 [InterfaceOnly]
-interface IWithArraySizes { string[] ArraySizes { get; } }
+interface WithArraySizes { string[] ArraySizes { get; } }
 
 [InterfaceOnly]
-interface ICodeElement
+interface CodeElement
 {
-    [IgnoreEquals] ICodeRange? CodeRange { get; set; }
-    [IgnoreEquals] ICodeElement? Parent { get; set; }
+    [IgnoreEquals] CodeRange? CodeRange { get; set; }
+    [IgnoreEquals] CodeElement? Parent { get; set; }
     [IgnoreEquals] object? Payload { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithId : ICodeElement { int Id { get; set; } }
+interface WithId : CodeElement { int Id { get; set; } }
 
 [InterfaceOnly]
-interface IControlFlowChildNode
+interface ControlFlowChildNode
 {
     [DelegateTo(typeof(ControlFlowChildNodeDelegate))]
-    VList<IControlFlowScope>? ParentScopes();
+    VList<ControlFlowScope>? ParentScopes();
 }
 
 [InterfaceOnly]
-interface IControlFlowScope : IWithId, IControlFlowChildNode
+interface ControlFlowScope : WithId, ControlFlowChildNode
 {
-    IStatement[] Statements { get; }
+    Statement[] Statements { get; }
 }
 
 [InterfaceOnly]
-interface IControlFlowContainer : IWithId { }
+interface ControlFlowContainer : WithId { }
 
 [InterfaceOnly]
-interface IDeclStatement : IWithVarName
+interface DeclStatement : WithVarName
 {
     IType? DeclType { get; set; }
     new string? VarName { get; set; }
@@ -56,30 +56,30 @@ interface IDeclStatement : IWithVarName
 }
 
 [InterfaceOnly]
-interface IConstExpression
+interface ConstExpression
 {
     [GetterOnly] object? Value { get; }
 }
 
 [InterfaceOnly]
-interface IBinaryOperator : IExpression
+interface BinaryOperator : Expression
 {
-    IExpression? Left { get; set; }
-    IExpression? Right { get; set; }
+    Expression? Left { get; set; }
+    Expression? Right { get; set; }
 }
 
 // --- code positions -----------------------------------------------------------
 
 [Immutable]
-interface ICodeRange
+interface CodeRange
 {
-    ICodeLocation? Start { get; }
-    ICodeLocation? Stop { get; }
+    CodeLocation? Start { get; }
+    CodeLocation? Stop { get; }
     int Length { get; }
 }
 
 [Immutable]
-interface ICodeLocation
+interface CodeLocation
 {
     int Index { get; }
     int Line { get; }
@@ -88,310 +88,310 @@ interface ICodeLocation
 
 // --- top level ----------------------------------------------------------------
 
-interface IMiniClangModel { IProgram? Root { get; set; } }
+interface MiniClangModel { Program? Root { get; set; } }
 
-interface IProgram : ICodeElement
+interface Program : CodeElement
 {
-    [PropertyOrder(0)] IPersistentComment[] Header { get; }
-    [PropertyOrder(1)] IInclude[] Includes { get; }
-    [PropertyOrder(2)] IConstantDef[] Constants { get; }
-    [PropertyOrder(3)] IMainFunctionDecl? MainFunction { get; set; }
-    [PropertyOrder(4)] IPersistentComment[] Footer { get; }
-    [PropertyOrder(5)] IForwardDecl[] ForwardDeclarations { get; }
-    [PropertyOrder(6)] IFunctionDecl[] Functions { get; }
+    [PropertyOrder(0)] PersistentComment[] Header { get; }
+    [PropertyOrder(1)] Include[] Includes { get; }
+    [PropertyOrder(2)] ConstantDef[] Constants { get; }
+    [PropertyOrder(3)] MainFunctionDecl? MainFunction { get; set; }
+    [PropertyOrder(4)] PersistentComment[] Footer { get; }
+    [PropertyOrder(5)] ForwardDecl[] ForwardDeclarations { get; }
+    [PropertyOrder(6)] FunctionDecl[] Functions { get; }
 }
 
-interface IInclude : ICodeElement
+interface Include : CodeElement
 {
-    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
+    [PropertyOrder(0)] PersistentComment[] Comments { get; }
     [PropertyOrder(1)] string? FileName { get; set; }
 }
 
-interface IConstantDef : ICodeElement, IWithVarName, IDeclStatement
+interface ConstantDef : CodeElement, WithVarName, DeclStatement
 {
-    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
+    [PropertyOrder(0)] PersistentComment[] Comments { get; }
     [PropertyOrder(1)] new string? VarName { get; set; }
     [VmfDefaultValue("null")]
     [PropertyOrder(2)] int? Value { get; set; }
 }
 
-interface IMainFunctionDecl : ICodeElement, IWithFunctionName, IControlFlowScope
+interface MainFunctionDecl : CodeElement, WithFunctionName, ControlFlowScope
 {
-    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
-    [PropertyOrder(1)] new IStatement[] Statements { get; }
+    [PropertyOrder(0)] PersistentComment[] Comments { get; }
+    [PropertyOrder(1)] new Statement[] Statements { get; }
 }
 
-interface IForwardDecl : ICodeElement, IWithFunctionName
+interface ForwardDecl : CodeElement, WithFunctionName
 {
-    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
+    [PropertyOrder(0)] PersistentComment[] Comments { get; }
     [PropertyOrder(1)] IType? ReturnType { get; set; }
     [PropertyOrder(2)] new string? FunctionName { get; set; }
-    [PropertyOrder(3)] IParameter[] Params { get; }
+    [PropertyOrder(3)] Parameter[] Params { get; }
 }
 
-interface IFunctionDecl : ICodeElement, IWithFunctionName, IControlFlowScope
+interface FunctionDecl : CodeElement, WithFunctionName, ControlFlowScope
 {
-    [PropertyOrder(0)] IPersistentComment[] Comments { get; }
+    [PropertyOrder(0)] PersistentComment[] Comments { get; }
     [PropertyOrder(1)] IType? ReturnType { get; set; }
     [PropertyOrder(2)] new string? FunctionName { get; set; }
-    [PropertyOrder(3)] new IStatement[] Statements { get; }
-    [PropertyOrder(4)] IParameter[] Params { get; }
+    [PropertyOrder(3)] new Statement[] Statements { get; }
+    [PropertyOrder(4)] Parameter[] Params { get; }
 }
 
 // --- statements ---------------------------------------------------------------
 
 [InterfaceOnly]
-interface IStatement : ICodeElement, IWithId, IControlFlowChildNode { }
+interface Statement : CodeElement, WithId, ControlFlowChildNode { }
 
-interface IBlockStatement : IStatement, IControlFlowScope
+interface BlockStatement : Statement, ControlFlowScope
 {
-    [PropertyOrder(0)] new IStatement[] Statements { get; }
+    [PropertyOrder(0)] new Statement[] Statements { get; }
 }
 
-interface IIfElseStatement : IStatement, IControlFlowContainer
+interface IfElseStatement : Statement, ControlFlowContainer
 {
-    [PropertyOrder(0)] IExpression? Condition { get; set; }
-    [PropertyOrder(1)] IStatement? IfBlock { get; set; }
-    [PropertyOrder(2)] IStatement? ElseBlock { get; set; }
+    [PropertyOrder(0)] Expression? Condition { get; set; }
+    [PropertyOrder(1)] Statement? IfBlock { get; set; }
+    [PropertyOrder(2)] Statement? ElseBlock { get; set; }
 }
 
-interface IWhileStatement : IStatement, IControlFlowContainer
+interface WhileStatement : Statement, ControlFlowContainer
 {
-    [PropertyOrder(0)] IExpression? Check { get; set; }
-    [PropertyOrder(1)] IStatement? Block { get; set; }
+    [PropertyOrder(0)] Expression? Check { get; set; }
+    [PropertyOrder(1)] Statement? Block { get; set; }
 }
 
-interface IForStatement : IStatement, IControlFlowContainer
+interface ForStatement : Statement, ControlFlowContainer
 {
-    [PropertyOrder(0)] IExpression? Init { get; set; }
-    [PropertyOrder(1)] IExpression? Check { get; set; }
-    [PropertyOrder(2)] IExpression? Inc { get; set; }
-    [PropertyOrder(3)] IStatement? Block { get; set; }
+    [PropertyOrder(0)] Expression? Init { get; set; }
+    [PropertyOrder(1)] Expression? Check { get; set; }
+    [PropertyOrder(2)] Expression? Inc { get; set; }
+    [PropertyOrder(3)] Statement? Block { get; set; }
 }
 
-interface IPrintStatement : IStatement
+interface PrintStatement : Statement
 {
-    [PropertyOrder(0)] IExpression? PrintExpression { get; set; }
-    [PropertyOrder(1)] IExpression[] ValueExpressions { get; }
+    [PropertyOrder(0)] Expression? PrintExpression { get; set; }
+    [PropertyOrder(1)] Expression[] ValueExpressions { get; }
 }
 
-interface IArrayDeclStatement : IStatement, IWithVarName, IDeclStatement, IWithArraySizes
+interface ArrayDeclStatement : Statement, WithVarName, DeclStatement, WithArraySizes
 {
     [PropertyOrder(0)] new IType? DeclType { get; set; }
     [PropertyOrder(1)] new string? VarName { get; set; }
     [PropertyOrder(2)] new string[] ArraySizes { get; }
 }
 
-interface IVariableAssignmentStatement : IStatement, IWithVarName, IDeclStatement
+interface VariableAssignmentStatement : Statement, WithVarName, DeclStatement
 {
     [PropertyOrder(0)] new IType? DeclType { get; set; }
     [PropertyOrder(1)] new string? VarName { get; set; }
-    [PropertyOrder(2)] IExpression? AssignmentExpression { get; set; }
+    [PropertyOrder(2)] Expression? AssignmentExpression { get; set; }
 }
 
-interface IVarDeclStatement : IStatement, IWithVarName, IDeclStatement
+interface VarDeclStatement : Statement, WithVarName, DeclStatement
 {
     [PropertyOrder(0)] new IType? DeclType { get; set; }
     [PropertyOrder(1)] new string? VarName { get; set; }
 }
 
-interface IArrayAssignmentStatement : IStatement, IWithVarName, IDeclStatement
+interface ArrayAssignmentStatement : Statement, WithVarName, DeclStatement
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
-    [PropertyOrder(1)] IExpression? AssignmentExpression { get; set; }
-    [PropertyOrder(2)] IExpression[] ArrayIndices { get; }
+    [PropertyOrder(1)] Expression? AssignmentExpression { get; set; }
+    [PropertyOrder(2)] Expression[] ArrayIndices { get; }
 }
 
-interface IReturnStatement : IStatement
+interface ReturnStatement : Statement
 {
-    [PropertyOrder(0)] IExpression? ReturnValue { get; set; }
+    [PropertyOrder(0)] Expression? ReturnValue { get; set; }
 }
 
-interface IFunctionCallStatement : IStatement, IWithFunctionName
+interface FunctionCallStatement : Statement, WithFunctionName
 {
     [PropertyOrder(0)] new string? FunctionName { get; set; }
-    [PropertyOrder(1)] IExpression[] Args { get; }
+    [PropertyOrder(1)] Expression[] Args { get; }
 }
 
-interface ICommentStatement : IStatement
+interface CommentStatement : Statement
 {
-    [PropertyOrder(0)] IPersistentComment? Comment { get; set; }
+    [PropertyOrder(0)] PersistentComment? Comment { get; set; }
 }
 
 // --- expressions --------------------------------------------------------------
 
 [InterfaceOnly]
-interface IExpression : ICodeElement, IWithId, IControlFlowChildNode { }
+interface Expression : CodeElement, WithId, ControlFlowChildNode { }
 
-interface IArrayAccessExpression : IExpression
+interface ArrayAccessExpression : Expression
 {
-    [PropertyOrder(0)] IExpression? ArrayVariableExpression { get; set; }
-    [PropertyOrder(1)] IExpression[] ArrayIndices { get; }
+    [PropertyOrder(0)] Expression? ArrayVariableExpression { get; set; }
+    [PropertyOrder(1)] Expression[] ArrayIndices { get; }
 }
 
-interface IFunctionCallExpression : IExpression, IWithFunctionName
+interface FunctionCallExpression : Expression, WithFunctionName
 {
     [PropertyOrder(0)] new string? FunctionName { get; set; }
-    [PropertyOrder(1)] IExpression[] Args { get; }
+    [PropertyOrder(1)] Expression[] Args { get; }
 }
 
-interface INotExpression : IExpression
+interface NotExpression : Expression
 {
-    [PropertyOrder(0)] IExpression? OperatorExpression { get; set; }
+    [PropertyOrder(0)] Expression? OperatorExpression { get; set; }
 }
 
-interface IAddressOperator : IExpression
+interface AddressOperator : Expression
 {
-    [PropertyOrder(0)] IExpression? OperatorExpression { get; set; }
+    [PropertyOrder(0)] Expression? OperatorExpression { get; set; }
 }
 
-interface IDereferenceOperator : IExpression
+interface DereferenceOperator : Expression
 {
-    [PropertyOrder(0)] IExpression? OperatorExpression { get; set; }
+    [PropertyOrder(0)] Expression? OperatorExpression { get; set; }
 }
 
-interface ICastOperatorExpression : IExpression
+interface CastOperatorExpression : Expression
 {
     [PropertyOrder(0)] IType? CastType { get; set; }
-    [PropertyOrder(1)] IExpression? OperatorExpression { get; set; }
+    [PropertyOrder(1)] Expression? OperatorExpression { get; set; }
 }
 
-interface IMultExpression : IExpression
+interface MultExpression : Expression
 {
-    [PropertyOrder(0)] IExpression? Left { get; set; }
-    [PropertyOrder(1)] IExpression? Right { get; set; }
+    [PropertyOrder(0)] Expression? Left { get; set; }
+    [PropertyOrder(1)] Expression? Right { get; set; }
 }
 
-interface IDivExpression : IExpression, IBinaryOperator
+interface DivExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface IAddExpression : IExpression, IBinaryOperator
+interface AddExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface ISubExpression : IExpression, IBinaryOperator
+interface SubExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface ILtExpression : IExpression, IBinaryOperator
+interface LtExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface IAndExpression : IExpression, IBinaryOperator
+interface AndExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface IEqualExpression : IExpression, IBinaryOperator
+interface EqualExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface INonEqualExpression : IExpression, IBinaryOperator
+interface NonEqualExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface ILtEqualExpression : IExpression, IBinaryOperator
+interface LtEqualExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface IGtEqualExpression : IExpression, IBinaryOperator
+interface GtEqualExpression : Expression, BinaryOperator
 {
-    [PropertyOrder(0)] new IExpression? Left { get; set; }
-    [PropertyOrder(1)] new IExpression? Right { get; set; }
+    [PropertyOrder(0)] new Expression? Left { get; set; }
+    [PropertyOrder(1)] new Expression? Right { get; set; }
 }
 
-interface IAssignmentExpression : IExpression, IDeclStatement, IWithVarName
+interface AssignmentExpression : Expression, DeclStatement, WithVarName
 {
     [PropertyOrder(0)] new IType? DeclType { get; set; }
     [PropertyOrder(1)] new string? VarName { get; set; }
-    [PropertyOrder(2)] IExpression? Assignment { get; set; }
+    [PropertyOrder(2)] Expression? Assignment { get; set; }
 }
 
-interface IAssignmentPlusExpression : IExpression, IWithVarName
+interface AssignmentPlusExpression : Expression, WithVarName
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
-    [PropertyOrder(1)] IExpression? Assignment { get; set; }
+    [PropertyOrder(1)] Expression? Assignment { get; set; }
 }
 
-interface IAssignmentMinusExpression : IExpression
+interface AssignmentMinusExpression : Expression
 {
     [PropertyOrder(0)] string? VarName { get; set; }
-    [PropertyOrder(1)] IExpression? Assignment { get; set; }
+    [PropertyOrder(1)] Expression? Assignment { get; set; }
 }
 
-interface IIncPostExpression : IExpression, IWithVarName
+interface IncPostExpression : Expression, WithVarName
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
 }
 
-interface IDecPostExpression : IExpression, IWithVarName
+interface DecPostExpression : Expression, WithVarName
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
 }
 
-interface IIncPreExpression : IExpression, IWithVarName
+interface IncPreExpression : Expression, WithVarName
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
 }
 
-interface IDecPreExpression : IExpression, IWithVarName
+interface DecPreExpression : Expression, WithVarName
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
 }
 
-interface IIdentifierExpression : IExpression, IWithVarName
+interface IdentifierExpression : Expression, WithVarName
 {
     [PropertyOrder(0)] new string? VarName { get; set; }
 }
 
-interface IIntExpression : IExpression, IConstExpression
+interface IntExpression : Expression, ConstExpression
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new int? Value { get; set; }
 }
 
-interface IDoubleExpression : IExpression, IConstExpression
+interface DoubleExpression : Expression, ConstExpression
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new double? Value { get; set; }
 }
 
-interface IBooleanExpression : IExpression, IConstExpression
+interface BooleanExpression : Expression, ConstExpression
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new bool? Value { get; set; }
 }
 
-interface IStringExpression : IExpression, IConstExpression
+interface StringExpression : Expression, ConstExpression
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] new string? Value { get; set; }
 }
 
-interface IParenExpression : IExpression
+interface ParenExpression : Expression
 {
-    [PropertyOrder(0)] IExpression? ParanExpr { get; set; }
+    [PropertyOrder(0)] Expression? ParanExpr { get; set; }
 }
 
 // --- leaves -------------------------------------------------------------------
 
-interface IParameter : ICodeElement, IWithVarName, IWithArraySizes, IWithId, IDeclStatement
+interface Parameter : CodeElement, WithVarName, WithArraySizes, WithId, DeclStatement
 {
     [PropertyOrder(0)] new IType? DeclType { get; set; }
     [PropertyOrder(1)] string? Pointer { get; set; }
@@ -399,18 +399,18 @@ interface IParameter : ICodeElement, IWithVarName, IWithArraySizes, IWithId, IDe
     [PropertyOrder(3)] new string[] ArraySizes { get; }
 }
 
-interface IType : ICodeElement
+interface IType : CodeElement
 {
     [PropertyOrder(0)] string? TypeName { get; set; }
 }
 
-interface IPersistentComment : ICodeElement
+interface PersistentComment : CodeElement
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] string? Text { get; set; }
 }
 
-interface IIntLiteral : ICodeElement
+interface IntLiteral : CodeElement
 {
     [VmfDefaultValue("null")]
     [PropertyOrder(0)] int? Value { get; set; }

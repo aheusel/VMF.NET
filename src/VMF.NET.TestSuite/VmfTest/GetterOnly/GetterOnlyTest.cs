@@ -13,11 +13,11 @@ public class GetterOnlyTest
     [Fact]
     public void GetterOnly_ReadableOnBoth_WritableOnlyOnMutable()
     {
-        var immutableObj = IImmutableObj.NewBuilder().WithName("immutable obj").Build();
-        var mutableObj = IMutableObj.NewBuilder().WithName("mutable obj").Build();
+        var immutableObj = ImmutableObj.NewBuilder().WithName("immutable obj").Build();
+        var mutableObj = MutableObj.NewBuilder().WithName("mutable obj").Build();
 
-        IWithName withName1 = immutableObj;
-        IWithName withName2 = mutableObj;
+        WithName withName1 = immutableObj;
+        WithName withName2 = mutableObj;
 
         Assert.Equal("immutable obj", withName1.Name);
         Assert.Equal("mutable obj", withName2.Name);

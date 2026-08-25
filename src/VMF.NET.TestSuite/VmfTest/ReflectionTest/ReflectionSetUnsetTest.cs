@@ -68,7 +68,7 @@ public class ReflectionSetUnsetTest
     [Fact]
     public void TestReflectionSetUnsetContainmentProperties()
     {
-        var aNode = INode.NewInstance();
+        var aNode = Node.NewInstance();
 
         // containment properties cannot be set. we expect unset as default:
         Assert.False(aNode.VMF.Reflect.PropertyByName("Parent")!.IsSet);
@@ -99,20 +99,20 @@ public class ReflectionSetUnsetTest
     public void TestInheritedDefaultValue()
     {
         // default should be set
-        Assert.Equal(123, IInheritedDefaultValueParent.NewInstance().MyValue);
+        Assert.Equal(123, InheritedDefaultValueParent.NewInstance().MyValue);
 
         // for inherited as well
-        Assert.Equal(123, IInheritedDefaultValue.NewInstance().MyValue);
+        Assert.Equal(123, InheritedDefaultValue.NewInstance().MyValue);
     }
 
     [Fact]
     public void TestInheritedDefaultValueWithOverride()
     {
         // for override we expect a different default value
-        Assert.Equal(-123, IInheritedDefaultValueOverride.NewInstance().MyValue);
+        Assert.Equal(-123, InheritedDefaultValueOverride.NewInstance().MyValue);
 
         // for override2 we expect a the default value of int since the feature was redeclared
-        Assert.Equal(0, IInheritedDefaultValueOverride2.NewInstance().MyValue);
+        Assert.Equal(0, InheritedDefaultValueOverride2.NewInstance().MyValue);
     }
 
     [Fact]
@@ -120,10 +120,10 @@ public class ReflectionSetUnsetTest
     {
         // default should be set to inherited default of first interface
         // (order matters in extends I1, I2, ...)
-        Assert.Equal(123, IInheritedDefaultValueFromTwoParents.NewInstance().MyValue);
+        Assert.Equal(123, InheritedDefaultValueFromTwoParents.NewInstance().MyValue);
 
         // default should be set to inherited default of first interface
         // (order matters in extends I1, I2, ...)
-        Assert.Equal(456, IInheritedDefaultValueFromTwoParents2.NewInstance().MyValue);
+        Assert.Equal(456, InheritedDefaultValueFromTwoParents2.NewInstance().MyValue);
     }
 }

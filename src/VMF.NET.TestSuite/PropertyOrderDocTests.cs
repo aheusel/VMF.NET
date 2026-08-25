@@ -13,7 +13,7 @@ public class PropertyOrderDocTests
     [Fact]
     public void PropertyOrder_ReflectedInCorrectOrder()
     {
-        var config = IConfig.NewInstance();
+        var config = Config.NewInstance();
         var reflect = config.VMF.Reflect;
         var props = reflect.Properties();
 
@@ -26,7 +26,7 @@ public class PropertyOrderDocTests
     [Fact]
     public void PropertyOrder_BuilderSetsInAnyOrder()
     {
-        var config = IConfig.NewBuilder()
+        var config = Config.NewBuilder()
             .WithPort(8080)
             .WithHost("localhost")
             .WithProtocol("https")
@@ -40,7 +40,7 @@ public class PropertyOrderDocTests
     [Fact]
     public void PropertyOrder_GetPropertyIdByName_RespectsOrder()
     {
-        var config = IConfig.NewInstance();
+        var config = Config.NewInstance();
         var intern = (IVObjectInternal)config;
 
         // Host is order 0, Protocol is order 1, Port is order 2
@@ -53,7 +53,7 @@ public class PropertyOrderDocTests
     public void Doc_TypeAnnotation_ReflectedInReadOnlyInterface()
     {
         // The [Doc] attribute should be available via the model's annotations
-        var config = IConfig.NewInstance();
+        var config = Config.NewInstance();
         var intern = (IVObjectInternal)config;
 
         // Verify type info is accessible
@@ -64,7 +64,7 @@ public class PropertyOrderDocTests
     [Fact]
     public void Config_PropertiesWork()
     {
-        var config = IConfig.NewInstance();
+        var config = Config.NewInstance();
         config.Host = "example.com";
         config.Protocol = "http";
         config.Port = 443;
@@ -77,7 +77,7 @@ public class PropertyOrderDocTests
     [Fact]
     public void Config_ToString_ContainsValues()
     {
-        var config = IConfig.NewBuilder()
+        var config = Config.NewBuilder()
             .WithHost("localhost")
             .WithProtocol("https")
             .WithPort(8080)

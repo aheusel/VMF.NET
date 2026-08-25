@@ -11,8 +11,8 @@ public class DefaultValuesAndBuildersTest
     [Fact]
     public void DefaultValues_ApplyToBothConstructionPaths()
     {
-        var withValuesInstance = IWithDefaultValues.NewInstance();
-        var withValuesBuilder = IWithDefaultValues.NewBuilder().Build();
+        var withValuesInstance = WithDefaultValues.NewInstance();
+        var withValuesBuilder = WithDefaultValues.NewBuilder().Build();
 
         Assert.Equal("my name", withValuesInstance.Name);
         Assert.True(withValuesInstance.Visible);

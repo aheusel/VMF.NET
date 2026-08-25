@@ -11,18 +11,18 @@ public class FSMTest
 {
     private const int NumTransitions = 10_000;
 
-    private static IFSM BuildFsm(int numTransitions)
+    private static FSM BuildFsm(int numTransitions)
     {
-        var fsm = IFSM.NewInstance();
+        var fsm = FSM.NewInstance();
         for (int i = 0; i < numTransitions; i++)
         {
-            var s = IState.NewInstance();
+            var s = State.NewInstance();
             s.Name = "State " + i;
             fsm.OwnedState.Add(s);
 
             if (i > 0)
             {
-                var transition = ITransition.NewInstance();
+                var transition = Transition.NewInstance();
                 var a = IAction.NewInstance();
                 a.Name = "action";
                 transition.Actions.Add(a);

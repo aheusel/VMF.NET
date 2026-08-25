@@ -10,8 +10,8 @@ public class ParentChildTest
     [Fact]
     public void TestContainerContainmentAddChild()
     {
-        var aParent = IParent.NewInstance();
-        var aChild = IChild.NewInstance();
+        var aParent = Parent.NewInstance();
+        var aChild = Child.NewInstance();
 
         aParent.Name = "Father";
         aParent.Children.Add(aChild);
@@ -27,8 +27,8 @@ public class ParentChildTest
     [Fact]
     public void TestToStringFeatureSimple()
     {
-        var aParent = IParent.NewInstance();
-        var aChild = IChild.NewInstance();
+        var aParent = Parent.NewInstance();
+        var aChild = Child.NewInstance();
 
         aParent.Name = "Father";
         aParent.Children.Add(aChild);
@@ -42,14 +42,14 @@ public class ParentChildTest
     [Fact]
     public void TestDeepClone1()
     {
-        var aParent = IParent.NewInstance();
-        var aChild = IChild.NewInstance();
+        var aParent = Parent.NewInstance();
+        var aChild = Child.NewInstance();
 
         aParent.Name = "Father";
         aParent.Children.Add(aChild);
         aChild.Name = "Luke";
 
-        var aCloneParent = aParent.VMF.Content.DeepCopy<IParent>();
+        var aCloneParent = aParent.VMF.Content.DeepCopy<Parent>();
 
         Assert.Equal(aParent, aCloneParent);
         Assert.Equal(aParent.ToString(), aCloneParent.ToString());

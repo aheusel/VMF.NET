@@ -22,7 +22,7 @@ public class JsonSerializationTests
     [Fact]
     public void Serialize_SimpleProperties()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "Start";
         node.X = 10;
         node.Y = 20;
@@ -41,14 +41,14 @@ public class JsonSerializationTests
     [Fact]
     public void Serialize_SkipsContainerAndCrossRef()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         flow.Title = "MyFlow";
 
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "N1";
         flow.Nodes.Add(node);
 
-        var conn = IConnection.NewInstance();
+        var conn = Connection.NewInstance();
         conn.Sender = node;
         flow.Connections.Add(conn);
 
@@ -74,7 +74,7 @@ public class JsonSerializationTests
     [Fact]
     public void Serialize_ImmutableType()
     {
-        var point = IPoint.NewBuilder().WithX(3.14).WithY(2.72).Build();
+        var point = Point.NewBuilder().WithX(3.14).WithY(2.72).Build();
 
         var options = CreateOptions();
         var json = JsonSerializer.Serialize<IVObject>(point, options);
@@ -92,7 +92,7 @@ public class JsonSerializationTests
         var json = """{"name":"Start","x":10,"y":20}""";
 
         var options = CreateOptions();
-        var node = JsonSerializer.Deserialize<INode>(json, options)!;
+        var node = JsonSerializer.Deserialize<Node>(json, options)!;
 
         Assert.Equal("Start", node.Name);
         Assert.Equal(10, node.X);
@@ -105,7 +105,7 @@ public class JsonSerializationTests
         var json = """{"x":3.14,"y":2.72}""";
 
         var options = CreateOptions();
-        var point = JsonSerializer.Deserialize<IPoint>(json, options)!;
+        var point = JsonSerializer.Deserialize<Point>(json, options)!;
 
         Assert.Equal(3.14, point.X);
         Assert.Equal(2.72, point.Y);
@@ -114,14 +114,14 @@ public class JsonSerializationTests
     [Fact]
     public void RoundTrip_SimpleObject()
     {
-        var original = INode.NewInstance();
+        var original = Node.NewInstance();
         original.Name = "Test";
         original.X = 42;
         original.Y = 99;
 
         var options = CreateOptions();
         var json = JsonSerializer.Serialize<IVObject>(original, options);
-        var deserialized = JsonSerializer.Deserialize<INode>(json, options)!;
+        var deserialized = JsonSerializer.Deserialize<Node>(json, options)!;
 
         Assert.Equal(original.Name, deserialized.Name);
         Assert.Equal(original.X, deserialized.X);
@@ -131,13 +131,13 @@ public class JsonSerializationTests
     [Fact]
     public void RoundTrip_WithContainment()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         flow.Title = "RoundTrip";
 
-        var n1 = INode.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "A";
         n1.X = 1;
-        var n2 = INode.NewInstance();
+        var n2 = Node.NewInstance();
         n2.Name = "B";
         n2.X = 2;
         flow.Nodes.Add(n1);
@@ -145,7 +145,7 @@ public class JsonSerializationTests
 
         var options = CreateOptions();
         var json = JsonSerializer.Serialize<IVObject>(flow, options);
-        var deserialized = JsonSerializer.Deserialize<IFlow>(json, options)!;
+        var deserialized = JsonSerializer.Deserialize<Flow>(json, options)!;
 
         Assert.Equal("RoundTrip", deserialized.Title);
         Assert.Equal(2, deserialized.Nodes.Count);
@@ -158,18 +158,18 @@ public class JsonSerializationTests
     [Fact]
     public void RoundTrip_ImmutableCollection()
     {
-        var shape = IFigure.NewBuilder()
+        var shape = Figure.NewBuilder()
             .WithName("Triangle")
             .WithPoints(
-                IPoint.NewBuilder().WithX(0).WithY(0).Build(),
-                IPoint.NewBuilder().WithX(1).WithY(0).Build(),
-                IPoint.NewBuilder().WithX(0).WithY(1).Build()
+                Point.NewBuilder().WithX(0).WithY(0).Build(),
+                Point.NewBuilder().WithX(1).WithY(0).Build(),
+                Point.NewBuilder().WithX(0).WithY(1).Build()
             )
             .Build();
 
         var options = CreateOptions();
         var json = JsonSerializer.Serialize<IVObject>(shape, options);
-        var deserialized = JsonSerializer.Deserialize<IFigure>(json, options)!;
+        var deserialized = JsonSerializer.Deserialize<Figure>(json, options)!;
 
         Assert.Equal("Triangle", deserialized.Name);
         Assert.Equal(3, deserialized.Points.Count);
@@ -182,7 +182,7 @@ public class JsonSerializationTests
         var json = """{"name":"Test","unknownField":"ignored","x":5,"y":10}""";
 
         var options = CreateOptions();
-        var node = JsonSerializer.Deserialize<INode>(json, options)!;
+        var node = JsonSerializer.Deserialize<Node>(json, options)!;
 
         Assert.Equal("Test", node.Name);
         Assert.Equal(5, node.X);
@@ -191,7 +191,7 @@ public class JsonSerializationTests
     [Fact]
     public void Serialize_NullValues_Omitted()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         // Name is null by default
 
         var options = CreateOptions();
@@ -208,7 +208,7 @@ public class JsonSerializationTests
     public void JsonSchema_ContainsProperties()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var schema = generator.GenerateSchema<INode>();
+        var schema = generator.GenerateSchema<Node>();
 
         Assert.Equal("http://json-schema.org/draft-07/schema#", schema["$schema"]);
         Assert.Equal("object", schema["type"]);
@@ -225,7 +225,7 @@ public class JsonSerializationTests
     public void JsonSchema_AsString()
     {
         var generator = new VmfJsonSchemaGenerator();
-        var json = generator.GenerateSchemaAsString<IPoint>();
+        var json = generator.GenerateSchemaAsString<Point>();
 
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;

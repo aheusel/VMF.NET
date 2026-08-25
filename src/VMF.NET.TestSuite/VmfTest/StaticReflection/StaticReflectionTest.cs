@@ -16,11 +16,11 @@ public class StaticReflectionTest
     [Fact]
     public void StaticReflectionTest_PropertiesAndSuperTypes()
     {
-        var propSize = IRoot.ModelType().Reflect().Properties().Count;
+        var propSize = Root.ModelType().Reflect().Properties().Count;
 
         Assert.Equal(1, propSize);
 
-        var p = IRoot.ModelType().Reflect().Properties()[0];
+        var p = Root.ModelType().Reflect().Properties()[0];
 
         // a property obtained without an instance cannot be written
         Assert.ThrowsAny<System.Exception>(() => p.Set(null));
@@ -31,13 +31,13 @@ public class StaticReflectionTest
 
         var typeNames = p.Type.SuperTypes().Select(t => t.Name).ToList();
 
-        Assert.Equal(new[] { Ns + "ITypeA", Ns + "ITypeB" }, typeNames);
+        Assert.Equal(new[] { Ns + "TypeA", Ns + "TypeB" }, typeNames);
 
-        propSize = ITypeA.ModelType().Reflect().Properties().Count;
+        propSize = TypeA.ModelType().Reflect().Properties().Count;
         Assert.Equal(3, propSize);
-        propSize = ITypeB.ModelType().Reflect().Properties().Count;
+        propSize = TypeB.ModelType().Reflect().Properties().Count;
         Assert.Equal(3, propSize);
-        propSize = ITypeC.ModelType().Reflect().Properties().Count;
+        propSize = TypeC.ModelType().Reflect().Properties().Count;
         Assert.Equal(6, propSize);
     }
 }

@@ -12,7 +12,7 @@ public class BasicPropertyTests
     [Fact]
     public void NewInstance_CreatesObject()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         Assert.NotNull(flow);
         Assert.Null(flow.Title);
     }
@@ -20,7 +20,7 @@ public class BasicPropertyTests
     [Fact]
     public void SetAndGetProperties()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         flow.Title = "My Flow";
         Assert.Equal("My Flow", flow.Title);
     }
@@ -28,7 +28,7 @@ public class BasicPropertyTests
     [Fact]
     public void IntProperties_DefaultToZero()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         Assert.Equal(0, node.X);
         Assert.Equal(0, node.Y);
     }
@@ -36,7 +36,7 @@ public class BasicPropertyTests
     [Fact]
     public void IntProperties_SetAndGet()
     {
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.X = 42;
         node.Y = -10;
         Assert.Equal(42, node.X);
@@ -46,7 +46,7 @@ public class BasicPropertyTests
     [Fact]
     public void CollectionProperties_InitiallyEmpty()
     {
-        var flow = IFlow.NewInstance();
+        var flow = Flow.NewInstance();
         Assert.NotNull(flow.Nodes);
         Assert.Empty(flow.Nodes);
         Assert.NotNull(flow.Connections);
@@ -56,7 +56,7 @@ public class BasicPropertyTests
     [Fact]
     public void Builder_BuildsObjectWithProperties()
     {
-        var flow = IFlow.NewBuilder()
+        var flow = Flow.NewBuilder()
             .WithTitle("Built Flow")
             .Build();
 
@@ -66,12 +66,12 @@ public class BasicPropertyTests
     [Fact]
     public void Builder_WithCollections()
     {
-        var n1 = INode.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "A";
-        var n2 = INode.NewInstance();
+        var n2 = Node.NewInstance();
         n2.Name = "B";
 
-        var flow = IFlow.NewBuilder()
+        var flow = Flow.NewBuilder()
             .WithTitle("Graph")
             .WithNodes(n1, n2)
             .Build();
@@ -85,12 +85,12 @@ public class BasicPropertyTests
     [Fact]
     public void Builder_ApplyFrom_CopiesProperties()
     {
-        var original = INode.NewInstance();
+        var original = Node.NewInstance();
         original.Name = "Source";
         original.X = 100;
         original.Y = 200;
 
-        var copy = INode.NewBuilder().ApplyFrom(original).Build();
+        var copy = Node.NewBuilder().ApplyFrom(original).Build();
         Assert.Equal("Source", copy.Name);
         Assert.Equal(100, copy.X);
         Assert.Equal(200, copy.Y);
@@ -99,10 +99,10 @@ public class BasicPropertyTests
     [Fact]
     public void Builder_ApplyTo_UpdatesExisting()
     {
-        var target = INode.NewInstance();
+        var target = Node.NewInstance();
         target.Name = "Old";
 
-        INode.NewBuilder()
+        Node.NewBuilder()
             .WithName("New")
             .WithX(50)
             .ApplyTo(target);

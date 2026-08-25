@@ -25,7 +25,7 @@ public class NullableValueTypeTests
     [Fact]
     public void Nullable_value_properties_can_be_set_and_read()
     {
-        var m = IMeasurement.NewInstance();
+        var m = Measurement.NewInstance();
         m.Label = "temp";
         m.Value = 21.5;
         m.Count = null;     // explicitly unset
@@ -37,7 +37,7 @@ public class NullableValueTypeTests
     [Fact]
     public void Set_nullable_values_round_trip()
     {
-        var m = IMeasurement.NewInstance();
+        var m = Measurement.NewInstance();
         m.Label = "temp";
         m.Value = 21.5;
         m.Count = 7;
@@ -45,7 +45,7 @@ public class NullableValueTypeTests
 
         var options = Options();
         var json = JsonSerializer.Serialize<IVObject>(m, options);
-        var restored = JsonSerializer.Deserialize<IMeasurement>(json, options)!;
+        var restored = JsonSerializer.Deserialize<Measurement>(json, options)!;
 
         Assert.Equal(21.5, restored.Value!.Value);
         Assert.Equal(7, restored.Count!.Value);
@@ -55,7 +55,7 @@ public class NullableValueTypeTests
     [Fact]
     public void Null_value_properties_are_omitted_and_read_back_as_null()
     {
-        var m = IMeasurement.NewInstance();
+        var m = Measurement.NewInstance();
         m.Label = "temp";   // Value / Count / Flag left null
 
         var options = Options();
@@ -69,7 +69,7 @@ public class NullableValueTypeTests
             Assert.False(doc.RootElement.TryGetProperty("flag", out _));
         }
 
-        var restored = JsonSerializer.Deserialize<IMeasurement>(json, options)!;
+        var restored = JsonSerializer.Deserialize<Measurement>(json, options)!;
         Assert.Null(restored.Value);
         Assert.Null(restored.Count);
         Assert.Null(restored.Flag);

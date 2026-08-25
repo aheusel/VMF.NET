@@ -15,11 +15,11 @@ public class SupplierTest
         var supplier = ISupplier.NewInstance();
         supplier.Name = "ACME";
 
-        var customer = ICustomer.NewInstance();
+        var customer = Customer.NewInstance();
         customer.CustomerID = 1;
         supplier.Customers.Add(customer);
 
-        var order = IPurchaseOrder.NewInstance();
+        var order = PurchaseOrder.NewInstance();
         supplier.Orders.Add(order);
 
         Assert.Equal("ACME", supplier.Name);

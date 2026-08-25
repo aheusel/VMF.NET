@@ -14,7 +14,7 @@ public class ExternalTypesTest
     [Fact]
     public void BasicListTypeTest()
     {
-        var model = IModel.NewInstance();
+        var model = Model.NewInstance();
 
         // an external type is usable as a scalar property and as a list element
         model.Entry = new MyType { Name = "single" };
@@ -28,7 +28,7 @@ public class ExternalTypesTest
     [Fact]
     public void CustomActionTypeTest()
     {
-        var model = IModel.NewInstance();
+        var model = Model.NewInstance();
 
         // the delegated method takes an external functional type and applies it to the caller
         model.RunAction(m => m.Entries.Add(new MyType()));

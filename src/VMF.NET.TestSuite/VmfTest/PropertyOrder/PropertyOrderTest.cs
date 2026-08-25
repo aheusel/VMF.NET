@@ -17,14 +17,14 @@ public class PropertyOrderTest
     public void PropertyDefaultOrderTest()
     {
         // no custom order -> alphabetical
-        Assert.Equal(new[] { "B", "D", "X", "Z" }, OrderOf(IDefaultOrder.NewInstance()));
+        Assert.Equal(new[] { "B", "D", "X", "Z" }, OrderOf(DefaultOrder.NewInstance()));
     }
 
     [Fact]
     public void PropertyCustomOrderTest()
     {
         // [PropertyOrder] indices 1..4 over Z, B, D, X
-        Assert.Equal(new[] { "Z", "B", "D", "X" }, OrderOf(ICustomOrder.NewInstance()));
+        Assert.Equal(new[] { "Z", "B", "D", "X" }, OrderOf(CustomOrder.NewInstance()));
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class PropertyOrderTest
     {
         // base has no custom order (so alphabetical), own properties do -- inherited first
         Assert.Equal(new[] { "BaseA", "BaseB", "BaseZ", "A", "Z", "B" },
-                     OrderOf(IInheritedOrderSubClassWithoutBaseOrder.NewInstance()));
+                     OrderOf(InheritedOrderSubClassWithoutBaseOrder.NewInstance()));
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class PropertyOrderTest
     {
         // base defines its own order, which the subtype must honour
         Assert.Equal(new[] { "BaseA", "BaseZ", "BaseB", "A", "Z", "B" },
-                     OrderOf(IInheritedOrderSubClassWithBaseOrder.NewInstance()));
+                     OrderOf(InheritedOrderSubClassWithBaseOrder.NewInstance()));
     }
 
     [Fact]
@@ -48,6 +48,6 @@ public class PropertyOrderTest
     {
         // the subtype re-declares the order of its own properties
         Assert.Equal(new[] { "BaseA", "BaseZ", "BaseB", "Z", "B", "A" },
-                     OrderOf(IInheritedOrderSubClassWithRedefinedBaseOrder.NewInstance()));
+                     OrderOf(InheritedOrderSubClassWithRedefinedBaseOrder.NewInstance()));
     }
 }

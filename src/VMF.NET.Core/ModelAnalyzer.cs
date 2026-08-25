@@ -77,21 +77,11 @@ public static class ModelAnalyzer
             }
             implClaimedBy[implName] = iface.ModelName;
 
-            // The interface keeps the model's name, but the implementation cannot: `IHorseImpl`
-            // would be a class named like an interface. So a leading `I` is dropped, and that is
-            // the one place a name still changes without being asked for -- report it.
-            //
-            // VMF004, so it can be silenced on its own:  <NoWarn>VMF004</NoWarn>
-            if (ModelTypeInfo.HasInterfacePrefix(iface.Name))
-            {
-                model.AddWarning(
-                    $"Model interface '{iface.Name}' is implemented by '{implName}': the leading 'I' "
-                    + "is stripped so the implementation is not named like an interface. Name the "
-                    + $"model '{ModelTypeInfo.StripInterfacePrefix(iface.Name)}' to avoid the "
-                    + "asymmetry, or silence this with <NoWarn>"
-                    + Diagnostic.PrefixStrippedId + "</NoWarn>.",
-                    id: Diagnostic.PrefixStrippedId);
-            }
+            // Deliberately NOT warned about: `IHorse` being implemented by `HorseImpl` is what a
+            // C# author expects, and `IHorseImpl` is the thing nobody wants. A warning here fired
+            // on every C#-style model and, by advising the unprefixed spelling, pushed authors
+            // toward the one that collides with namespace names and BCL types -- measured at 11 of
+            // the suite's 271 models. See devdoc/differences-to-java.md.
 
             var typeInfo = model.AddType(iface.Name, typeId);
             typeInfo.IsImmutable = iface.IsImmutable;

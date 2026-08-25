@@ -12,8 +12,8 @@ public class ContainmentTests
     [Fact]
     public void AddChild_SetsContainer()
     {
-        var flow = IFlow.NewInstance();
-        var node = INode.NewInstance();
+        var flow = Flow.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "N1";
 
         flow.Nodes.Add(node);
@@ -26,8 +26,8 @@ public class ContainmentTests
     [Fact]
     public void RemoveChild_ClearsContainer()
     {
-        var flow = IFlow.NewInstance();
-        var node = INode.NewInstance();
+        var flow = Flow.NewInstance();
+        var node = Node.NewInstance();
 
         flow.Nodes.Add(node);
         Assert.Same(flow, node.Flow);
@@ -40,12 +40,12 @@ public class ContainmentTests
     [Fact]
     public void MoveChild_BetweenParents()
     {
-        var flow1 = IFlow.NewInstance();
+        var flow1 = Flow.NewInstance();
         flow1.Title = "Flow1";
-        var flow2 = IFlow.NewInstance();
+        var flow2 = Flow.NewInstance();
         flow2.Title = "Flow2";
 
-        var node = INode.NewInstance();
+        var node = Node.NewInstance();
         node.Name = "Moveable";
 
         flow1.Nodes.Add(node);
@@ -62,8 +62,8 @@ public class ContainmentTests
     [Fact]
     public void Connection_HasFlowContainer()
     {
-        var flow = IFlow.NewInstance();
-        var conn = IConnection.NewInstance();
+        var flow = Flow.NewInstance();
+        var conn = Connection.NewInstance();
 
         flow.Connections.Add(conn);
         Assert.Same(flow, conn.Flow);
@@ -72,12 +72,12 @@ public class ContainmentTests
     [Fact]
     public void MultipleChildren_InOneParent()
     {
-        var flow = IFlow.NewInstance();
-        var n1 = INode.NewInstance();
+        var flow = Flow.NewInstance();
+        var n1 = Node.NewInstance();
         n1.Name = "A";
-        var n2 = INode.NewInstance();
+        var n2 = Node.NewInstance();
         n2.Name = "B";
-        var n3 = INode.NewInstance();
+        var n3 = Node.NewInstance();
         n3.Name = "C";
 
         flow.Nodes.Add(n1);

@@ -10,19 +10,19 @@ namespace VMF.NET.TestSuite.VmfTest.ExternalTypes;
 /// to the caller. A delegate is the direct C# equivalent, so a lambda can be passed exactly as
 /// the Java fact does.
 /// </summary>
-public delegate void MyAction(IModel model);
+public delegate void MyAction(Model model);
 
 public sealed class MyType
 {
     public string? Name { get; set; }
 }
 
-/// <summary>Behavior delegate for <see cref="IModel.RunAction"/>.</summary>
-public sealed class ModelBehavior : IDelegatedBehavior<IModel>
+/// <summary>Behavior delegate for <see cref="Model.RunAction"/>.</summary>
+public sealed class ModelBehavior : IDelegatedBehavior<Model>
 {
-    private IModel? _caller;
+    private Model? _caller;
 
-    public void SetCaller(IModel caller) => _caller = caller;
+    public void SetCaller(Model caller) => _caller = caller;
 
     public void RunAction(MyAction action) => action(_caller!);
 }

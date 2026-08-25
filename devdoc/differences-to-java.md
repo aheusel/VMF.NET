@@ -35,50 +35,62 @@ namespace:
 // Model/Model.cs — build input, never shipped as API
 namespace MyApp.VmfModel;
 
-interface IParent
+interface Parent
 {
     string Name { get; set; }
-    [Contains("IChild.Parent")] IChild[] Children { get; }
+    [Contains("Child.Parent")] Child[] Children { get; }
 }
 ```
 
-That generates `MyApp.IParent`, which is what your code uses. Being in the namespace is the whole
+That generates `MyApp.Parent`, which is what your code uses. Being in the namespace is the whole
 declaration: **no attribute marks a model type**, exactly as no annotation marks one in Java.
 
 | Java | VMF.NET |
 |---|---|
 | `src/main/vmf/…/vmfmodel/Parent.java` | any file, `namespace MyApp.VmfModel` |
-| package-private `interface Parent` | `interface IParent` — `internal` by default, the same default |
-| generated `Parent` in the parent package | generated `IParent` in the parent namespace |
+| package-private `interface Parent` | `interface Parent` — `internal` by default, the same default |
+| generated `Parent` in the parent package | generated `Parent` in the parent namespace |
 | `apply plugin: 'eu.mihosoft.vmf'` | `<PackageReference Include="VMF.NET" />` |
 
-### Name the model interface what it will generate
+### The generated interface keeps the name you gave it
 
-The rule: the generated name is `I` + the model's name, **unless** the model already starts with
-`I` followed by a capital, in which case it is used unchanged. So `Parent` and `IParent` both
-generate `IParent`.
+**You name the type; the generator does not rename it.** `Parent` generates `Parent` — the same as
+Java — and `IParent` generates `IParent`, if you prefer C#'s convention. Both are supported and
+neither is warned about.
 
-**Write the `I` yourself.** A model named `Parent` silently becomes something else, and nothing in
-the model file records that; writing `IParent` makes the file say what it produces. The generator
-warns when it has to add the prefix:
+Only the **implementation** name is derived, by dropping a leading `I`, because `IParentImpl`
+would be a class named like an interface:
 
-```
-warning VMF004: Model interface 'Parent' generates 'IParent'. VMF.NET prefixes a model name
-with 'I'. Name it 'IParent' to say that explicitly, or silence this with <NoWarn>VMF004</NoWarn>.
-```
+| model | interface | implementation | read-only interface |
+|---|---|---|---|
+| `Parent` | `Parent` | `ParentImpl` | `ReadOnlyParent` |
+| `IParent` | `IParent` | `ParentImpl` | `IReadOnlyParent` |
 
-Java needs none of this — there `Parent` generates `Parent`. The asymmetry is C#'s `I` convention,
-and the exception exists for a concrete reason rather than as a compatibility wart: **the
-implementation class name is derived by stripping the leading `I`**. Prefix unconditionally and a
-model named `IHorse` yields interface `IIHorse` and implementation `IHorseImpl` — a class named
-like an interface. Leaving an existing `I`+capital alone is what prevents that.
+The read-only name follows whichever convention the model chose, so a model is never half one
+style and half the other.
 
-The consequence to know about: because both spellings converge, declaring `Horse` **and** `IHorse`
-in one namespace is a name clash. That is an error (`VMF001`) naming both spellings; it used to
-silently drop one of the two types and everything it declared.
+That shared implementation name is the one thing to watch: declaring **both** `Horse` and `IHorse`
+in one namespace is a clash, because both want `HorseImpl`. It is an error naming both spellings.
 
-If you prefer Java's spelling, `<NoWarn>VMF004</NoWarn>` is the supported way to say so — the
-generated API is identical either way.
+### An unprefixed name can collide — measured
+
+Java never hits this, because its packages are lowercase and its BCL names differ. In C# an
+unprefixed model name lands in the same namespace as everything else, and two collisions are
+common enough to plan for. Measured across the 271 models of the ported test suite, **11 could
+not drop the prefix**:
+
+- **The type is named after its own namespace** (8 of them: `Account`, `Library`, `Json`,
+  `Supplier`, `VFlow`, `ReflectionTest`, `GrammarModel`, `UnparserModel`). `namespace …Complex.Library`
+  cannot also contain a type `Library` — `CS0118`, *is a namespace but is used like a type*. This
+  is the normal shape of a domain model, not an exotic case.
+- **The name collides with an implicitly-imported BCL type** (3: `Action`, `Array`, `Type`).
+  `Array` was the instructive one: it did not fail in the model at all, it broke **generated code
+  elsewhere**, because `Array.Empty<T>()` in a dozen generated implementations quietly resolved to
+  the model's `Array` instead of `System.Array`.
+
+So: prefer the unprefixed name, and reach for `IFoo` when the name would collide. The test suite
+is written exactly that way — 260 unprefixed, 11 prefixed — which is why both spellings stay
+exercised.
 
 Behaviour delegates and any plain types the model references (enums, .NET classes) live in the
 **parent** namespace, beside the generated API — as Java's delegates live in the package VMF
@@ -237,9 +249,9 @@ Java narrows a property by overriding its getter with a narrower return type. C#
 asks for the intent to be stated:
 
 ```csharp
-interface IWithLocationX : IWithLocation
+interface WithLocationX : WithLocation
 {
-    [GetterOnly] new ILocationX? Location { get; }
+    [GetterOnly] new LocationX? Location { get; }
 }
 ```
 
@@ -331,7 +343,7 @@ Mechanical, expected by anyone writing C#, and **not** divergences:
 
 | Java | VMF.NET |
 |---|---|
-| `interface Parent` | `interface Parent` — plain, in a `.VmfModel` namespace; generates `IParent` |
+| `interface Parent` | `interface Parent` — plain, in a `.VmfModel` namespace; generates `Parent` |
 | `getName()` / `setName(x)` | `Name { get; set; }` |
 | `Parent.newInstance()` / `newBuilder()` | `IParent.NewInstance()` / `IParent.NewBuilder()` |
 | `@Contains` / `@Container` / `@Refers` | `[Contains]` / `[Container]` / `[Refers]` |

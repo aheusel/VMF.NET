@@ -5,7 +5,7 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.ObservableProp.VmfModel;
 
-interface IObserveMyProperties
+interface ObserveMyProperties
 {
     string? Name { get; set; }
     int[] Values { get; }

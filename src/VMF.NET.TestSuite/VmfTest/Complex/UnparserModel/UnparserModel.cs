@@ -8,52 +8,52 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel.VmfModel;
 
 interface IUnparserModel
 {
-    [Contains("IUPRule.Parent")]
-    IUPRule[] Rules { get; }
+    [Contains("UPRule.Parent")]
+    UPRule[] Rules { get; }
 
-    [Contains("IUPLexerRule.Parent")]
-    IUPLexerRule[] LexerRules { get; }
+    [Contains("UPLexerRule.Parent")]
+    UPLexerRule[] LexerRules { get; }
 }
 
-interface IUPLexerRule : IWithName, IWithText
+interface UPLexerRule : WithName, WithText
 {
     [Container("IUnparserModel.LexerRules")]
     IUnparserModel? Parent { get; }
 }
 
 [InterfaceOnly]
-interface IWithTokenLocation
+interface WithTokenLocation
 {
     [IgnoreEquals] int TokenIndexStart { get; set; }
     [IgnoreEquals] int TokenIndexStop { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithAltId
+interface WithAltId
 {
     int AltId { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithElementId
+interface WithElementId
 {
     int ElementId { get; set; }
 }
 
 [InterfaceOnly]
-interface IWithRuleId
+interface WithRuleId
 {
     int RuleId { get; set; }
 }
 
 [InterfaceOnly]
-interface IUPRuleBase : IWithRuleId
+interface UPRuleBase : WithRuleId
 {
-    [Contains("IAlternativeBase.ParentRule")]
-    IAlternativeBase[] Alternatives { get; }
+    [Contains("AlternativeBase.ParentRule")]
+    AlternativeBase[] Alternatives { get; }
 }
 
-interface IUPRule : IWithName, IUPRuleBase, IWithTokenLocation
+interface UPRule : WithName, UPRuleBase, WithTokenLocation
 {
     [Container("IUnparserModel.Rules")]
     IUnparserModel? Parent { get; }
@@ -63,27 +63,27 @@ interface IUPRule : IWithName, IUPRuleBase, IWithTokenLocation
 }
 
 [InterfaceOnly]
-interface ISubRule : IUPRuleBase
+interface SubRule : UPRuleBase
 {
 }
 
 [InterfaceOnly]
-interface IAlternativeBase : IWithText, IWithAltId
+interface AlternativeBase : WithText, WithAltId
 {
-    [Container("IUPRuleBase.Alternatives")]
-    IUPRuleBase? ParentRule { get; }
+    [Container("UPRuleBase.Alternatives")]
+    UPRuleBase? ParentRule { get; }
 
-    [Contains("IUPElement.ParentAlt")]
-    IUPElement[] Elements { get; }
+    [Contains("UPElement.ParentAlt")]
+    UPElement[] Elements { get; }
 }
 
-interface IUPElement : IWithText, IWithElementId, IWithTokenLocation
+interface UPElement : WithText, WithElementId, WithTokenLocation
 {
     // Settable so containment can be driven from the child side, as the Java fact does.
-    // Java generates a container setter automatically; in VMF.NET the model interface IS
+    // Java generates a container setter automatically; in VMF.NET the model interface S
     // the public API, so `set` is how a model opts in.
-    [Container("IAlternativeBase.Elements")]
-    IAlternativeBase? ParentAlt { get; set; }
+    [Container("AlternativeBase.Elements")]
+    AlternativeBase? ParentAlt { get; set; }
 
     bool ListType { get; set; }
     bool LexerRule { get; set; }
@@ -94,22 +94,22 @@ interface IUPElement : IWithText, IWithElementId, IWithTokenLocation
     string? RuleName { get; set; }
 }
 
-interface IUPNamedElement : IUPElement, IWithName
+interface UPNamedElement : UPElement, WithName
 {
 }
 
-interface IUPSubRuleElement : IUPElement, ISubRule
+interface UPSubRuleElement : UPElement, SubRule
 {
 }
 
-interface IUPNamedSubRuleElement : IUPElement, ISubRule, IWithName
+interface UPNamedSubRuleElement : UPElement, SubRule, WithName
 {
 }
 
-interface IAlternative : IAlternativeBase
+interface Alternative : AlternativeBase
 {
 }
 
-interface ILabeledAlternative : IAlternative, IWithName
+interface LabeledAlternative : Alternative, WithName
 {
 }

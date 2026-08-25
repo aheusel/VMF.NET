@@ -17,7 +17,7 @@ public class VFlowTest
 
         WorkflowTest(flow, 8, 6);
 
-        var numNodes = flow.VMF.Content.Stream<IVNode>().Count();
+        var numNodes = flow.VMF.Content.Stream<VNode>().Count();
         var numObjects = flow.VMF.Content.Stream().Count();
 
         // we expect a certain number of nodes
@@ -34,7 +34,7 @@ public class VFlowTest
             ch.Undo();
         }
 
-        numNodes = flow.VMF.Content.Stream<IVNode>().Count();
+        numNodes = flow.VMF.Content.Stream<VNode>().Count();
         numObjects = flow.VMF.Content.Stream().Count();
 
         // after undo, we expect exactly one node
@@ -54,7 +54,7 @@ public class VFlowTest
 
         for (int i = 0; i < width; i++)
         {
-            IVNode n;
+            VNode n;
 
             if (i % 2 == 0)
             {
@@ -112,9 +112,9 @@ public class VFlowTest
             if (change.PropertyName == "Nodes") nodesEvtCounter++;
         });
 
-        var n1 = IVNode.NewBuilder().WithName("my-name 1").Build();
-        var n2 = IVNode.NewBuilder().WithName("my-name 2").Build();
-        var n3 = IVNode.NewBuilder().WithName("my-name 3").Build();
+        var n1 = VNode.NewBuilder().WithName("my-name 1").Build();
+        var n2 = VNode.NewBuilder().WithName("my-name 2").Build();
+        var n3 = VNode.NewBuilder().WithName("my-name 3").Build();
 
         n1.VMF.Changes.AddListener(change =>
         {

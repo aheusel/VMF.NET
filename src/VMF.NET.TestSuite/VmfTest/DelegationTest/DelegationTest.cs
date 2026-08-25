@@ -12,7 +12,7 @@ public class DelegationTest
     [Fact]
     public void TestMethodDelegation()
     {
-        var aDelegationTestClass = IDelegationTestClass.NewInstance();
+        var aDelegationTestClass = DelegationTestClass.NewInstance();
 
         Assert.True(aDelegationTestClass.ConstructorCalled());
 

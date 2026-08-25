@@ -15,7 +15,7 @@ public class DaBeanTest
     [Fact]
     public void TestGetterSetterFeature()
     {
-        var aDaBean = IDaBean.NewInstance();
+        var aDaBean = DaBean.NewInstance();
         aDaBean.Name = "testName";
         Assert.Equal("testName", aDaBean.Name);
     }
@@ -23,7 +23,7 @@ public class DaBeanTest
     [Fact]
     public void TestCloneFeature()
     {
-        var aDaBean = IDaBean.NewInstance();
+        var aDaBean = DaBean.NewInstance();
         aDaBean.Name = "testName";
         var cloneBean = aDaBean.Clone();
         Assert.Equal("testName", cloneBean.Name);
@@ -37,7 +37,7 @@ public class DaBeanTest
         // members at compile time, so the equivalent statement would not compile at all. The
         // fact is therefore expressed as what makes it uncompilable: the read-only view exposes
         // no setter for the property.
-        var aDaBean = IDaBean.NewInstance();
+        var aDaBean = DaBean.NewInstance();
         var roBean = aDaBean.AsReadOnly();
 
         var name = roBean.GetType().GetProperty("Name", BindingFlags.Public | BindingFlags.Instance);

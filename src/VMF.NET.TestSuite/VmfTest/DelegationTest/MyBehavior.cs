@@ -8,12 +8,12 @@ using VMF.NET.Runtime;
 
 namespace VMF.NET.TestSuite.VmfTest.DelegationTest;
 
-public sealed class MyBehavior : IDelegatedBehavior<IDelegationTestClass>
+public sealed class MyBehavior : IDelegatedBehavior<DelegationTestClass>
 {
-    private IDelegationTestClass? _caller;
+    private DelegationTestClass? _caller;
     private bool _constructorCalled;
 
-    public void SetCaller(IDelegationTestClass caller) => _caller = caller;
+    public void SetCaller(DelegationTestClass caller) => _caller = caller;
 
     public bool NameStartsWith(string value)
     {

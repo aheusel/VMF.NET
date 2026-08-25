@@ -7,43 +7,43 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.Fsm.VmfModel;
 
 [Doc("This model entity is a finite state machine.")]
 [VmfEquals]
-interface IFSM
+interface FSM
 {
     string? Name { get; set; }
-    IState? InitialState { get; set; }
-    IState? CurrentState { get; set; }
-    IState[] FinalState { get; }
+    State? InitialState { get; set; }
+    State? CurrentState { get; set; }
+    State[] FinalState { get; }
 
-    [Contains("IState.OwningFSM")]
-    IState[] OwnedState { get; }
+    [Contains("State.OwningFSM")]
+    State[] OwnedState { get; }
 }
 
 [VmfEquals]
-interface IState
+interface State
 {
     string? Name { get; set; }
 
-    [Container("IFSM.OwnedState")]
-    IFSM? OwningFSM { get; }
+    [Container("FSM.OwnedState")]
+    FSM? OwningFSM { get; }
 
-    [Contains("ITransition.Source")]
-    ITransition[] OutgoingTransitions { get; }
+    [Contains("Transition.Source")]
+    Transition[] OutgoingTransitions { get; }
 
-    [Contains("ITransition.Target")]
-    ITransition[] IncomingTransitions { get; }
+    [Contains("Transition.Target")]
+    Transition[] IncomingTransitions { get; }
 }
 
 [VmfEquals]
-interface ITransition
+interface Transition
 {
     string? Input { get; set; }
     string? Output { get; set; }
 
-    [Container("IState.OutgoingTransitions")]
-    IState? Source { get; }
+    [Container("State.OutgoingTransitions")]
+    State? Source { get; }
 
-    [Container("IState.IncomingTransitions")]
-    IState? Target { get; }
+    [Container("State.IncomingTransitions")]
+    State? Target { get; }
 
     IAction[] Actions { get; }
 }

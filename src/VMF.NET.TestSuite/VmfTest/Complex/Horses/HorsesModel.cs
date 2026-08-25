@@ -6,45 +6,45 @@ using VMF.NET.Runtime.Attributes;
 namespace VMF.NET.TestSuite.VmfTest.Complex.Horses.VmfModel;
 
 [Doc("A barn for horses.")]
-interface IHorseBarn
+interface HorseBarn
 {
     [Doc("The horses contained in this barn.")]
     [Contains]
-    IHorse[] Horses { get; }
+    Horse[] Horses { get; }
 }
 
 [Doc("Owner of a horse or multiple horses.")]
-interface IOwner
+interface Owner
 {
     [Doc("Name of the owner.")]
     string? Name { get; set; }
 
     [Doc("Horses owned by this owner.")]
-    [Refers("IHorse.Owner")]
-    IHorse[] Horses { get; }
+    [Refers("Horse.Owner")]
+    Horse[] Horses { get; }
 }
 
 [Doc("A horse.")]
-interface IHorse
+interface Horse
 {
     string? Name { get; set; }
 
     [Doc("Owner of this horse.")]
-    [Refers("IOwner.Horses")]
-    IOwner? Owner { get; set; }
+    [Refers("Owner.Horses")]
+    Owner? Owner { get; set; }
 
     [Doc("Tournaments this horse attends.")]
-    [Refers("ITournament.Horses")]
-    ITournament[] Tournaments { get; }
+    [Refers("Tournament.Horses")]
+    Tournament[] Tournaments { get; }
 }
 
 [Doc("Tournament a horse can attend.")]
-interface ITournament
+interface Tournament
 {
     [Doc("Name of the tournament.")]
     string? Name { get; set; }
 
     [Doc("Horses that attend this tournament.")]
-    [Refers("IHorse.Tournaments")]
-    IHorse[] Horses { get; }
+    [Refers("Horse.Tournaments")]
+    Horse[] Horses { get; }
 }

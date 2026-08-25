@@ -8,11 +8,11 @@ using VMF.NET.Runtime;
 
 namespace VMF.NET.TestSuite.VmfTest.ParentContainment01;
 
-public sealed class CodeEntityDelegate : IDelegatedBehavior<ICodeEntity>
+public sealed class CodeEntityDelegate : IDelegatedBehavior<CodeEntity>
 {
-    private ICodeEntity? _codeEntity;
+    private CodeEntity? _codeEntity;
 
-    public void SetCaller(ICodeEntity caller) => _codeEntity = caller;
+    public void SetCaller(CodeEntity caller) => _codeEntity = caller;
 
     public void OnCodeEntityInstantiated()
     {
@@ -25,16 +25,16 @@ public sealed class CodeEntityDelegate : IDelegatedBehavior<ICodeEntity>
 
             object? o = l.PropertyChange!.NewValue;
 
-            if (o is ICodeEntity cE)
+            if (o is CodeEntity cE)
             {
                 cE.Parent = _codeEntity;
             }
         }, false);
     }
 
-    public ICodeEntity? Root()
+    public CodeEntity? Root()
     {
-        ICodeEntity? cE = _codeEntity;
+        CodeEntity? cE = _codeEntity;
 
         while (cE!.Parent != null)
         {

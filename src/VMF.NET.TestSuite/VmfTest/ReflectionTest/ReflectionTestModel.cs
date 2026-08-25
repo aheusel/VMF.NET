@@ -9,58 +9,58 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.ReflectionTest.VmfModel;
 
-interface IInheritedDefaultValueParent
+interface InheritedDefaultValueParent
 {
     [VmfDefaultValue("123")]
     int MyValue { get; set; }
 }
 
-interface IInheritedDefaultValueParent2
+interface InheritedDefaultValueParent2
 {
     [VmfDefaultValue("456")]
     int MyValue { get; set; }
 }
 
-interface IInheritedDefaultValue : IInheritedDefaultValueParent
+interface InheritedDefaultValue : InheritedDefaultValueParent
 {
 }
 
 // DEVIATION: Java lets a type inherit the same member from two unrelated interfaces; C#
 // reports CS0229 (ambiguous). The member is therefore re-declared, carrying the default of
 // the parent listed first -- which is the one VMF's property collection would pick anyway.
-interface IInheritedDefaultValueFromTwoParents
-    : IInheritedDefaultValueParent, IInheritedDefaultValueParent2
+interface InheritedDefaultValueFromTwoParents
+    : InheritedDefaultValueParent, InheritedDefaultValueParent2
 {
     [VmfDefaultValue("123")]
     new int MyValue { get; set; }
 }
 
-interface IInheritedDefaultValueFromTwoParents2
-    : IInheritedDefaultValueParent2, IInheritedDefaultValueParent
+interface InheritedDefaultValueFromTwoParents2
+    : InheritedDefaultValueParent2, InheritedDefaultValueParent
 {
     [VmfDefaultValue("456")]
     new int MyValue { get; set; }
 }
 
-interface IInheritedDefaultValueOverride : IInheritedDefaultValueParent
+interface InheritedDefaultValueOverride : InheritedDefaultValueParent
 {
     [VmfDefaultValue("-123")]
     new int MyValue { get; set; }
 }
 
-interface IInheritedDefaultValueOverride2 : IInheritedDefaultValueParent
+interface InheritedDefaultValueOverride2 : InheritedDefaultValueParent
 {
     // should default to 0 (the default for int)
     new int MyValue { get; set; }
 }
 
-interface INode
+interface Node
 {
-    [Contains("INode.Parent")]
-    INode[] Children { get; }
+    [Contains("Node.Parent")]
+    Node[] Children { get; }
 
-    [Container("INode.Children")]
-    INode? Parent { get; }
+    [Container("Node.Children")]
+    Node? Parent { get; }
 }
 
 interface IReflectionTest

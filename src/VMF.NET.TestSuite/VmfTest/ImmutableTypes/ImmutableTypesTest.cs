@@ -12,7 +12,7 @@ public class ImmutableTypesTest
     [Fact]
     public void ImmutableType_InterfaceExposesNoSetters()
     {
-        var type = typeof(IImmutableType);
+        var type = typeof(ImmutableType);
 
         var name = type.GetProperty("Name");
         Assert.NotNull(name);

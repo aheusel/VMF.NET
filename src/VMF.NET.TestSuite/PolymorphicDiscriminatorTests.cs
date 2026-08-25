@@ -26,10 +26,10 @@ public class PolymorphicDiscriminatorTests
     [Fact]
     public void Subtype_SerialisedStandalone_StillCarriesTheDiscriminator()
     {
-        // ICircle's supertype IShape is used as a property type on IDrawing -- a DIFFERENT type.
+        // Circle's supertype Shape is used as a property type on Drawing -- a DIFFERENT type.
         // Serialising a circle on its own must still say which subtype it is, or the value
-        // cannot be read back into an IShape-typed slot.
-        var circle = ICircle.NewBuilder().WithLabel("c1").WithRadius(2.0).Build();
+        // cannot be read back into an Shape-typed slot.
+        var circle = Circle.NewBuilder().WithLabel("c1").WithRadius(2.0).Build();
 
         var json = JsonSerializer.Serialize(circle, Options());
 
@@ -40,9 +40,9 @@ public class PolymorphicDiscriminatorTests
     public void Subtype_InsideItsPolymorphicContainer_CarriesTheDiscriminator()
     {
         // The case that worked before: the supertype is used by the very object being written.
-        var drawing = IDrawing.NewBuilder()
+        var drawing = Drawing.NewBuilder()
             .WithTitle("d1")
-            .WithShapes(ICircle.NewBuilder().WithLabel("c1").WithRadius(2.0).Build())
+            .WithShapes(Circle.NewBuilder().WithLabel("c1").WithRadius(2.0).Build())
             .Build();
 
         var json = JsonSerializer.Serialize(drawing, Options());
@@ -54,7 +54,7 @@ public class PolymorphicDiscriminatorTests
     public void TypeWithNoSubtypeRelationship_CarriesNoDiscriminator()
     {
         // The check must stay a check: a type nothing uses polymorphically gets no discriminator.
-        var drawing = IDrawing.NewBuilder().WithTitle("d1").Build();
+        var drawing = Drawing.NewBuilder().WithTitle("d1").Build();
 
         var json = JsonSerializer.Serialize(drawing, Options());
 

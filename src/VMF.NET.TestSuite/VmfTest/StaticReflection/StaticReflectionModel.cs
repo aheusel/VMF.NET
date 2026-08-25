@@ -4,24 +4,24 @@ using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.VmfTest.StaticReflection.VmfModel;
 
-interface IRoot
+interface Root
 {
-    ITypeC? Prop { get; set; }
+    TypeC? Prop { get; set; }
 }
 
-interface ITypeA : IRoot
+interface TypeA : Root
 {
     int PropA1 { get; set; }
     string? PropA2 { get; set; }
 }
 
-interface ITypeB : IRoot
+interface TypeB : Root
 {
     double PropB1 { get; set; }
-    ITypeA? PropB2 { get; set; }
+    TypeA? PropB2 { get; set; }
 }
 
-interface ITypeC : ITypeA, ITypeB
+interface TypeC : TypeA, TypeB
 {
     string? Name { get; set; }
 }

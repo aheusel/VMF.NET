@@ -11,7 +11,7 @@ public class ObservablePropTest
     [Fact]
     public void ObserveSimplePropertyTest()
     {
-        var observed = IObserveMyProperties.NewInstance();
+        var observed = ObserveMyProperties.NewInstance();
         var nameProperty = observed.VMF.Reflect.PropertyByName("Name");
         Assert.NotNull(nameProperty);
 
@@ -37,7 +37,7 @@ public class ObservablePropTest
     [Fact]
     public void ObserveListPropertyTest()
     {
-        var observed = IObserveMyProperties.NewInstance();
+        var observed = ObserveMyProperties.NewInstance();
         var values = observed.VMF.Reflect.PropertyByName("Values");
         Assert.NotNull(values);
 
@@ -77,8 +77,8 @@ public class ObservablePropTest
         // a read-only view cannot cause changes, but it can observe them: both the view's
         // Changes() and a property obtained through the view see writes made through the
         // mutable object
-        var observed = IObserveMyProperties.NewInstance();
-        IReadOnlyObserveMyProperties observedRO = observed.AsReadOnly();
+        var observed = ObserveMyProperties.NewInstance();
+        ReadOnlyObserveMyProperties observedRO = observed.AsReadOnly();
 
         var nameProperty = observedRO.VMF.Reflect.PropertyByName("Name");
         Assert.NotNull(nameProperty);
@@ -105,8 +105,8 @@ public class ObservablePropTest
     [Fact]
     public void ObserveListPropertyReadOnlyTest()
     {
-        var observed = IObserveMyProperties.NewInstance();
-        IReadOnlyObserveMyProperties observedRO = observed.AsReadOnly();
+        var observed = ObserveMyProperties.NewInstance();
+        ReadOnlyObserveMyProperties observedRO = observed.AsReadOnly();
 
         var values = observedRO.VMF.Reflect.PropertyByName("Values");
         Assert.NotNull(values);
@@ -137,7 +137,7 @@ public class ObservablePropTest
     {
         // DEVIATION: Java's static entry point is ObserveMyProperties.type(); C# cannot use that
         // name, because a model may declare a property called Type. See StaticReflectionTest.
-        var nameProperty = IObserveMyProperties.ModelType().Reflect().PropertyByName("Name");
+        var nameProperty = ObserveMyProperties.ModelType().Reflect().PropertyByName("Name");
 
         Assert.NotNull(nameProperty);
 
