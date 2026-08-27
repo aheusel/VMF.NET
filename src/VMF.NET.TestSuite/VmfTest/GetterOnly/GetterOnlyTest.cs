@@ -2,6 +2,14 @@
 //
 // A [GetterOnly] property is readable through the shared interface on both the immutable and
 // the mutable type, but only the mutable one may be written reflectively.
+//
+// Java wraps each half in try/catch: the first calls Assert.fail if no exception arrives, the
+// second calls Assert.fail if one does. Neither is needed here. Assert.ThrowsAny expresses the
+// first directly, and for the second an escaping exception already fails the test -- an explicit
+// catch would only change the message, not the outcome.
+//
+// The port is also slightly stronger: Java checks the mutable set does not throw, but never
+// checks it took effect. The final assertion below does.
 
 using System;
 using Xunit;

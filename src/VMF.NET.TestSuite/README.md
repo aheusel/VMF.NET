@@ -65,16 +65,16 @@ And on this side:
 
 | C# | facts |
 |---|---|
-| ports under `VmfTest/` | 97 |
+| ports under `VmfTest/` | 96 |
 | `VMF.NET.Tests/VMFGenerateRunsValidationTests` | 5 |
 | native tests, not ports (this project) | 140 |
 | generator-level (`VMF.NET.Tests`, rest) | 92 |
-| **total** | **334** |
+| **total** | **333** |
 
-The subtotals balance against what the runner reports (237 here + 97 in `VMF.NET.Tests`), so
+The subtotals balance against what the runner reports (236 here + 97 in `VMF.NET.Tests`), so
 nothing is double-counted or invisible.
 
-Where a C# class carries **more** facts than its Java original — `CrossRef` 7 vs 3, `Fsm` 2 vs 1,
+Where a C# class carries **more** facts than its Java original — `CrossRef` 7 vs 3,
 `UnparserModel` 3 vs 2 — those are additions, not substitutions. Re-run this reconciliation after
 any change that adds or moves an area.
 

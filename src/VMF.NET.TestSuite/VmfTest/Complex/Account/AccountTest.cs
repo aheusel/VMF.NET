@@ -16,7 +16,8 @@ public class AccountTest
         var a2 = IAccount.NewInstance();
         model.Accounts.Add(a2);
 
-        var c1 = PrivateCustomer.NewBuilder().WithFirstName("John").WithLastName("Potter").Build();
+        var c1 = PrivateCustomer.NewBuilder()
+            .WithFirstName("John").WithLastName("Potter").Build();
 
         a1.AuthorizedSignatories.Add(c1);
         model.Customers.Add(c1);

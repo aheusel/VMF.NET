@@ -8,6 +8,9 @@ namespace VMF.NET.TestSuite.VmfTest.Complex.UnparserModel;
 
 public class UnparserModelTest
 {
+    // Java's containmentWithInheritanceTest1 is one @Test containing two independent blocks, each
+    // in its own `{ }` scope with fresh objects. They port as two facts: the split matches the
+    // scoping Java already had, and it stops a failure in the first half from masking the second.
     [Fact]
     public void ContainmentWithInheritanceTest1()
     {
@@ -31,7 +34,6 @@ public class UnparserModelTest
         sre.ParentAlt = alternative;
 
         Assert.Same(alternative, sre.ParentAlt);
-        Assert.Contains(sre, alternative.Elements);
 
         // Elements should contain sre
         Assert.Contains(sre, alternative.Elements);
@@ -42,8 +44,8 @@ public class UnparserModelTest
         // Alternative a1 should have sre as parent
         Assert.Same(sre, a1.ParentRule);
 
-        // and detaching from the child side removes it from the parent's list
-        // (not in the Java fact -- it has no way to drive containment from the child)
+        // and detaching from the child side removes it from the parent's list.
+        // Not in the Java fact, which sets the container but never clears it.
         sre.ParentAlt = null;
 
         Assert.Null(sre.ParentAlt);

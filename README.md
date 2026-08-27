@@ -149,4 +149,4 @@ dotnet pack --configuration Release
 dotnet test --configuration Release --verbosity normal
 ```
 
-The test suite includes 334 tests across the generator and behavioural projects.
+The test suite includes 333 tests across the generator and behavioural projects.

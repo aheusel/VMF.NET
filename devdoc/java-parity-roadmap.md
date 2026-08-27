@@ -85,9 +85,9 @@ comes before further feature work.
 |---|---|---|
 | Model areas | 40 | **39 ported**; the gap is `diff` |
 | Test classes | 31 with an active `@Test` (+1 disabled upstream) | **31 under `VmfTest/`, plus 1 in `VMF.NET.Tests`** |
-| Facts | **103 active**; 101 ported | **97 under `VmfTest/`** + **5** validation facts in `VMF.NET.Tests` |
+| Facts | **103 active**; 101 ported | **96 under `VmfTest/`** + **5** validation facts in `VMF.NET.Tests` |
 
-Suite totals today: **334 passing**, 0 skipped, 0 failing (237 TestSuite + 97 Tests).
+Suite totals today: **333 passing**, 0 skipped, 0 failing (236 TestSuite + 97 Tests).
 
 Two Java `@Test`s are excluded by upstream, not by us, and both were checked rather than assumed:
 
@@ -102,13 +102,13 @@ Counting `@Test` naively gives 106; only 103 are live. The difference is those t
 occurrences, and a count that misses the distinction reports a parity gap that does not exist.
 
 Java's two `complex/vflow` classes are ported as one `VFlowTest`, and `vmf/VMFGenerateRuns`
-splits across five: four behavioural classes in the TestSuite, and its model-validation facts as
-`VMFGenerateRunsValidationTests` in `VMF.NET.Tests` — a model VMF must *reject* cannot sit in a
-compiled project.
+distributes across seven: four behavioural classes in the TestSuite, and its model-validation
+facts across `VMFGenerateRunsValidationTests`, `ModelAnalyzerTests` and `GeneratorCompilesTests`
+in `VMF.NET.Tests` — a model VMF must *reject* cannot sit in a compiled project.
 
 Some C# facts have no Java counterpart and are extra coverage rather than parity: four
-cross-reference regression facts guarding the recursion fix, the `FSMTest` clone/`ToString`
-split, `UnparserModelTest`'s from-the-child-side variant, five `VList` batch-operation unit tests,
+cross-reference regression facts guarding the recursion fix,
+`UnparserModelTest`'s from-the-child-side variant, five `VList` batch-operation unit tests,
 eight `ModelAnalyzerTests` facts pinning the delegation-inheritance rules M6 introduced and the
 narrowing rules M7 introduced, five `ContainerPropertyIdTests` facts guarding the
 container-property-identity fix, and three `ModelDiscoveryTests` facts pinning what makes an

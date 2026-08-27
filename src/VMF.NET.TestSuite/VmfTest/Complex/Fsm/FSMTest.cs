@@ -1,7 +1,15 @@
 // Ported from eu.mihosoft.vmftest.complex.fsm.FSMTest
 //
 // Builds a large state machine, clones it, and requires the clone to be equal to the original
-// by content and by ToString(). The Java version also prints timings; those are dropped.
+// by content and by ToString().
+//
+// Two things in the Java original are deliberately absent:
+//
+//  - the timing printouts, and
+//  - the two `for (int j = 0; j < numMeasurements; j++)` loops around graph construction and
+//    cloning. numMeasurements is 1, so each loop body runs exactly once; they exist only to let
+//    someone average the timings by raising that constant. Porting them would add no assertion
+//    and no coverage.
 
 using Xunit;
 
@@ -51,18 +59,6 @@ public class FSMTest
 
         Assert.Equal(fsm.OwnedState.Count, clone.OwnedState.Count);
         Assert.Equal(NumTransitions, fsm.OwnedState.Count);
-        Assert.Equal(fsm, clone);
-    }
-
-    [Fact]
-    public void FsmCloneToStringMatchesOriginal()
-    {
-        // Same graph as FsmCreateAndCloneTest, kept separate because the content comparison
-        // passes and the string comparison does not.
-        var fsm = BuildFsm(NumTransitions);
-
-        var clone = fsm.Clone();
-
         Assert.Equal(fsm, clone);
         Assert.Equal(fsm.ToString(), clone.ToString());
     }
