@@ -2,7 +2,7 @@
 //
 // DEVIATION: Java's static entry point is Root.type(). C# cannot use that name -- a model may
 // declare a property called Type, and several do, and a method cannot share a name with a
-// property on the same interface. The generated equivalent is ModelType().
+// property on the same interface. The generated equivalent is GetModelType().
 
 using System.Linq;
 using Xunit;
@@ -16,11 +16,11 @@ public class StaticReflectionTest
     [Fact]
     public void StaticReflectionTest_PropertiesAndSuperTypes()
     {
-        var propSize = Root.ModelType().Reflect().Properties().Count;
+        var propSize = Root.GetModelType().Reflect().Properties().Count;
 
         Assert.Equal(1, propSize);
 
-        var p = Root.ModelType().Reflect().Properties()[0];
+        var p = Root.GetModelType().Reflect().Properties()[0];
 
         // a property obtained without an instance cannot be written
         Assert.ThrowsAny<System.Exception>(() => p.Set(null));
@@ -33,11 +33,11 @@ public class StaticReflectionTest
 
         Assert.Equal(new[] { Ns + "TypeA", Ns + "TypeB" }, typeNames);
 
-        propSize = TypeA.ModelType().Reflect().Properties().Count;
+        propSize = TypeA.GetModelType().Reflect().Properties().Count;
         Assert.Equal(3, propSize);
-        propSize = TypeB.ModelType().Reflect().Properties().Count;
+        propSize = TypeB.GetModelType().Reflect().Properties().Count;
         Assert.Equal(3, propSize);
-        propSize = TypeC.ModelType().Reflect().Properties().Count;
+        propSize = TypeC.GetModelType().Reflect().Properties().Count;
         Assert.Equal(6, propSize);
     }
 }

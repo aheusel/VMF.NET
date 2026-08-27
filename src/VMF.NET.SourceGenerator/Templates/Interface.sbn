@@ -63,14 +63,15 @@ namespace {{ ns }}
 
         /// <summary>
         /// Returns the type object for this model type, which supports reflection without an
-        /// instance: <c>ModelType().Reflect()</c>.
+        /// instance: <c>GetModelType().Reflect()</c>.
         /// <para>
         /// Java calls this <c>type()</c>. C# cannot: a model is free to declare a property named
         /// <c>Type</c> (several do), and a method may not share a name with a property on the same
-        /// interface. <c>ModelType</c> is the collision-free equivalent.
+        /// interface. <c>GetModelType</c> is the collision-free equivalent, and reads as the
+        /// sibling of .NET's own <c>GetType()</c>.
         /// </para>
         /// </summary>
-        {{ if hides_factories }}new {{ end }}static VmfType ModelType() => new {{ type.ImplClassName }}().GetVmfType();
+        {{ if hides_factories }}new {{ end }}static VmfType GetModelType() => new {{ type.ImplClassName }}().GetVmfType();
 
         /// <summary>Typed deep clone.</summary>
         new {{ type.TypeName }} Clone();

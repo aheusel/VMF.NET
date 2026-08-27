@@ -206,7 +206,7 @@ milestone on this roadmap is done.
 
 | Difference | Why |
 |---|---|
-| `ModelType()` rather than Java's `type()` | a model may declare a property named `Type`, and a method cannot share a name with a property |
+| `GetModelType()` rather than Java's `type()` | a model may declare a property named `Type`, and a method cannot share a name with a property |
 | A member inherited from two unrelated interfaces must be re-declared | `CS0229` |
 | `Name` rather than `name`, `IParent` rather than `Parent`, `[Contains]` rather than `@Contains` | surface convention, not behaviour |
 | Read-only write attempts fail at compile time, not at runtime | C# resolves members statically |

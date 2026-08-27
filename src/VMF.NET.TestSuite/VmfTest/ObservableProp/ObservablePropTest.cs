@@ -137,7 +137,7 @@ public class ObservablePropTest
     {
         // DEVIATION: Java's static entry point is ObserveMyProperties.type(); C# cannot use that
         // name, because a model may declare a property called Type. See StaticReflectionTest.
-        var nameProperty = ObserveMyProperties.ModelType().Reflect().PropertyByName("Name");
+        var nameProperty = ObserveMyProperties.GetModelType().Reflect().PropertyByName("Name");
 
         Assert.NotNull(nameProperty);
 

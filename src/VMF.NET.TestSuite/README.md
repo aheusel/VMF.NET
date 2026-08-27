@@ -330,7 +330,7 @@ class (`ContainmentTest.cs`). `VmfTest/Containment/` is the worked reference.
 ### JUnit/hamcrest -> xUnit
 
 > API-shape differences — `Optional<T>` versus a nullable reference, getters versus
-> properties, `type()` versus `ModelType()` — are catalogued in
+> properties, `type()` versus `GetModelType()` — are catalogued in
 > [`../../devdoc/differences-to-java.md`](../../devdoc/differences-to-java.md). They explain
 > why a ported assertion is sometimes shorter than its Java original.
 

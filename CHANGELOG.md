@@ -35,17 +35,12 @@ interface IParent
 
 **Migrating a model:** move it to a `.VmfModel` namespace, then delete `[VmfModel]`, `partial` and
 `public`, and rewrite collection properties as arrays (see below). Nothing else changes — not the
-attributes, not the scalar property types, not the opposite strings. The generated name is `I` +
-the model's name **unless it already begins with `I` and a capital**, so a model named `IParent`
-still produces `IParent` and no consumer code moves. The ported test suite migrated this way
-without a single test file being edited.
+attributes, not the scalar property types, not the opposite strings. The generated type keeps the
+name the model gives it — see *the generated interface keeps the model's name* below.
 
 Two things must move out of the model file into the parent namespace: **behaviour delegate
 classes** and any **plain types the model references** (enums, .NET classes). They refer to the
 generated types, and Java keeps them in the generated-into package for the same reason.
-
-A model interface may now be written Java-style — `interface Parent` — and still produces
-`IParent`.
 
 - **`[VmfModel]` is no longer a marker.** It survives only as optional model-wide configuration
   (`[VmfModel(Equality = …)]` sets the default for a whole namespace); delete every bare use.
@@ -97,7 +92,20 @@ member on a different type.
 The name does not collide with the `VMF` namespace: a qualified type name such as
 `VMF.NET.Runtime.IVmf` is resolved in type position, where member lookup is not consulted.
 A model declaring its own property named `Vmf`/`VMF` would collide with `IVObject.VMF`, the same
-way one named `Type` collides with `ModelType()`.
+way one named `Type` collides with `GetModelType()`.
+
+### Changed — `ModelType()` is now `GetModelType()` (breaking)
+
+The static reflection entry point on every generated interface is renamed, so it reads as the
+sibling of .NET's own `GetType()`:
+
+```csharp
+Root.ModelType().Reflect()      // before
+Root.GetModelType().Reflect()   // after
+```
+
+Java calls this `type()`. C# still cannot: a model is free to declare a property named `Type`, and
+a method may not share a name with a property on the same interface.
 
 ### Fixed — IntelliSense in projects that reference the generator by project reference
 
@@ -183,7 +191,7 @@ individually; they now carry distinct ids.
   `AnnotationsByKey`) return the type's annotations instead of always being empty;
   `Reflect.AllTypes()` returns every model type instead of just the one asked about; and
   `VmfType.SuperTypes()` is populated.
-- **Static type reflection.** Every generated model interface gains `static VmfType ModelType()`,
+- **Static type reflection.** Every generated model interface gains `static VmfType GetModelType()`,
   and `VmfType.Reflect()` gives reflection without an instance. Reading metadata works; anything
   needing an object — `Get`, `Set`, `Unset`, `IsSet`, listeners — throws. (Java calls this
   `type()`; C# cannot, because a model may declare a property named `Type`.)

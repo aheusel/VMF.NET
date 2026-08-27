@@ -16,6 +16,6 @@ public class PropertyInheritanceTest
         Assert.NotNull(p);
 
         // ensure the property uses the correct type
-        Assert.Equal(LocationXY.ModelType(), p!.Type);
+        Assert.Equal(LocationXY.GetModelType(), p!.Type);
     }
 }

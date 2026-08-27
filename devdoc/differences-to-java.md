@@ -158,13 +158,13 @@ multi-line Java chain sometimes ports to a single expression.
 A no-argument Java method that reads state may therefore surface as a C# property — see
 `Change.propertyChange()` → `IChange.PropertyChange` above.
 
-### `type()` is called `ModelType()`
+### `type()` is called `GetModelType()`
 
 *See [`java-parity-roadmap.md`](java-parity-roadmap.md), "M5 design note".*
 
 Java generates `static Type type()` on every model interface. C# cannot use that name: a model may
 declare a property called `Type` (VFlow's `WithType` does), and a method cannot share a name with
-a property. The static entry point is `static VmfType ModelType()`.
+a property. The static entry point is `static VmfType GetModelType()`.
 
 ### Collections — same as Java: the model writes an array
 
