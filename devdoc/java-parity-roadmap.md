@@ -87,7 +87,7 @@ comes before further feature work.
 | Test classes | 31 with an active `@Test` (+1 disabled upstream) | **31 under `VmfTest/`, plus 1 in `VMF.NET.Tests`** |
 | Facts | **103 active**; 101 ported | **96 under `VmfTest/`** + **5** validation facts in `VMF.NET.Tests` |
 
-Suite totals today: **333 passing**, 0 skipped, 0 failing (236 TestSuite + 97 Tests).
+Suite totals today: **338 passing**, 0 skipped, 0 failing (241 TestSuite + 97 Tests).
 
 Two Java `@Test`s are excluded by upstream, not by us, and both were checked rather than assumed:
 
@@ -568,9 +568,9 @@ Worth re-running after each milestone. Two cautions learned the hard way:
 - **Properties and bare calls produce false positives.** `IsSet` and `NextListElement` looked
   unimplemented but are not; `Caller` is a `protected` hook for user subclasses. Verify each hit
   by reading it.
-- **Distinguish unwired from untested.** `AnnotationsByKey`, `ContentHashCode`, `Iterator`,
+- **Distinguish unwired from untested.** `AnnotationsByKey`, `ContentHashCode`,
   `Unset`, `Reset` have no in-repo caller, but they are public API — a coverage gap, not a
-  wiring gap.
+  wiring gap. (`Cursor`, listed here as `Iterator`, is now covered by `ContentTraversalTests`.)
 
 The audit is also a corrective. The cross-reference recording gap was first diagnosed, from a
 failing test alone, as needing new design; the audit showed the classification helpers already

@@ -91,7 +91,7 @@ public class UndoTests
 
         Assert.Equal(5, root.Children.Count);
         // 1 root + 5 children + 15 grandchildren, each visited once (UniqueNode)
-        Assert.Equal(21, root.VMF.Content.Stream<Node>().Count());
+        Assert.Equal(21, root.VMF.Content.DescendantsAndSelf().OfType<Node>().Count());
 
         foreach (var change in RecordedInReverse(root))
         {
@@ -99,6 +99,6 @@ public class UndoTests
         }
 
         Assert.Empty(root.Children);
-        Assert.Single(root.VMF.Content.Stream<Node>());
+        Assert.Single(root.VMF.Content.DescendantsAndSelf().OfType<Node>());
     }
 }

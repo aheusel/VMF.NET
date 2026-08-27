@@ -106,7 +106,7 @@ public class ReadOnlyReflectionTests
         flow.Nodes.Add(n2);
 
         var content = flow.VMF.Content;
-        var all = content.Stream().ToList();
+        var all = content.DescendantsAndSelf().ToList();
 
         // Should contain the flow itself and both nodes
         Assert.Contains(flow, all);
@@ -123,7 +123,7 @@ public class ReadOnlyReflectionTests
         flow.Nodes.Add(n1);
         flow.Connections.Add(conn);
 
-        var nodes = flow.VMF.Content.Stream<Node>().ToList();
+        var nodes = flow.VMF.Content.DescendantsAndSelf().OfType<Node>().ToList();
         Assert.Single(nodes);
         Assert.Same(n1, nodes[0]);
     }

@@ -8,10 +8,19 @@ using VMF.NET.Runtime.Internal;
 namespace VMF.NET.Runtime;
 
 /// <summary>
-/// Iterator that traverses an object graph depth-first.
-/// Supports multiple iteration strategies and modification during traversal.
+/// A <b>cursor</b> over an object graph, traversed depth-first. Supports multiple iteration
+/// strategies and, unlike a plain sequence, <b>modification during traversal</b> — see
+/// <see cref="Set"/>, <see cref="Add"/> and <see cref="IsAddSupported"/>. That is why it exists
+/// alongside <see cref="Sequence(IVObject, IterationStrategy)"/> rather than being replaced by it.
+/// <para>
+/// A cursor is consumed once. It deliberately does <b>not</b> implement
+/// <see cref="IEnumerable{T}"/>: it used to, returning itself from <c>GetEnumerator()</c>, which
+/// meant a second <c>foreach</c> over the same instance silently yielded nothing. Use
+/// <see cref="Sequence(IVObject, IterationStrategy)"/> — or <c>Content.DescendantsAndSelf()</c> —
+/// wherever a re-enumerable sequence is wanted.
+/// </para>
 /// </summary>
-public sealed class VIterator : IEnumerator<IVObject>, IEnumerable<IVObject>
+public sealed class VIterator : IEnumerator<IVObject>
 {
     private readonly VmfIterator _iterator;
 
@@ -45,6 +54,17 @@ public sealed class VIterator : IEnumerator<IVObject>, IEnumerable<IVObject>
     }
 
     /// <summary>The current element.</summary>
+    /// <summary>
+    /// The graph below <paramref name="root"/>, including the root itself, as a lazily evaluated
+    /// sequence that can be enumerated <b>more than once</b>: every enumeration starts a fresh
+    /// cursor.
+    /// </summary>
+    public static IEnumerable<IVObject> Sequence(IVObject root, IterationStrategy strategy)
+    {
+        var cursor = Of(root, strategy);
+        while (cursor.MoveNext()) yield return cursor.Current;
+    }
+
     public IVObject Current => _iterator.Current;
 
     object IEnumerator.Current => Current;
@@ -69,9 +89,7 @@ public sealed class VIterator : IEnumerator<IVObject>, IEnumerable<IVObject>
     /// <summary>
     /// Returns this iterator as an enumerable for LINQ support.
     /// </summary>
-    public IEnumerator<IVObject> GetEnumerator() => this;
 
-    IEnumerator IEnumerable.GetEnumerator() => this;
 
     public void Reset() => throw new NotSupportedException();
     public void Dispose() { }

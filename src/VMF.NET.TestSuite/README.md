@@ -67,11 +67,11 @@ And on this side:
 |---|---|
 | ports under `VmfTest/` | 96 |
 | `VMF.NET.Tests/VMFGenerateRunsValidationTests` | 5 |
-| native tests, not ports (this project) | 140 |
+| native tests, not ports (this project) | 145 |
 | generator-level (`VMF.NET.Tests`, rest) | 92 |
-| **total** | **333** |
+| **total** | **338** |
 
-The subtotals balance against what the runner reports (236 here + 97 in `VMF.NET.Tests`), so
+The subtotals balance against what the runner reports (241 here + 97 in `VMF.NET.Tests`), so
 nothing is double-counted or invisible.
 
 Where a C# class carries **more** facts than its Java original — `CrossRef` 7 vs 3,

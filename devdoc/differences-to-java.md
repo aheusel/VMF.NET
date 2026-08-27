@@ -190,6 +190,30 @@ collection property still **cannot be narrowed** in a subtype. The generator rep
 than emitting code that will not compile. The array notation is a model-authoring convention; it
 does not make the generated collection covariant.
 
+### Graph traversal is a LINQ sequence, not a `Stream`
+
+Java's `Content` offers `stream()`, `stream(Class<T>)`, and strategy overloads of each, because
+Java has no LINQ. C# does, so four members collapse to two:
+
+| Java | VMF.NET |
+|---|---|
+| `content().stream()` | `Content.DescendantsAndSelf()` |
+| `content().stream(VNode.class)` | `Content.DescendantsAndSelf().OfType<VNode>()` |
+| `content().stream(strategy)` | `Content.DescendantsAndSelf(strategy)` |
+| `content().iterator()` | `Content.Cursor()` |
+
+`DescendantsAndSelf` is named for what it yields: **the object itself first**, then everything it
+contains, depth-first. `stream(Class<T>)` disappears because `OfType<T>` already *is* that
+operation — the old `Stream<T>()` was literally implemented as `Stream().OfType<T>()`.
+
+`Stream` was also a poor name in .NET, where `System.IO.Stream` is a byte stream.
+
+**`Cursor()` is not a sequence, and that is deliberate.** It is the modify-while-traversing tool —
+`Set`, `Add`, `IsAddSupported` — which no `IEnumerable` can express, so it survives as its own
+thing. It is consumed once and does **not** implement `IEnumerable<T>`. It used to, returning
+itself from `GetEnumerator()`, which meant a second `foreach` over the same instance silently
+yielded nothing. Use `DescendantsAndSelf()` for reading.
+
 ---
 
 ## Model declaration

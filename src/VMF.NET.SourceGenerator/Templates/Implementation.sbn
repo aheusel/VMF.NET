@@ -1242,12 +1242,10 @@ namespace {{ ns }}
             // UniqueNode, matching Java's content().iterator() -> VIterator.of(this).
             // UniqueProperty visits each PROPERTY once, so a node reachable twice is emitted
             // twice -- which is not what an unqualified "the content of this object" means.
-            public VIterator Iterator() => Iterator(IterationStrategy.UniqueNode);
-            public VIterator Iterator(IterationStrategy strategy) => VIterator.Of(_obj, strategy);
-            public IEnumerable<IVObject> Stream() => Stream(IterationStrategy.UniqueNode);
-            public IEnumerable<IVObject> Stream(IterationStrategy strategy) => Iterator(strategy).AsEnumerable();
-            public IEnumerable<T> Stream<T>() where T : IVObject => Stream().OfType<T>();
-            public IEnumerable<T> Stream<T>(IterationStrategy strategy) where T : IVObject => Stream(strategy).OfType<T>();
+            public VIterator Cursor() => Cursor(IterationStrategy.UniqueNode);
+            public VIterator Cursor(IterationStrategy strategy) => VIterator.Of(_obj, strategy);
+            public IEnumerable<IVObject> DescendantsAndSelf() => DescendantsAndSelf(IterationStrategy.UniqueNode);
+            public IEnumerable<IVObject> DescendantsAndSelf(IterationStrategy strategy) => VIterator.Sequence(_obj, strategy);
             public T DeepCopy<T>() => (T)(object)_obj.CloneInternal(new Dictionary<object, object>(ReferenceEqualityComparer.Instance));
             public T ShallowCopy<T>() => (T)(object)_obj.ShallowCloneInternal();
             public bool ContentEquals(object? other) => _obj.VmfContentEquals(other, new HashSet<long>());

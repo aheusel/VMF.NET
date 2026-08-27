@@ -14,40 +14,37 @@ public interface IContent
     /// Returns an iterator that traverses the object graph depth-first
     /// using the <see cref="IterationStrategy.UniqueNode"/> strategy.
     /// </summary>
-    VIterator Iterator();
+    /// <summary>
+    /// A cursor over the object graph, depth-first, using
+    /// <see cref="IterationStrategy.UniqueNode"/>.
+    /// <para>
+    /// Use this only when you need to <b>modify the graph while traversing it</b> — the cursor
+    /// exposes <c>Set</c>, <c>Add</c> and <c>IsAddSupported</c>, which no sequence can express.
+    /// For reading, use <see cref="DescendantsAndSelf()"/> and LINQ.
+    /// </para>
+    /// </summary>
+    VIterator Cursor();
 
     /// <summary>
-    /// Returns an iterator that traverses the object graph depth-first
-    /// using the specified iteration strategy.
+    /// A cursor over the object graph, depth-first, using the given strategy.
     /// </summary>
-    VIterator Iterator(IterationStrategy strategy);
+    VIterator Cursor(IterationStrategy strategy);
 
     /// <summary>
-    /// Returns all elements of the object graph as an enumerable (depth-first)
-    /// using the <see cref="IterationStrategy.UniqueNode"/> strategy.
+    /// The whole object graph — <b>this object first</b>, then everything it contains,
+    /// depth-first, visiting each node once.
+    /// <para>
+    /// Compose with LINQ: <c>DescendantsAndSelf().OfType&lt;Node&gt;()</c> selects by type,
+    /// <c>.Count()</c> counts, and so on. The sequence is lazy and may be enumerated repeatedly.
+    /// </para>
     /// </summary>
-    IEnumerable<IVObject> Stream();
+    IEnumerable<IVObject> DescendantsAndSelf();
 
     /// <summary>
-    /// Returns all elements of the object graph as an enumerable (depth-first)
-    /// using the specified iteration strategy.
+    /// The whole object graph, this object first, using the given strategy.
     /// </summary>
-    IEnumerable<IVObject> Stream(IterationStrategy strategy);
+    IEnumerable<IVObject> DescendantsAndSelf(IterationStrategy strategy);
 
-    /// <summary>
-    /// Returns all elements of the object graph that are assignable to <typeparamref name="T"/>.
-    /// </summary>
-    IEnumerable<T> Stream<T>() where T : IVObject;
-
-    /// <summary>
-    /// Returns all elements of the object graph that are assignable to <typeparamref name="T"/>
-    /// using the specified iteration strategy.
-    /// </summary>
-    IEnumerable<T> Stream<T>(IterationStrategy strategy) where T : IVObject;
-
-    /// <summary>
-    /// Returns a deep copy of this object.
-    /// </summary>
     T DeepCopy<T>();
 
     /// <summary>
