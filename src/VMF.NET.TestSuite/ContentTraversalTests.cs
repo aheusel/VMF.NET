@@ -72,9 +72,12 @@ public class ContentTraversalTests
         while (cursor.MoveNext()) visited++;
 
         Assert.Equal(3, visited);
-        Assert.False(cursor is System.Collections.IEnumerable,
-            "VIterator must not be IEnumerable: returning itself from GetEnumerator() is what made "
-            + "a second enumeration silently empty.");
+
+        // Asserted against the TYPE, not the instance. `cursor is IEnumerable` would be a
+        // compile-time-constant false today (CS0184) -- a dead assertion that also warns.
+        // This form stays a real check, and still fails if IEnumerable is ever put back.
+        Assert.DoesNotContain(typeof(System.Collections.IEnumerable),
+            typeof(VIterator).GetInterfaces());
     }
 
     [Fact]
