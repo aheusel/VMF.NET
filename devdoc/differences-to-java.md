@@ -197,14 +197,18 @@ Java has no LINQ. C# does, so four members collapse to two:
 
 | Java | VMF.NET |
 |---|---|
-| `content().stream()` | `Content.DescendantsAndSelf()` |
-| `content().stream(VNode.class)` | `Content.DescendantsAndSelf().OfType<VNode>()` |
-| `content().stream(strategy)` | `Content.DescendantsAndSelf(strategy)` |
+| `content().stream()` | `Content.Traverse()` |
+| `content().stream(VNode.class)` | `Content.Traverse().OfType<VNode>()` |
+| `content().stream(strategy)` | `Content.Traverse(strategy)` |
 | `content().iterator()` | `Content.Cursor()` |
 
-`DescendantsAndSelf` is named for what it yields: **the object itself first**, then everything it
-contains, depth-first. `stream(Class<T>)` disappears because `OfType<T>` already *is* that
-operation — the old `Stream<T>()` was literally implemented as `Stream().OfType<T>()`.
+`Traverse` yields **the object itself first**, then depth-first through every model-typed
+property. Note it is a **graph** walk by default, not a containment tree: it follows `[Refers]`
+cross-references and `[Container]` back-pointers too, so it can reach objects that are not
+descendants. `Traverse(IterationStrategy.ContainmentTree)` is the containment-only variant.
+
+`stream(Class<T>)` disappears because `OfType<T>` already *is* that operation — the old
+`Stream<T>()` was literally implemented as `Stream().OfType<T>()`.
 
 `Stream` was also a poor name in .NET, where `System.IO.Stream` is a byte stream.
 
@@ -212,7 +216,7 @@ operation — the old `Stream<T>()` was literally implemented as `Stream().OfTyp
 `Set`, `Add`, `IsAddSupported` — which no `IEnumerable` can express, so it survives as its own
 thing. It is consumed once and does **not** implement `IEnumerable<T>`. It used to, returning
 itself from `GetEnumerator()`, which meant a second `foreach` over the same instance silently
-yielded nothing. Use `DescendantsAndSelf()` for reading.
+yielded nothing. Use `Traverse()` for reading.
 
 ---
 

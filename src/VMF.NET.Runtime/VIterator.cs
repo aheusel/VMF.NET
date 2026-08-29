@@ -16,7 +16,7 @@ namespace VMF.NET.Runtime;
 /// A cursor is consumed once. It deliberately does <b>not</b> implement
 /// <see cref="IEnumerable{T}"/>: it used to, returning itself from <c>GetEnumerator()</c>, which
 /// meant a second <c>foreach</c> over the same instance silently yielded nothing. Use
-/// <see cref="Sequence(IVObject, IterationStrategy)"/> — or <c>Content.DescendantsAndSelf()</c> —
+/// <see cref="Sequence(IVObject, IterationStrategy)"/> — or <c>Content.Traverse()</c> —
 /// wherever a re-enumerable sequence is wanted.
 /// </para>
 /// </summary>

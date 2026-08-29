@@ -100,16 +100,18 @@ way one named `Type` collides with `GetModelType()`.
 
 ```csharp
 // before                                     // after
-content.Stream()                              content.DescendantsAndSelf()
-content.Stream<VNode>()                       content.DescendantsAndSelf().OfType<VNode>()
-content.Stream(strategy)                      content.DescendantsAndSelf(strategy)
+content.Stream()                              content.Traverse()
+content.Stream<VNode>()                       content.Traverse().OfType<VNode>()
+content.Stream(strategy)                      content.Traverse(strategy)
 content.Iterator()                            content.Cursor()
 ```
 
 `Stream` was Java's name for it (`Content.stream()`), and a poor one in .NET where
 `System.IO.Stream` is a byte stream. The generic overloads are gone because `OfType<T>` already is
-that operation — `Stream<T>()` was implemented as `Stream().OfType<T>()`. `DescendantsAndSelf` is
-named for what it yields: the object itself first, then everything it contains.
+that operation — `Stream<T>()` was implemented as `Stream().OfType<T>()`. `Traverse` yields the
+object itself first, then depth-first through every model-typed property. It is a **graph** walk,
+not a containment tree: it follows `[Refers]` cross-references too, so it can reach objects that
+are not descendants. Pass `IterationStrategy.ContainmentTree` for containment alone.
 
 **This also fixes a bug.** The sequence returned by `Stream()` was single-shot: it *was* the
 iterator, whose `GetEnumerator()` returned itself, so enumerating it a second time silently
@@ -121,7 +123,7 @@ nodes.Count();   // 3
 nodes.Count();   // 0   <-- before
 ```
 
-`DescendantsAndSelf()` may be enumerated any number of times. `VIterator` no longer implements
+`Traverse()` may be enumerated any number of times. `VIterator` no longer implements
 `IEnumerable<T>` at all, so the trap cannot be reintroduced; it is a cursor, and `Cursor()` says
 so. It keeps `Set`/`Add`/`IsAddSupported` for modifying the graph during traversal, which is why
 it still exists.
@@ -299,7 +301,7 @@ individually; they now carry distinct ids.
   containing content-equal siblings silently lost objects and shared what the original did not.
 - **Cross-reference lists accepted duplicates.** Adding the same element repeatedly left several
   entries; a cross-reference holds one reference per element.
-- **`VMF.Content` iteration visited some objects more than once.** `Cursor()` and `DescendantsAndSelf()`
+- **`VMF.Content` iteration visited some objects more than once.** `Cursor()` and `Traverse()`
   defaulted to `UniqueProperty`, which visits each *property* once and so emits a node once per
   reference to it — a 21-node tree streamed as 41 entries. Both now default to `UniqueNode`, each
   object exactly once, matching Java. Pass `IterationStrategy.UniqueProperty` explicitly for the

@@ -1,6 +1,6 @@
 // Content traversal: a re-enumerable sequence for reading, a cursor for modifying.
 //
-// DescendantsAndSelf() replaced four Stream() overloads. Two of those merely wrapped LINQ's
+// Traverse() replaced four Stream() overloads. Two of those merely wrapped LINQ's
 // OfType<T>, and all of them were single-shot: the returned IEnumerable WAS the VIterator, whose
 // GetEnumerator() returned itself, so a second enumeration silently yielded nothing. Measured
 // before the fix: Count() gave 3, then 0.
@@ -8,6 +8,7 @@
 using System.Linq;
 using VMF.NET.Runtime;
 using VMF.NET.TestSuite.VmfTest.Containment;
+using VMF.NET.TestSuite.VmfTest.CrossRef;
 using Xunit;
 
 namespace VMF.NET.TestSuite;
@@ -23,22 +24,22 @@ public class ContentTraversalTests
     }
 
     [Fact]
-    public void DescendantsAndSelf_IncludesTheRootFirst()
+    public void Traverse_IncludesTheRootFirst()
     {
         var root = BuildGraph();
 
-        var all = root.VMF.Content.DescendantsAndSelf().ToList();
+        var all = root.VMF.Content.Traverse().ToList();
 
         Assert.Equal(3, all.Count);
         Assert.Same(root, all[0]);
     }
 
     [Fact]
-    public void DescendantsAndSelf_CanBeEnumeratedMoreThanOnce()
+    public void Traverse_CanBeEnumeratedMoreThanOnce()
     {
         // The whole point of the rewrite. Storing the sequence and enumerating it twice is
         // ordinary LINQ usage, and it used to return the full graph and then nothing.
-        var seq = BuildGraph().VMF.Content.DescendantsAndSelf();
+        var seq = BuildGraph().VMF.Content.Traverse();
 
         Assert.Equal(3, seq.Count());
         Assert.Equal(3, seq.Count());
@@ -54,7 +55,7 @@ public class ContentTraversalTests
     [Fact]
     public void OfType_SelectsByType_AndIsAlsoReEnumerable()
     {
-        var typed = BuildGraph().VMF.Content.DescendantsAndSelf().OfType<Element>();
+        var typed = BuildGraph().VMF.Content.Traverse().OfType<Element>();
 
         Assert.Equal(2, typed.Count());
         Assert.Equal(2, typed.Count());
@@ -77,11 +78,32 @@ public class ContentTraversalTests
     }
 
     [Fact]
+    public void Traverse_FollowsReferences_NotJustContainment()
+    {
+        // The default strategy walks every model-typed property, so it reaches objects that are
+        // NOT descendants. This is why the method is called Traverse and not DescendantsAndSelf:
+        // `a` and `b` are joined by a [Refers] cross-reference with no containment between them.
+        var a = EntityOneA.NewInstance();
+        var b = EntityTwoA.NewInstance();
+        a.Ref = b;
+
+        var graph = a.VMF.Content.Traverse().ToList();
+        var tree = a.VMF.Content.Traverse(IterationStrategy.ContainmentTree).ToList();
+
+        Assert.Equal(2, graph.Count);
+        Assert.Contains(b, graph);
+
+        // ContainmentTree is the one that really means "descendants".
+        Assert.Single(tree);
+        Assert.Same(a, tree[0]);
+    }
+
+    [Fact]
     public void ReadOnlyViews_TraverseTheSameWay()
     {
         var ro = BuildGraph().AsReadOnly();
 
-        var seq = ((IVObject)ro).VMF.Content.DescendantsAndSelf();
+        var seq = ((IVObject)ro).VMF.Content.Traverse();
 
         Assert.Equal(3, seq.Count());
         Assert.Equal(3, seq.Count());

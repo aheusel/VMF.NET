@@ -87,7 +87,7 @@ comes before further feature work.
 | Test classes | 31 with an active `@Test` (+1 disabled upstream) | **31 under `VmfTest/`, plus 1 in `VMF.NET.Tests`** |
 | Facts | **103 active**; 101 ported | **96 under `VmfTest/`** + **5** validation facts in `VMF.NET.Tests` |
 
-Suite totals today: **338 passing**, 0 skipped, 0 failing (241 TestSuite + 97 Tests).
+Suite totals today: **339 passing**, 0 skipped, 0 failing (242 TestSuite + 97 Tests).
 
 Two Java `@Test`s are excluded by upstream, not by us, and both were checked rather than assumed:
 

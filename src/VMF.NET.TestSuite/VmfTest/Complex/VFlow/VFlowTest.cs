@@ -17,8 +17,8 @@ public class VFlowTest
 
         WorkflowTest(flow, 8, 6);
 
-        var numNodes = flow.VMF.Content.DescendantsAndSelf().OfType<VNode>().Count();
-        var numObjects = flow.VMF.Content.DescendantsAndSelf().Count();
+        var numNodes = flow.VMF.Content.Traverse().OfType<VNode>().Count();
+        var numObjects = flow.VMF.Content.Traverse().Count();
 
         // we expect a certain number of nodes
         Assert.Equal(19681, numNodes);
@@ -34,8 +34,8 @@ public class VFlowTest
             ch.Undo();
         }
 
-        numNodes = flow.VMF.Content.DescendantsAndSelf().OfType<VNode>().Count();
-        numObjects = flow.VMF.Content.DescendantsAndSelf().Count();
+        numNodes = flow.VMF.Content.Traverse().OfType<VNode>().Count();
+        numObjects = flow.VMF.Content.Traverse().Count();
 
         // after undo, we expect exactly one node
         Assert.Equal(1, numNodes);

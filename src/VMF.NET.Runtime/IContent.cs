@@ -20,7 +20,7 @@ public interface IContent
     /// <para>
     /// Use this only when you need to <b>modify the graph while traversing it</b> — the cursor
     /// exposes <c>Set</c>, <c>Add</c> and <c>IsAddSupported</c>, which no sequence can express.
-    /// For reading, use <see cref="DescendantsAndSelf()"/> and LINQ.
+    /// For reading, use <see cref="Traverse()"/> and LINQ.
     /// </para>
     /// </summary>
     VIterator Cursor();
@@ -31,19 +31,27 @@ public interface IContent
     VIterator Cursor(IterationStrategy strategy);
 
     /// <summary>
-    /// The whole object graph — <b>this object first</b>, then everything it contains,
-    /// depth-first, visiting each node once.
+    /// The object graph reachable from here — <b>this object first</b>, then depth-first through
+    /// every model-typed property, visiting each object once.
     /// <para>
-    /// Compose with LINQ: <c>DescendantsAndSelf().OfType&lt;Node&gt;()</c> selects by type,
-    /// <c>.Count()</c> counts, and so on. The sequence is lazy and may be enumerated repeatedly.
+    /// Note this is a <b>graph</b> walk, not a containment tree: it follows <c>[Refers]</c>
+    /// cross-references and <c>[Container]</c> back-pointers as well as containment, so it can
+    /// reach objects that are not descendants of this one. Pass
+    /// <see cref="IterationStrategy.ContainmentTree"/> for containment alone.
+    /// </para>
+    /// <para>
+    /// Compose with LINQ: <c>Traverse().OfType&lt;Node&gt;()</c> selects by type, <c>.Count()</c>
+    /// counts, and so on. The sequence is lazy and may be enumerated repeatedly.
     /// </para>
     /// </summary>
-    IEnumerable<IVObject> DescendantsAndSelf();
+    IEnumerable<IVObject> Traverse();
 
     /// <summary>
-    /// The whole object graph, this object first, using the given strategy.
+    /// The object graph reachable from here, this object first, using the given strategy.
+    /// <see cref="IterationStrategy.ContainmentTree"/> restricts it to containment, i.e. to this
+    /// object and its descendants.
     /// </summary>
-    IEnumerable<IVObject> DescendantsAndSelf(IterationStrategy strategy);
+    IEnumerable<IVObject> Traverse(IterationStrategy strategy);
 
     T DeepCopy<T>();
 

@@ -1244,8 +1244,8 @@ namespace {{ ns }}
             // twice -- which is not what an unqualified "the content of this object" means.
             public VIterator Cursor() => Cursor(IterationStrategy.UniqueNode);
             public VIterator Cursor(IterationStrategy strategy) => VIterator.Of(_obj, strategy);
-            public IEnumerable<IVObject> DescendantsAndSelf() => DescendantsAndSelf(IterationStrategy.UniqueNode);
-            public IEnumerable<IVObject> DescendantsAndSelf(IterationStrategy strategy) => VIterator.Sequence(_obj, strategy);
+            public IEnumerable<IVObject> Traverse() => Traverse(IterationStrategy.UniqueNode);
+            public IEnumerable<IVObject> Traverse(IterationStrategy strategy) => VIterator.Sequence(_obj, strategy);
             public T DeepCopy<T>() => (T)(object)_obj.CloneInternal(new Dictionary<object, object>(ReferenceEqualityComparer.Instance));
             public T ShallowCopy<T>() => (T)(object)_obj.ShallowCloneInternal();
             public bool ContentEquals(object? other) => _obj.VmfContentEquals(other, new HashSet<long>());

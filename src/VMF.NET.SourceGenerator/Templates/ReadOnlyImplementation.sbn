@@ -155,8 +155,8 @@ namespace {{ ns }}
             // UniqueNode, matching Java -- see the note on the mutable ContentImpl.
             public VIterator Cursor() => VIterator.Of(_ro, IterationStrategy.UniqueNode);
             public VIterator Cursor(IterationStrategy strategy) => VIterator.Of(_ro, strategy);
-            public IEnumerable<IVObject> DescendantsAndSelf() => DescendantsAndSelf(IterationStrategy.UniqueNode);
-            public IEnumerable<IVObject> DescendantsAndSelf(IterationStrategy strategy) => VIterator.Sequence(_ro, strategy);
+            public IEnumerable<IVObject> Traverse() => Traverse(IterationStrategy.UniqueNode);
+            public IEnumerable<IVObject> Traverse(IterationStrategy strategy) => VIterator.Sequence(_ro, strategy);
             public T DeepCopy<T>() => (T)(object)((IVObject)_mutable.Clone()).AsReadOnly();
             public T ShallowCopy<T>() => (T)(object)((IVObject)_mutable.ShallowCloneInternal()).AsReadOnly();
             public bool ContentEquals(object? other) => _mutable.VmfContentEquals(other, new HashSet<long>());
