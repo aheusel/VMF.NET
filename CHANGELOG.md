@@ -5,6 +5,15 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+## 0.3.0 — 2026-08-25
+
+The model became **build input**. Seven breaking changes, all in service of one idea: a VMF.NET
+model should look like a Java VMF model, and the generated API should look like .NET.
+
+Migrating a 0.2.x model: move it to a `.VmfModel` namespace, drop `[VmfModel]`/`partial`/`public`,
+rewrite collection properties as arrays, and update call sites for `VMF`, `Traverse` and
+`GetModelType`. Each change below carries its own before/after.
+
 ### Changed — model declaration (breaking)
 
 **A model is now declared by its namespace, not by an attribute.** An interface in a namespace

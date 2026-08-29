@@ -17,6 +17,7 @@ restate them:
 |---|---|
 | [`java-parity-roadmap.md`](java-parity-roadmap.md) | Is a given difference *forced*, a defect, or an open question? What does the ported suite prove? |
 | [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md) | How do I *port a Java test* faithfully? JUnit/Hamcrest translation, fidelity rules |
+| [`api-backlog.md`](api-backlog.md) | What was identified and deliberately deferred? |
 
 A difference earns an entry here once it has been **verified against Java's implementation**, not
 merely inferred from its tests. Note the date and what was read.

@@ -10,6 +10,7 @@ the 2 that are not belong to `ModelDiffTest`, whose feature VMF.NET does not imp
 **Last updated:** 2026-08-25.
 
 > Companion docs: [`source-generator-dependencies.md`](source-generator-dependencies.md),
+> [`api-backlog.md`](api-backlog.md) — improvements identified and deferred,
 > and [`differences-to-java.md`](differences-to-java.md) — the reader's catalogue of what
 > differs from Java and what to write instead.
 > Suite layout and porting conventions: [`../src/VMF.NET.TestSuite/README.md`](../src/VMF.NET.TestSuite/README.md).
