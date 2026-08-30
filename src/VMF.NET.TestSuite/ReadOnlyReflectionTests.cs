@@ -188,4 +188,109 @@ public class ReadOnlyReflectionTests
         conn.Sender = null;
         Assert.Empty(n1.Outputs);
     }
+
+    // ------------------------------------------------------------------
+    // AsModifiable -- Java's ReadOnly.asModifiable()
+    //
+    // Java: read-only-implementation.vm:198 returns `this.mutableObject.clone()`, and
+    // clone() (impl/clone.vm) is _vmf_deepCopy over an IdentityHashMap. So it is a full
+    // deep copy, never an alias to the wrapped object -- which is what makes handing out
+    // a read-only view safe. These pin exactly that.
+    //
+    // No Java test covers asModifiable(), which is why VMF.NET shipped 0.3.0 without the
+    // method at all; the ported suite had nothing to notice its absence.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void AsModifiable_ReturnsAWritableCopy()
+    {
+        var flow = Flow.NewInstance();
+        flow.Title = "Original";
+
+        Flow copy = flow.AsReadOnly().AsModifiable();
+
+        Assert.NotSame(flow, copy);
+        Assert.Equal("Original", copy.Title);
+
+        // it is genuinely modifiable -- the entire point of the method
+        copy.Title = "Changed";
+        Assert.Equal("Changed", copy.Title);
+        Assert.Equal("Original", flow.Title);
+    }
+
+    [Fact]
+    public void AsModifiable_CopiesContainedChildrenDeeply()
+    {
+        var flow = Flow.NewInstance();
+        var node = Node.NewInstance();
+        node.Name = "N1";
+        flow.Nodes.Add(node);
+
+        var copy = flow.AsReadOnly().AsModifiable();
+
+        Assert.Single(copy.Nodes);
+        Assert.NotSame(node, copy.Nodes[0]);
+
+        copy.Nodes[0].Name = "changed";
+        Assert.Equal("N1", node.Name);
+    }
+
+    [Fact]
+    public void AsModifiable_IsASnapshotWhereAsReadOnlyIsALiveView()
+    {
+        var flow = Flow.NewInstance();
+        flow.Title = "Before";
+
+        var view = flow.AsReadOnly();
+        var copy = view.AsModifiable();
+
+        flow.Title = "After";
+
+        Assert.Equal("After", view.Title);   // the view tracks the original
+        Assert.Equal("Before", copy.Title);  // the copy does not
+    }
+
+    [Fact]
+    public void AsModifiable_PreservesSharedReferences()
+    {
+        var flow = Flow.NewInstance();
+        var sender = Node.NewInstance();
+        sender.Name = "sender";
+        var receiver = Node.NewInstance();
+        receiver.Name = "receiver";
+        flow.Nodes.Add(sender);
+        flow.Nodes.Add(receiver);
+
+        var conn = Connection.NewInstance();
+        conn.Sender = sender;
+        conn.Receiver = receiver;
+        flow.Connections.Add(conn);
+
+        var copy = flow.AsReadOnly().AsModifiable();
+
+        // the identity map is what makes this hold: the cross-reference must point INTO
+        // the copy, not back at the original graph
+        Assert.Same(copy.Nodes[0], copy.Connections[0].Sender);
+        Assert.Same(copy.Nodes[1], copy.Connections[0].Receiver);
+        Assert.NotSame(sender, copy.Connections[0].Sender);
+    }
+
+    [Fact]
+    public void AsModifiable_IsCovariantOnSubtypes()
+    {
+        var dog = Dog.NewInstance();
+        dog.Name = "Rex";
+        dog.Breed = "Husky";
+
+        // the derived read-only interface hands back the derived mutable type
+        Dog copy = dog.AsReadOnly().AsModifiable();
+        Assert.Equal("Husky", copy.Breed);
+
+        // through the base read-only interface, the base type -- as Java's covariant
+        // redeclaration gives
+        ReadOnlyAnimal asAnimal = dog.AsReadOnly();
+        Animal animalCopy = asAnimal.AsModifiable();
+        Assert.Equal("Rex", animalCopy.Name);
+        Assert.IsAssignableFrom<Dog>(animalCopy);
+    }
 }

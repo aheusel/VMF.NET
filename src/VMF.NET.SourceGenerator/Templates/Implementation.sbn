@@ -603,6 +603,10 @@ namespace {{ ns }}
         public {{ type.TypeName }} Clone() => CloneInternal(new Dictionary<object, object>(ReferenceEqualityComparer.Instance));
         {{ type.ReadOnlyInterfaceName }} {{ type.TypeName }}.AsReadOnly() => AsReadOnly();
         {{ type.ReadOnlyInterfaceName }} {{ type.ReadOnlyInterfaceName }}.Clone() => ({{ type.ReadOnlyInterfaceName }})AsReadOnly().Clone();
+{{~ # This class declares itself a read-only interface too (see the class header), so it must
+   # satisfy AsModifiable() as well. A deep copy of a mutable object is just its own Clone() --
+   # the same deep copy the read-only wrapper delegates to. ~}}
+        {{ type.TypeName }} {{ type.ReadOnlyInterfaceName }}.AsModifiable() => Clone();
 {{~ # Interface-only bases never declare Clone()/AsReadOnly() (see Interface.sbn),
    # so emitting an explicit implementation for them would be CS0539. ~}}
 {{~ for base_type in type.AllInheritedTypes ~}}
@@ -611,6 +615,7 @@ namespace {{ ns }}
         {{ base_type.TypeName }} {{ base_type.TypeName }}.Clone() => Clone();
         {{ base_type.ReadOnlyInterfaceName }} {{ base_type.TypeName }}.AsReadOnly() => AsReadOnly();
         {{ base_type.ReadOnlyInterfaceName }} {{ base_type.ReadOnlyInterfaceName }}.Clone() => ({{ base_type.ReadOnlyInterfaceName }})AsReadOnly().Clone();
+        {{ base_type.TypeName }} {{ base_type.ReadOnlyInterfaceName }}.AsModifiable() => Clone();
 {{~ end ~}}
 {{~ end ~}}
 

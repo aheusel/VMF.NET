@@ -46,6 +46,16 @@ namespace {{ ns }}
 {{~ if !(type.IsInterfaceOnly) ~}}
         /// <summary>Typed deep clone as read-only.</summary>
         new {{ type.ReadOnlyInterfaceName }} Clone();
+
+{{~ # Java declares asModifiable() under exactly this guard -- read-only-interface.vm wraps it in
+   # `#if(!${type.isInterfaceOnly()})`. Immutables never reach here: they take the branch above,
+   # and Java's immutable interface extends Immutable rather than ReadOnly, so it has no
+   # asModifiable() either.
+   #
+   # `new` only where a base read-only interface already declares it. hides_factories is that
+   # same predicate (any non-interface-only base); emitting `new` without one is CS0109. ~}}
+        /// <summary>Returns a modifiable deep clone of this object.</summary>
+        {{ if hides_factories }}new {{ end }}{{ type.TypeName }} AsModifiable();
 {{~ end ~}}
     }
 {{~ end ~}}

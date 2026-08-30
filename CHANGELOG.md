@@ -5,6 +5,30 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+### Added
+
+- **`AsModifiable()` on read-only interfaces.** `readOnly.AsModifiable()` returns a modifiable
+  deep copy, matching Java's `ReadOnly.asModifiable()`:
+
+  ```csharp
+  ReadOnlyNode view = node.AsReadOnly();
+  Node editable = view.AsModifiable();   // deep copy, never an alias
+  ```
+
+  Previously there was **no way to get a modifiable object from a read-only view at all**. The
+  obvious substitute silently failed: `view.VMF.Content.DeepCopy<Node>()` compiles — `DeepCopy<T>`
+  is an unconstrained generic — and then throws `InvalidCastException`, because a read-only view's
+  content API copies *and re-wraps*, so it can only return a read-only result. Java code ported
+  line-by-line hit that at runtime.
+
+  Declared under the same guards as Java: absent on interface-only types and on immutables (whose
+  Java interface extends `Immutable`, not `ReadOnly`). `IReadOnly` stays a pure marker — see
+  [`devdoc/differences-to-java.md`](devdoc/differences-to-java.md) for why that one detail differs.
+
+  Found by porting VMF-Tutorial-07. No test on either side covered it, which is how 0.3.0 shipped
+  without the method.
+
+
 ## 0.3.0 — 2026-08-25
 
 The model became **build input**. Seven breaking changes, all in service of one idea: a VMF.NET

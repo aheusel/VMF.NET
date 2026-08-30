@@ -69,6 +69,17 @@ namespace {{ ns }}
 {{~ end ~}}
 {{~ end ~}}
 
+{{~ # Java: read-only-implementation.vm -> `return this.mutableObject.clone();`, and clone() is
+   # _vmf_deepCopy over an IdentityHashMap. Clone() here is the identical deep copy; the only
+   # difference from ReadOnlyContentImpl.DeepCopy below is that this one does NOT re-wrap the
+   # result as read-only -- which is the whole point of the method. ~}}
+        public {{ type.TypeName }} AsModifiable() => _mutable.Clone();
+{{~ for base_type in type.AllInheritedTypes ~}}
+{{~ if !base_type.IsInterfaceOnly ~}}
+        {{ base_type.TypeName }} {{ base_type.ReadOnlyInterfaceName }}.AsModifiable() => AsModifiable();
+{{~ end ~}}
+{{~ end ~}}
+
         // --- IVObjectInternal ---
         public int GetTypeId() => ((IVObjectInternal)_mutable).GetTypeId() + 1;
         public VmfType GetVmfType() => ((IVObjectInternal)_mutable).GetVmfType();

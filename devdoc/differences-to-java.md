@@ -221,6 +221,42 @@ yielded nothing. Use `Traverse()` for reading.
 
 ---
 
+### `AsModifiable()` is on the generated interface, not on `IReadOnly`
+
+*Added 2026-08-30, after porting VMF-Tutorial-07 found it missing entirely.*
+
+`readOnly.AsModifiable()` returns a modifiable **deep copy**, matching Java exactly —
+`read-only-implementation.vm:198` is `return this.mutableObject.clone();`, and `clone()` is
+`_vmf_deepCopy` over an `IdentityHashMap`, so shared references and cycles are preserved. It is
+never an alias to the wrapped object, which is what makes handing out a read-only view safe.
+
+It is declared under the same guards Java uses:
+
+| model type | Java | VMF.NET |
+|---|---|---|
+| ordinary | `asModifiable()` | `AsModifiable()` |
+| interface-only | absent (`#if(!interfaceOnly)`) | absent (`if !type.IsInterfaceOnly`) |
+| immutable | absent — the immutable interface extends `Immutable`, not `ReadOnly` | absent — immutables take the other branch of `ReadOnlyInterface.sbn` |
+
+**The one difference:** Java also declares `asModifiable()` on the `ReadOnly` marker interface,
+so it can be called through a bare `ReadOnly` reference. VMF.NET's `IReadOnly` stays a pure
+marker, for two reasons. Java's declaration is scaffolding — its body is
+`throw new UnsupportedOperationException("FIXME: … This should not happen :(")`, overridden by
+every generated type. And VMF.NET's immutable read-only interfaces *do* extend `IReadOnly`
+where Java's extend `Immutable` instead, so declaring it there would force a throwing
+implementation onto exactly the types Java excludes at compile time — trading a compile error
+for a runtime one, the wrong direction.
+
+Consequence: to call `AsModifiable()` you need the generated read-only interface
+(`ReadOnlyFoo`), not `IReadOnly`. Generic code holding `IReadOnly` still has `Clone()` via
+`IVObject`, which returns a read-only clone.
+
+Note the difference from `VMF.Content.DeepCopy<T>()` on a read-only view, which copies **and
+re-wraps** — it can only ever give you a read-only result. That asymmetry is why
+`AsModifiable()` has to exist as its own method.
+
+---
+
 ## Model declaration
 
 ### An opposite is named by type and property
@@ -317,36 +353,6 @@ it, so its absence is a compile error.
 
 Features Java VMF has and VMF.NET does not. Distinct from the rest of this file: these are not
 differences in how something behaves, but things that are simply absent.
-
-### `asModifiable()` — a modifiable copy from a read-only view
-
-*Found 2026-08-30 while porting VMF-Tutorial-15/16 and migrating the tutorials to 0.3.0.*
-
-Java's read-only interfaces carry `asModifiable()`, which deep-copies the wrapped object and
-hands back the **mutable** type. Tutorial 07 ends on it:
-
-```java
-ReadOnlyMutableObject readOnlyMutable = mutableObject.asReadOnly();
-MutableObject mutableObject2 = readOnlyMutable.asModifiable();
-```
-
-VMF.NET has no `AsModifiable()`, and the obvious substitute does not work either: a read-only
-view's content API only ever yields read-only copies. `ReadOnlyImplementation.sbn` generates
-
-```csharp
-public T DeepCopy<T>() => (T)(object)((IVObject)_mutable.Clone()).AsReadOnly();
-```
-
-so `readOnlyMutable.VMF.Content.DeepCopy<MutableObject>()` compiles and then throws
-`InvalidCastException` at runtime — the value really is a `ReadOnlyMutableObjectImpl`. Only
-`DeepCopy<ReadOnlyMutableObject>()` succeeds.
-
-**There is therefore no way to get a modifiable copy from a read-only view**, which is the whole
-point of Java's method. The workaround is to deep-copy the underlying object instead, which
-requires already holding it — exactly what a receiver of a read-only view does not have.
-
-Self-consistent as a design (a read-only view yields read-only things), but it is a capability
-Java has and VMF.NET does not. Adding `AsModifiable()` is additive.
 
 ### Delegating `ToString()` generates uncompilable code
 
