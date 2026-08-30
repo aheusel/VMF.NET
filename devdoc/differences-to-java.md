@@ -308,12 +308,77 @@ this is bookkeeping, not narrowing, and changes no behaviour.
 A type-level `[DelegateTo]` requires the hook method, as in Java: the generated constructor calls
 it, so its absence is a compile error.
 
+**`ToString()` cannot be delegated** — the generated code does not compile. See
+*Delegating `ToString()` generates uncompilable code* under **Not implemented** below.
+
 ---
 
 ## Not implemented
 
 Features Java VMF has and VMF.NET does not. Distinct from the rest of this file: these are not
 differences in how something behaves, but things that are simply absent.
+
+### `asModifiable()` — a modifiable copy from a read-only view
+
+*Found 2026-08-30 while porting VMF-Tutorial-15/16 and migrating the tutorials to 0.3.0.*
+
+Java's read-only interfaces carry `asModifiable()`, which deep-copies the wrapped object and
+hands back the **mutable** type. Tutorial 07 ends on it:
+
+```java
+ReadOnlyMutableObject readOnlyMutable = mutableObject.asReadOnly();
+MutableObject mutableObject2 = readOnlyMutable.asModifiable();
+```
+
+VMF.NET has no `AsModifiable()`, and the obvious substitute does not work either: a read-only
+view's content API only ever yields read-only copies. `ReadOnlyImplementation.sbn` generates
+
+```csharp
+public T DeepCopy<T>() => (T)(object)((IVObject)_mutable.Clone()).AsReadOnly();
+```
+
+so `readOnlyMutable.VMF.Content.DeepCopy<MutableObject>()` compiles and then throws
+`InvalidCastException` at runtime — the value really is a `ReadOnlyMutableObjectImpl`. Only
+`DeepCopy<ReadOnlyMutableObject>()` succeeds.
+
+**There is therefore no way to get a modifiable copy from a read-only view**, which is the whole
+point of Java's method. The workaround is to deep-copy the underlying object instead, which
+requires already holding it — exactly what a receiver of a read-only view does not have.
+
+Self-consistent as a design (a read-only view yields read-only things), but it is a capability
+Java has and VMF.NET does not. Adding `AsModifiable()` is additive.
+
+### Delegating `ToString()` generates uncompilable code
+
+*Found 2026-08-30, same pass. This one is worse than absent — it fails the build.*
+
+Java's Tutorial 12 delegates `toString()` so a `Store` prints its items:
+
+```java
+@DelegateTo(className="eu.mihosoft.vmf.tutorial12.StoreDelegate")
+String toString();
+```
+
+Declaring the counterpart in a VMF.NET model:
+
+```csharp
+[DelegateTo(typeof(StoreDelegate))] string ToString();
+```
+
+makes the generator emit **two** `ToString()` members on the implementation — its own, and the
+delegating one — so the generated file does not compile:
+
+```
+error CS0111: 'StoreImpl' already defines a member called 'ToString' with the same parameter types
+warning CS0114: 'StoreImpl.ToString()' hides inherited member 'object.ToString()'
+```
+
+Measured on 0.3.0 with a two-type model; both types failed the same way. The generator should
+either suppress its own `ToString()` when the model delegates it, or reject the declaration with
+a diagnostic — emitting both is the one outcome that helps nobody. Note the CS0114 as well: the
+generated `ToString()` is declared without `override`, which is worth a look independently.
+
+No test in the suite covers a delegated `ToString()`, which is why this survived to 0.3.0.
 
 ### `ModelDiff` — graph diff, apply and merge
 
