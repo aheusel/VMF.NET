@@ -194,4 +194,40 @@ namespace MyApp.VmfModel
         // An error must stop generation rather than emit half a model.
         Assert.Empty(result.GeneratedTrees);
     }
+
+    [Fact]
+    public void NarrowingACollection_IsRejectedWithAnActionableMessage()
+    {
+        // Java narrows a collection by overriding the getter with a narrower element type.
+        // VList<T> is invariant, so the narrowed declaration could not implement the base one --
+        // left tolerated this would produce a type that cannot satisfy its own interface. The
+        // diagnostic has to name both element types and say what to do instead.
+        var result = Run(@"
+namespace MyApp.VmfModel
+{
+    interface Glyph { string? Label { get; set; } }
+    interface Round : Glyph { double Radius { get; set; } }
+
+    interface GlyphHolder { Glyph[] Values { get; } }
+
+    interface RoundHolder : GlyphHolder
+    {
+        new Round[] Values { get; }
+    }
+}");
+
+        var errors = result.Diagnostics
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.GetMessage())
+            .ToList();
+
+        var message = string.Join("; ", errors);
+        Assert.True(errors.Count > 0, "expected an error, got none");
+
+        Assert.True(message.Contains("RoundHolder.Values"), message);
+        Assert.True(message.Contains("cannot be narrowed"), message);
+        Assert.True(message.Contains("invariant"), message);
+
+        Assert.Empty(result.GeneratedTrees);
+    }
 }

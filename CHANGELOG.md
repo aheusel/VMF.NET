@@ -5,6 +5,21 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+### Fixed
+
+- **`ToString()` can be delegated.** Declaring `[DelegateTo(typeof(D))] string ToString();` in a
+  model previously made the generator emit its own `ToString()` **and** the delegating one, so the
+  generated file did not compile (CS0111). It now emits only the delegating one, exactly as Java
+  guards that block with `ModelType.isToStringMethodDelegated()`.
+
+  Two details follow Java rather than falling out for free: the method is emitted as
+  `public override string ToString()`, since in C# it would otherwise only *hide*
+  `object.ToString()` and a base-typed reference would print the structural form; and the internal
+  recursive helper still returns the delegated result, so a **parent** printing the object shows
+  the custom representation, matching Java's `__vmf_toString`.
+
+  Java's Tutorial 12 relies on this. Neither test suite covered it, which is how it shipped.
+
 ### Added
 
 - **`AsModifiable()` on read-only interfaces.** `readOnly.AsModifiable()` returns a modifiable
@@ -27,6 +42,15 @@ Notable changes per release. Earlier releases are listed on the
 
   Found by porting VMF-Tutorial-07. No test on either side covered it, which is how 0.3.0 shipped
   without the method.
+
+### Documentation
+
+- **Property narrowing: the two behavioural differences are now measured and pinned.** Narrowing
+  itself works and reading matches Java. What differs: a narrowed setter rejects a non-fitting
+  value with `InvalidCastException` **at the assignment**, where Java stores it and throws at the
+  next narrowed read; and a **collection** cannot be narrowed at all, because `VList<T>` is
+  invariant — that is now a build error naming both element types rather than a note in a design
+  document. See [`devdoc/differences-to-java.md`](devdoc/differences-to-java.md).
 
 
 ## 0.3.0 — 2026-08-25

@@ -83,6 +83,14 @@ public sealed class ModelTypeInfo
     /// </summary>
     public List<DelegationInfo> OwnMethodDelegations { get; } = new();
 
+    /// <summary>
+    /// Whether the model delegates <c>ToString()</c>. Mirrors Java's
+    /// <c>ModelType.isToStringMethodDelegated()</c>: when true the generator emits no
+    /// <c>ToString()</c> of its own, exactly as <c>impl/to-string.vm</c> skips its block.
+    /// Emitting both is what produced CS0111 before 0.3.1.
+    /// </summary>
+    public bool IsToStringDelegated => MethodDelegations.Any(d => d.IsToStringDelegation);
+
     /// <summary>Constructor delegations only.</summary>
     public List<DelegationInfo> ConstructorDelegations { get; } = new();
 

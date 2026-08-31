@@ -95,6 +95,15 @@ public sealed class DelegationInfo
     public bool IsExclusivelyForInterfaceOnlyTypes => string.IsNullOrEmpty(FullTypeName);
 
     /// <summary>
+    /// True for a delegated <c>ToString()</c>. Java's <c>ModelType.isToStringMethodDelegated()</c>
+    /// applies the same three-part test: the name, no parameters, and a string return type.
+    /// </summary>
+    public bool IsToStringDelegation =>
+        MethodName == "ToString"
+        && ParamTypes.Count == 0
+        && (ReturnType == "string" || ReturnType == "System.String" || ReturnType == "global::System.String");
+
+    /// <summary>
     /// Java's delegation identity: <c>methodName(paramType1;...;paramTypeN)</c>, or
     /// <c>constructor-(...)</c> for a constructor delegation. Inherited delegations are collected
     /// after the type's own and then reduced to one entry per signature, so a redeclaration in the

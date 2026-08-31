@@ -322,9 +322,48 @@ interface WithLocationX : WithLocation
 
 The generated implementation carries the member at the narrowed type and satisfies each wider
 declaration with a forwarding explicit implementation, so both views see the same object at their
-own type. Two limits remain: a **collection** cannot be narrowed (see above), and a narrowed
-setter rejects a value that does not fit with `InvalidCastException` at the assignment, where Java
-stores it and throws at the next narrowed read.
+own type. Reading is Java's behaviour exactly — the wide view and the narrow view return the same
+instance.
+
+`new` itself is a **source-level** difference, not a behavioural one. Two behavioural differences
+do remain. Both measured 2026-08-30 and pinned by `NarrowingTests` / `ModelDiscoveryTests`; before
+that they were design notes with no test behind them.
+
+#### 1. A narrowed setter rejects a bad value earlier than Java
+
+Assigning through the **wide** declaration a value that does not fit the narrowed one:
+
+```csharp
+GlyphHolder wide = roundHolder;
+wide.Value = boxy;              // Boxy is a Glyph, but not a Round
+```
+
+| | when it fails | what is stored |
+|---|---|---|
+| Java | at the next **narrowed read** | the non-fitting value |
+| VMF.NET | at the **assignment**, `InvalidCastException` | nothing — the property is unchanged |
+
+Both reject it; VMF.NET's failure is the earlier and the more local of the two, and it leaves the
+object consistent rather than holding a value its own narrowed getter cannot return. Code that
+relies on the Java timing — assigning a wrong value and only failing later, or never, if nothing
+reads it narrowly — behaves differently here.
+
+#### 2. A collection cannot be narrowed at all
+
+Java narrows a collection by overriding the getter with a narrower element type. `VList<T>` is
+invariant, so a narrowed declaration cannot implement the base one, and VMF.NET rejects it at
+build time rather than generating a type that fails to satisfy its own interface:
+
+```
+error VMF001: Property 'RoundHolder.Values' re-declares 'GlyphHolder.Values' with a different
+collection type ('…Glyph[]' -> '…Round[]'). A collection property cannot be narrowed: VList<T>
+is invariant, so the base declaration cannot be implemented. Declare both at the same element
+type.
+```
+
+Declare both at the same element type and narrow on read (`OfType<Round>()`) instead. This is a
+hard limit of the type system, not an implementation gap — nothing in VMF.NET can lift it while
+the generated API exposes `VList<T>`.
 
 ### A member inherited from two unrelated interfaces must be re-declared
 
@@ -344,8 +383,27 @@ this is bookkeeping, not narrowing, and changes no behaviour.
 A type-level `[DelegateTo]` requires the hook method, as in Java: the generated constructor calls
 it, so its absence is a compile error.
 
-**`ToString()` cannot be delegated** — the generated code does not compile. See
-*Delegating `ToString()` generates uncompilable code* under **Not implemented** below.
+**`ToString()` may be delegated**, as in Java:
+
+```csharp
+[DelegateTo(typeof(StoreDelegate))] string ToString();
+```
+
+The generator then emits no `ToString()` of its own — Java guards the same block with
+`ModelType.isToStringMethodDelegated()` (`impl/to-string.vm`). Two details follow Java rather
+than falling out for free:
+
+- The delegating method is emitted as `public override string ToString()`. In Java
+  `public String toString()` overrides on its own; in C# it would merely *hide*
+  `object.ToString()`, so a base-typed reference — including `Console.WriteLine(obj)` —
+  would print the structural form instead.
+- The internal recursive helper (`VmfToString`) still exists and returns the delegated
+  `ToString()`, so a **parent** printing this object contributes the custom representation, not
+  the structural one. Java's `__vmf_toString` is `sb.append(toString())` for exactly this.
+
+*Fixed after 0.3.0. Before that, declaring it emitted the generated `ToString()` and the
+delegating one, and the generated file did not compile (CS0111). No test on either side covered
+it — Java's suite does not, only its Tutorial 12 does.*
 
 ---
 
@@ -353,38 +411,6 @@ it, so its absence is a compile error.
 
 Features Java VMF has and VMF.NET does not. Distinct from the rest of this file: these are not
 differences in how something behaves, but things that are simply absent.
-
-### Delegating `ToString()` generates uncompilable code
-
-*Found 2026-08-30, same pass. This one is worse than absent — it fails the build.*
-
-Java's Tutorial 12 delegates `toString()` so a `Store` prints its items:
-
-```java
-@DelegateTo(className="eu.mihosoft.vmf.tutorial12.StoreDelegate")
-String toString();
-```
-
-Declaring the counterpart in a VMF.NET model:
-
-```csharp
-[DelegateTo(typeof(StoreDelegate))] string ToString();
-```
-
-makes the generator emit **two** `ToString()` members on the implementation — its own, and the
-delegating one — so the generated file does not compile:
-
-```
-error CS0111: 'StoreImpl' already defines a member called 'ToString' with the same parameter types
-warning CS0114: 'StoreImpl.ToString()' hides inherited member 'object.ToString()'
-```
-
-Measured on 0.3.0 with a two-type model; both types failed the same way. The generator should
-either suppress its own `ToString()` when the model delegates it, or reject the declaration with
-a diagnostic — emitting both is the one outcome that helps nobody. Note the CS0114 as well: the
-generated `ToString()` is declared without `override`, which is worth a look independently.
-
-No test in the suite covers a delegated `ToString()`, which is why this survived to 0.3.0.
 
 ### `ModelDiff` — graph diff, apply and merge
 

@@ -565,7 +565,10 @@ namespace {{ ns }}
 {{~ # --- Delegation methods --- ~}}
 {{~ for del in type.MethodDelegations ~}}
 {{~ if !del.IsExclusivelyForInterfaceOnlyTypes ~}}
-        public {{ del.ReturnType }} {{ del.MethodName }}({{ for i in 0..(del.ParamTypes.size - 1) }}{{ if i > 0 }}, {{ end }}{{ del.ParamTypes[i] }} {{ del.ParamNames[i] }}{{ end }})
+{{~ # A delegated ToString() must say `override`; in Java `public String toString()` overrides on
+   # its own, in C# it would merely hide object.ToString() (CS0114) and print the wrong thing
+   # through a base-typed reference. ~}}
+        public {{ if del.IsToStringDelegation }}override {{ end }}{{ del.ReturnType }} {{ del.MethodName }}({{ for i in 0..(del.ParamTypes.size - 1) }}{{ if i > 0 }}, {{ end }}{{ del.ParamTypes[i] }} {{ del.ParamNames[i] }}{{ end }})
         {
             if ({{ del.VariableName }} == null)
             {
@@ -973,6 +976,15 @@ namespace {{ ns }}
 
         public int VmfHashCode(HashSet<object> visited) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
 {{~ end ~}}
+{{~ if type.IsToStringDelegated ~}}
+        // -> ToString() is delegated; the delegating method is emitted above.
+        //
+        // The recursive helper still exists, because a PARENT printing this object calls it.
+        // Java does the same: impl/to-string.vm emits `__vmf_toString(sb, checker)` as
+        // `sb.append(toString())` so a nested object contributes its custom representation
+        // rather than the structural one.
+        internal string VmfToString(Dictionary<object, int> visited) => ToString();
+{{~ else ~}}
         public override string ToString()
         {
             return VmfToString(new Dictionary<object, int>(ReferenceEqualityComparer.Instance));
@@ -1038,6 +1050,7 @@ namespace {{ ns }}
             sb.Append("}");
             return sb.ToString();
         }
+{{~ end ~}}
 
         // --- Builder ---
         internal sealed class BuilderImpl : {{ type.TypeName }}.Builder
