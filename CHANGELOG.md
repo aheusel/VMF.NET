@@ -5,6 +5,10 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+## 0.3.1 — 2026-08-31
+
+Two Java-parity gaps found by porting the tutorials, and the narrowing differences measured.
+
 ### Fixed
 
 - **`ToString()` can be delegated.** Declaring `[DelegateTo(typeof(D))] string ToString();` in a

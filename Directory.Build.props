@@ -23,7 +23,7 @@
 
     <!-- Default package version. CI overrides this from the pushed git tag
          (publish.yml: /p:Version=${GITHUB_REF_NAME#v}); both agree at release time. -->
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
 
     <!-- Package metadata -->
     <Authors>VMF.NET Contributors</Authors>
