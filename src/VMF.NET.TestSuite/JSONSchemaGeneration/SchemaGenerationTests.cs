@@ -269,4 +269,44 @@ public class SchemaGenerationTests
 
         Assert.False(properties.ContainsKey("model"));
     }
+
+    // ------------------------------------------------------------------
+    // json-editor hints: description / format / inject / propertyOrder
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void DescriptionAndFormat_ReachTheSchema()
+    {
+        var properties = Properties(new VmfJsonSchemaGenerator().GenerateSchema<CameraConfig>());
+
+        var fps = (Dictionary<string, object>)properties["fps"];
+        Assert.Equal("The cameras frames-per-second value.", fps["description"]);
+
+        // json-editor picks its widget from `format`
+        var enabled = (Dictionary<string, object>)properties["enabled"];
+        Assert.Equal("checkbox", enabled["format"]);
+    }
+
+    [Fact]
+    public void Inject_MergesARawFragmentIntoThePropertySchema()
+    {
+        // The value is a brace-less JSON fragment; both Java and VMF.NET wrap it in braces and
+        // merge the result, so several keywords can arrive at once.
+        var pipeId = (Dictionary<string, object>)
+            Properties(new VmfJsonSchemaGenerator().GenerateSchema<CameraConfig>())["pipeId"];
+
+        Assert.Equal("Installed Pipe ID", ((JsonElement)pipeId["title"]).GetString());
+        Assert.Equal(17, ((JsonElement)pipeId["propertyOrder"]).GetInt32());
+    }
+
+    [Fact]
+    public void AnExplicitAnnotation_WinsOverAnInjectedKeyword()
+    {
+        // Java applies injections before title and propertyOrder, so the explicit annotation is
+        // the one that survives. Applying injections last would silently invert this.
+        var label = (Dictionary<string, object>)
+            Properties(new VmfJsonSchemaGenerator().GenerateSchema<CameraConfig>())["label"];
+
+        Assert.Equal("from annotation", label["title"]);
+    }
 }

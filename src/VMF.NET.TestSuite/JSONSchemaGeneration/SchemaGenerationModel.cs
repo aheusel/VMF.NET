@@ -60,3 +60,25 @@ interface ServiceEndpoint
 
     string? HostName { get; set; }
 }
+
+// json-editor hints. https://github.com/json-editor/json-editor reads these straight out of the
+// schema -- `format` tells it which widget to draw, `propertyOrder` where to put the field. The
+// annotations below are the exact ones a Java VMF model would carry, with only the key prefix
+// changed (`vmf:jackson:schema:*` became `vmf:schema:*` in VMF.NET 0.2.0).
+interface CameraConfig
+{
+    [VmfAnnotation("The cameras frames-per-second value.", Key = VmfSchemaKeys.Description)]
+    int Fps { get; set; }
+
+    [VmfAnnotation("checkbox", Key = VmfSchemaKeys.Format)]
+    bool Enabled { get; set; }
+
+    [VmfAnnotation("\"title\": \"Installed Pipe ID\", \"propertyOrder\": 17", Key = VmfSchemaKeys.Inject)]
+    string? PipeId { get; set; }
+
+    // Same keyword from two directions. Java applies injections BEFORE title, so the explicit
+    // annotation wins; this property exists to keep it that way.
+    [VmfAnnotation("\"title\": \"from inject\"", Key = VmfSchemaKeys.Inject)]
+    [VmfAnnotation("from annotation", Key = VmfSchemaKeys.Title)]
+    string? Label { get; set; }
+}

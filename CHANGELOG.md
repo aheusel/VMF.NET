@@ -42,6 +42,11 @@ defaults to the same Java-matching default, so the two agree unless deliberately
 
 ### Fixed
 
+- **Schema annotations were applied in the wrong order.** Injections landed *after* `title` and
+  `propertyOrder`, so a keyword arriving inside a `vmf:schema:inject` fragment overrode an
+  explicit `vmf:schema:title` / `vmf:schema:propertyOrder` annotation. Java applies injections
+  before both, so the explicit annotation wins; VMF.NET now matches. Only observable when the
+  same keyword is supplied twice by different routes.
 - **An immutable-typed property never appeared in a generated schema.** `ShouldSerialize` decided
   immutability from the property's *value* (`prop.Get() is IImmutable`), and the schema generator
   works from an all-null prototype, so the answer was always "no". Java asks the *type*

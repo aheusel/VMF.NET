@@ -204,14 +204,18 @@ public sealed class VmfJsonSchemaGenerator
 
     private static void AddAnnotationProperties(VmfProperty prop, Dictionary<string, object> schema)
     {
+        // Order matters, and this is Java's order
+        // (addDefaultValueAndDescriptionAndConstraintIfAvailable): injections land BEFORE title
+        // and propertyOrder, so an explicit vmf:schema:title / :propertyOrder annotation wins over
+        // one that arrives inside an inject fragment. Running injections last would invert that.
         AddDefaultIfAvailable(prop, schema);
         AddStringAnnotation(prop, schema, VmfSchemaKeys.Description, "description");
-        AddStringAnnotation(prop, schema, VmfSchemaKeys.Format, "format");
-        AddStringAnnotation(prop, schema, VmfSchemaKeys.Title, "title");
         AddConstraints(prop, schema);
+        AddStringAnnotation(prop, schema, VmfSchemaKeys.Format, "format");
         AddUniqueItems(prop, schema);
-        AddPropertyOrder(prop, schema);
         AddInjections(prop, schema);
+        AddStringAnnotation(prop, schema, VmfSchemaKeys.Title, "title");
+        AddPropertyOrder(prop, schema);
     }
 
     private static void AddDefaultIfAvailable(VmfProperty prop, Dictionary<string, object> schema)
