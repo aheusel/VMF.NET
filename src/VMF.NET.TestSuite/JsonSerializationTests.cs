@@ -214,11 +214,11 @@ public class JsonSerializationTests
         Assert.Equal("object", schema["type"]);
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        Assert.True(properties.ContainsKey("Name"));
-        Assert.True(properties.ContainsKey("X"));
-        Assert.True(properties.ContainsKey("Y"));
+        Assert.True(properties.ContainsKey("name"));
+        Assert.True(properties.ContainsKey("x"));
+        Assert.True(properties.ContainsKey("y"));
         // Container property (Flow) should be excluded
-        Assert.False(properties.ContainsKey("Flow"));
+        Assert.False(properties.ContainsKey("flow"));
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public class JsonSerializationTests
 
         Assert.Equal("http://json-schema.org/draft-07/schema#", root.GetProperty("$schema").GetString());
         Assert.True(root.TryGetProperty("properties", out var props));
-        Assert.True(props.TryGetProperty("X", out _));
-        Assert.True(props.TryGetProperty("Y", out _));
+        Assert.True(props.TryGetProperty("x", out _));
+        Assert.True(props.TryGetProperty("y", out _));
     }
 }

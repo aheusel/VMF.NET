@@ -5,6 +5,49 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+### Changed — JSON field naming now matches Java by default (breaking)
+
+**A document VMF.NET writes now has the same field names a Java VMF document does.** Java's field
+name is simply the model property name — `getName()` yields `name`, lower-camel by Java
+convention — and the Jackson module applies no naming strategy on top. C# property names are
+PascalCase, so reproducing Java's document requires camelCase conversion, and that is now the
+default rather than something each caller opts into:
+
+```csharp
+// before: {"Name":"Ada"}   after: {"name":"Ada"}
+JsonSerializer.Serialize<IVObject>(person, new JsonSerializerOptions {
+    Converters = { new VmfJsonConverterFactory() } });
+```
+
+Setting `PropertyNamingPolicy` explicitly still wins, so code that already set `CamelCase` is
+unaffected. Code that relied on the previous PascalCase output must now set
+`PropertyNamingPolicy = null`… which is not expressible — pass a policy that returns the name
+unchanged if you need the old shape.
+
+**A `vmf:json:name` rename is now verbatim.** It was previously run through the naming policy, so
+a rename like `E_Mail` could come out as `e_Mail`. Java's `getFieldNameForProperty` returns the
+annotation value directly; VMF.NET now does too, on the way out *and* on the way back in.
+
+### Added — the schema generator describes polymorphism (parity)
+
+`VmfJsonSchemaGenerator` emitted a bare `$ref` for a model-typed property, so a schema generated
+for a base type could not describe documents containing its subtypes — the serializer's own
+polymorphic output failed validation against the schema for the same model. It now emits `oneOf`
+over the subtypes plus the declared type, each alternative pinning `@vmf-type` to that
+alternative and marking it required, exactly as Java's `VMFJsonSchemaGenerator` does. Subtype
+definitions are emitted too, since a subtype is reachable only through the `oneOf`.
+
+`WithNamingPolicy(...)` lets the generator follow whatever policy the serializer uses; it
+defaults to the same Java-matching default, so the two agree unless deliberately parted.
+
+### Fixed
+
+- **An immutable-typed property never appeared in a generated schema.** `ShouldSerialize` decided
+  immutability from the property's *value* (`prop.Get() is IImmutable`), and the schema generator
+  works from an all-null prototype, so the answer was always "no". Java asks the *type*
+  (`Immutable.class.isAssignableFrom(...)`); VMF.NET now does too.
+
+
 ## 0.3.1 — 2026-08-31
 
 Two Java-parity gaps found by porting the tutorials, and the narrowing differences measured.

@@ -77,7 +77,7 @@ public class JsonAnnotationTests
         var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        var portSchema = (Dictionary<string, object>)properties["Port"];
+        var portSchema = (Dictionary<string, object>)properties["port"];
         Assert.Equal("The port number for the service", portSchema["description"]);
     }
 
@@ -88,7 +88,7 @@ public class JsonAnnotationTests
         var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        var portSchema = (Dictionary<string, object>)properties["Port"];
+        var portSchema = (Dictionary<string, object>)properties["port"];
         Assert.Equal(1, portSchema["minimum"]);
         Assert.Equal(65535, portSchema["maximum"]);
     }
@@ -100,7 +100,7 @@ public class JsonAnnotationTests
         var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        var hostSchema = (Dictionary<string, object>)properties["Host"];
+        var hostSchema = (Dictionary<string, object>)properties["host"];
         Assert.Equal("hostname", hostSchema["format"]);
     }
 
@@ -111,7 +111,7 @@ public class JsonAnnotationTests
         var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        var hostSchema = (Dictionary<string, object>)properties["Host"];
+        var hostSchema = (Dictionary<string, object>)properties["host"];
         Assert.Equal("Server Hostname", hostSchema["title"]);
     }
 
@@ -122,7 +122,7 @@ public class JsonAnnotationTests
         var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        var tagsSchema = (Dictionary<string, object>)properties["Tags"];
+        var tagsSchema = (Dictionary<string, object>)properties["tags"];
         Assert.Equal(true, tagsSchema["uniqueItems"]);
     }
 
@@ -133,7 +133,7 @@ public class JsonAnnotationTests
         var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        var enabledSchema = (Dictionary<string, object>)properties["Enabled"];
+        var enabledSchema = (Dictionary<string, object>)properties["enabled"];
         Assert.Equal(1, enabledSchema["propertyOrder"]);
     }
 
@@ -144,7 +144,7 @@ public class JsonAnnotationTests
         var schema = generator.GenerateSchema<ServiceConfig>();
 
         var properties = (Dictionary<string, object>)schema["properties"];
-        var portSchema = (Dictionary<string, object>)properties["Port"];
+        var portSchema = (Dictionary<string, object>)properties["port"];
         Assert.Equal(8080, portSchema["default"]);
     }
 
@@ -157,6 +157,6 @@ public class JsonAnnotationTests
         var properties = (Dictionary<string, object>)schema["properties"];
         // Name should appear under its renamed field name "service_name"
         Assert.True(properties.ContainsKey("service_name"));
-        Assert.False(properties.ContainsKey("Name"));
+        Assert.False(properties.ContainsKey("name"));
     }
 }

@@ -25,7 +25,7 @@ public class SchemaValidationTests
     [Fact]
     public void ArrayDefault_RendersAsJsonArray_NotString()
     {
-        var deviceIds = PropSchema<ArrayDefaultConfig>("DeviceIds");
+        var deviceIds = PropSchema<ArrayDefaultConfig>("deviceIds");
 
         var def = Assert.IsType<JsonElement>(deviceIds["default"]);
         Assert.Equal(JsonValueKind.Array, def.ValueKind);
@@ -37,7 +37,7 @@ public class SchemaValidationTests
     [Fact]
     public void ValidPattern_IsAccepted()
     {
-        var code = PropSchema<ValidPatternConfig>("Code");
+        var code = PropSchema<ValidPatternConfig>("code");
         Assert.Equal("^\\d{3}$", code["pattern"]);
     }
 
@@ -45,7 +45,7 @@ public class SchemaValidationTests
     public void UnknownScalarKeyword_IsAcceptedVerbatim()
     {
         // The constraint catch-all stays open-ended: unknown keywords are not rejected.
-        var legacy = PropSchema<UnknownKeywordConfig>("Legacy");
+        var legacy = PropSchema<UnknownKeywordConfig>("legacy");
         Assert.Equal(true, legacy["deprecated"]);
     }
 

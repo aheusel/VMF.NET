@@ -2,7 +2,10 @@
 // Copyright 2017-2019 Goethe Center for Scientific Computing, University Frankfurt. All rights reserved.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Linq;
+using System.Text.Json;
 using VMF.NET.Runtime;
+using VMF.NET.Runtime.Internal;
 
 namespace VMF.NET.Json;
 
@@ -29,30 +32,91 @@ public static class VmfTypeUtils
         // Check for containment annotation (parent side)
         if (IsContainedProperty(prop)) return true;
 
-        // Immutable scalar properties
-        var value = prop.Get();
-        if (value is IImmutable) return true;
-
-        // Immutable collection elements: check if list element type implements IImmutable
-        if (type.IsListType && value is System.Collections.IList list)
-        {
-            // If the list has items, check the first one
-            if (list.Count > 0 && list[0] is IImmutable) return true;
-            // Even if empty, check the element type via reflection
-            var listType = value.GetType();
-            if (listType.IsGenericType)
-            {
-                var elementType = listType.GetGenericArguments()[0];
-                if (typeof(IImmutable).IsAssignableFrom(elementType)) return true;
-            }
-        }
+        // Immutable model types are values, so they serialize.
+        //
+        // Decided from the TYPE, as Java does -- isToBeExcludedFromSerialization asks
+        // Immutable.class.isAssignableFrom(...). Asking the VALUE instead (prop.Get() is
+        // IImmutable) silently drops the property whenever it happens to be null, which on the
+        // all-null prototype the schema generator works from is *always*: an immutable-typed
+        // property simply never appeared in a generated schema.
+        if (IsImmutableType(type)) return true;
 
         // Non-contained model-type reference — skip (it's a cross-ref)
         return false;
     }
 
+    private static readonly Dictionary<string, bool> _immutableTypeCache = new();
+
+    /// <summary>
+    /// Whether a model type (or a list's element type) is immutable.
+    /// </summary>
+    public static bool IsImmutableType(VmfType type)
+    {
+        var name = type.IsListType ? type.GetElementTypeName() : type.Name;
+        if (name is null) return false;
+
+        lock (_immutableTypeCache)
+        {
+            if (_immutableTypeCache.TryGetValue(name, out var cached)) return cached;
+        }
+
+        var result = false;
+        foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var clrType = assembly.GetType(name);
+            if (clrType is null) continue;
+            result = typeof(IImmutable).IsAssignableFrom(clrType);
+            break;
+        }
+
+        lock (_immutableTypeCache)
+        {
+            _immutableTypeCache[name] = result;
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// The JSON field name for a property under a naming policy.
+    /// <para>
+    /// A <c>vmf:json:name</c> rename is used <b>verbatim</b> and never transformed. Java's
+    /// <c>getFieldNameForProperty</c> returns the annotation value directly, so a rename means
+    /// exactly what it says whatever policy is in force.
+    /// </para>
+    /// </summary>
+    public static string FieldName(VmfProperty prop, JsonNamingPolicy policy)
+    {
+        var annotation = prop.AnnotationByKey(VmfJsonKeys.Name);
+        if (annotation is not null) return annotation.Value;
+        return policy.ConvertName(prop.Name);
+    }
+
+    /// <summary>
+    /// The model types that directly extend <paramref name="type"/>.
+    /// <para>
+    /// Java's <c>VMFTypeUtils.getSubTypes</c> filters the model's types by
+    /// <c>superTypes().contains(type)</c>. A namespace is one model in VMF.NET, so that is the
+    /// set searched here.
+    /// </para>
+    /// </summary>
+    public static IReadOnlyList<VmfType> GetSubTypes(VmfType type)
+    {
+        if (!type.IsModelType || type.IsListType) return System.Array.Empty<VmfType>();
+
+        var lastDot = type.Name.LastIndexOf('.');
+        var candidates = lastDot > 0
+            ? VmfTypeRegistry.AllInNamespace(type.Name.Substring(0, lastDot))
+            : VmfTypeRegistry.All();
+
+        return candidates
+            .Where(t => t.SuperTypes().Any(
+                s => string.Equals(s.Name, type.Name, System.StringComparison.Ordinal)))
+            .ToList();
+    }
+
     /// <summary>
     /// Returns the JSON field name for a property, checking for rename annotations.
+    /// Applies no naming policy — prefer <see cref="FieldName(VmfProperty, JsonNamingPolicy)"/>.
     /// </summary>
     public static string GetFieldName(VmfProperty prop)
     {

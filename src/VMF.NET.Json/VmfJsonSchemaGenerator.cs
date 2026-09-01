@@ -5,6 +5,7 @@
 using System.Reflection;
 using System.Text.Json;
 using VMF.NET.Runtime;
+using VMF.NET.Runtime.Internal;
 
 namespace VMF.NET.Json;
 
@@ -16,6 +17,19 @@ public sealed class VmfJsonSchemaGenerator
 {
     private readonly Dictionary<string, string> _typeAliases = new();
     private readonly Dictionary<string, string> _typeAliasesReverse = new();
+    private JsonNamingPolicy _namingPolicy = VmfJsonNaming.Default;
+
+    /// <summary>
+    /// Names schema properties with the given policy. Pass whatever
+    /// <see cref="JsonSerializerOptions.PropertyNamingPolicy"/> the serializer uses, or leave it
+    /// alone to keep <see cref="VmfJsonNaming.Default"/> — which is what the serializer also
+    /// defaults to, so schema and documents agree unless you deliberately part them.
+    /// </summary>
+    public VmfJsonSchemaGenerator WithNamingPolicy(JsonNamingPolicy policy)
+    {
+        _namingPolicy = policy ?? throw new ArgumentNullException(nameof(policy));
+        return this;
+    }
 
     /// <summary>Adds a type alias mapping for schema generation.</summary>
     public VmfJsonSchemaGenerator WithTypeAlias(string alias, string fullTypeName)
@@ -52,7 +66,7 @@ public sealed class VmfJsonSchemaGenerator
             if (VmfTypeUtils.IsContainerProperty(prop)) continue;
             if (!VmfTypeUtils.ShouldSerialize(prop)) continue;
 
-            properties[VmfTypeUtils.GetFieldName(prop)] = GeneratePropertySchema(prop);
+            properties[VmfTypeUtils.FieldName(prop, _namingPolicy)] = GeneratePropertySchema(prop);
         }
         schema["properties"] = properties;
 
@@ -76,7 +90,7 @@ public sealed class VmfJsonSchemaGenerator
             {
                 if (VmfTypeUtils.IsContainerProperty(p)) continue;
                 if (!VmfTypeUtils.ShouldSerialize(p)) continue;
-                typeProps[VmfTypeUtils.GetFieldName(p)] = GeneratePropertySchema(p);
+                typeProps[VmfTypeUtils.FieldName(p, _namingPolicy)] = GeneratePropertySchema(p);
             }
             typeDef["properties"] = typeProps;
             definitions[GetTypeAlias(type.Name)] = typeDef;
@@ -112,7 +126,9 @@ public sealed class VmfJsonSchemaGenerator
         }
         else if (type.IsModelType && !type.IsListType)
         {
-            schema["$ref"] = $"#/definitions/{GetTypeAlias(type.Name)}";
+            var oneOf = PolymorphicOneOf(type.Name);
+            if (oneOf is not null) schema["oneOf"] = oneOf;
+            else schema["$ref"] = $"#/definitions/{GetTypeAlias(type.Name)}";
         }
         else if (type.IsListType)
         {
@@ -122,9 +138,15 @@ public sealed class VmfJsonSchemaGenerator
             {
                 var itemSchema = new Dictionary<string, object>();
                 if (IsValueTypeName(elemName))
+                {
                     itemSchema["type"] = MapValueType(elemName);
+                }
                 else
-                    itemSchema["$ref"] = $"#/definitions/{GetTypeAlias(elemName)}";
+                {
+                    var oneOf = PolymorphicOneOf(elemName);
+                    if (oneOf is not null) itemSchema["oneOf"] = oneOf;
+                    else itemSchema["$ref"] = $"#/definitions/{GetTypeAlias(elemName)}";
+                }
                 schema["items"] = itemSchema;
             }
         }
@@ -133,6 +155,51 @@ public sealed class VmfJsonSchemaGenerator
         AddAnnotationProperties(prop, schema);
 
         return schema;
+    }
+
+    /// <summary>
+    /// The <c>oneOf</c> alternatives for a polymorphic model type, or null when the type has no
+    /// subtypes and a plain <c>$ref</c> is correct.
+    /// <para>
+    /// Ported from Java's <c>VMFJsonSchemaGenerator</c>: the choices are the subtypes plus the
+    /// declared type itself, interface-only types removed, and each alternative pins
+    /// <c>@vmf-type</c> to that alternative's name so a validator can tell them apart. The
+    /// discriminator value is the type alias, which is exactly what the serializer writes.
+    /// </para>
+    /// </summary>
+    private List<object>? PolymorphicOneOf(string elementTypeName)
+    {
+        var elementType = VmfTypeRegistry.Lookup(elementTypeName);
+        if (elementType is null) return null;
+
+        var subTypes = VmfTypeUtils.GetSubTypes(elementType);
+        if (subTypes.Count == 0) return null;
+
+        var choices = new List<VmfType>(subTypes) { elementType };
+
+        var alternatives = new List<object>();
+        foreach (var choice in choices)
+        {
+            if (choice.IsInterfaceOnly) continue;
+
+            var alias = GetTypeAlias(choice.Name);
+            alternatives.Add(new Dictionary<string, object>
+            {
+                ["$ref"] = $"#/definitions/{alias}",
+                ["properties"] = new Dictionary<string, object>
+                {
+                    ["@vmf-type"] = new Dictionary<string, object>
+                    {
+                        ["type"] = "string",
+                        ["enum"] = new[] { alias },
+                        ["readOnly"] = true
+                    }
+                },
+                ["required"] = new[] { "@vmf-type" }
+            });
+        }
+
+        return alternatives.Count > 0 ? alternatives : null;
     }
 
     private static void AddAnnotationProperties(VmfProperty prop, Dictionary<string, object> schema)
@@ -397,6 +464,18 @@ public sealed class VmfJsonSchemaGenerator
 
                 var proto = CreatePrototype(name);
                 if (proto is not null) queue.Enqueue(proto.VMF.Reflect);
+
+                // A subtype is referenced only through its base's oneOf, never through a
+                // property, so the property walk alone would leave those $refs dangling.
+                var declared = VmfTypeRegistry.Lookup(name);
+                if (declared is null) continue;
+
+                foreach (var subType in VmfTypeUtils.GetSubTypes(declared))
+                {
+                    if (!seen.Add(subType.Name)) continue;
+                    var subProto = CreatePrototype(subType.Name);
+                    if (subProto is not null) queue.Enqueue(subProto.VMF.Reflect);
+                }
             }
         }
 

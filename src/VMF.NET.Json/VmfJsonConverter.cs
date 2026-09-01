@@ -77,8 +77,7 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
             var propValue = prop.Get();
             if (propValue is null) continue;
 
-            string fieldName = VmfTypeUtils.GetFieldName(prop);
-            writer.WritePropertyName(ApplyNamingPolicy(fieldName, options));
+            writer.WritePropertyName(VmfTypeUtils.FieldName(prop, VmfJsonNaming.Resolve(options)));
 
             WriteValue(writer, propValue, prop.Type, options);
         }
@@ -301,8 +300,9 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
         {
             foreach (var (propName, renamedField) in renameMap)
             {
-                var effectiveName = options.PropertyNamingPolicy?.ConvertName(renamedField) ?? renamedField;
-                if (effectiveName == jsonFieldName && withMethods.TryGetValue(propName, out var renamedMethod))
+                // Verbatim: a rename is not run through the naming policy on the way out, so it
+                // must not be on the way in either.
+                if (renamedField == jsonFieldName && withMethods.TryGetValue(propName, out var renamedMethod))
                     return renamedMethod;
             }
         }
@@ -311,15 +311,14 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
         if (withMethods.TryGetValue(jsonFieldName, out var method))
             return method;
 
-        // Try to reverse the naming policy: for each With* property name,
-        // check if the policy would transform it to the JSON field name
-        if (options.PropertyNamingPolicy is not null)
+        // Try to reverse the naming policy: for each With* property name, check whether the
+        // policy would transform it to the JSON field name. Resolve() rather than the raw option,
+        // so a document written with the default naming still round-trips when no policy is set.
+        var policy = VmfJsonNaming.Resolve(options);
+        foreach (var (propName, m) in withMethods)
         {
-            foreach (var (propName, m) in withMethods)
-            {
-                if (options.PropertyNamingPolicy.ConvertName(propName) == jsonFieldName)
-                    return m;
-            }
+            if (policy.ConvertName(propName) == jsonFieldName)
+                return m;
         }
 
         return null;
@@ -383,8 +382,4 @@ internal sealed class VmfJsonConverter<T> : JsonConverter<T> where T : IVObject
         }
     }
 
-    private static string ApplyNamingPolicy(string name, JsonSerializerOptions options)
-    {
-        return options.PropertyNamingPolicy?.ConvertName(name) ?? name;
-    }
 }
