@@ -92,4 +92,6 @@ jobs:
       working-directory: tutorials
       env:
         VMF_NET_VERSION: ${{ steps.pack.outputs.version }}
-      run: ./build-and-run-all.sh
+      # `bash <script>` rather than `./<script>`: the tutorials repo is developed on Windows,
+      # where the executable bit is easy to lose.
+      run: bash build-and-run-all.sh
