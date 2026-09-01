@@ -72,7 +72,12 @@ jobs:
       run: |
         VERSION="0.0.0-ci.${{ github.run_number }}"
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        dotnet pack vmf/VMF.NET.sln -c Release -o "$GITHUB_WORKSPACE/ci-packages" -p:Version="$VERSION"
+        # Build explicitly, then pack --no-build, as publish.yml does. `dotnet pack` alone
+        # did not produce the assemblies here and packed only the metapackage, which needs
+        # none (IncludeBuildOutput=false), while the other three failed with NU5026.
+        dotnet restore vmf/VMF.NET.sln
+        dotnet build vmf/VMF.NET.sln -c Release --no-restore -p:Version="$VERSION"
+        dotnet pack vmf/VMF.NET.sln -c Release --no-build -o "$GITHUB_WORKSPACE/ci-packages" -p:Version="$VERSION"
         ls -1 "$GITHUB_WORKSPACE/ci-packages"
 
     - name: Point the tutorials at those packages
