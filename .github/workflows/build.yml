@@ -28,3 +28,68 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --configuration Release --verbosity normal
+
+  # Runs the tutorials against THIS commit's packages, not the published ones.
+  #
+  # Why this job exists: five parity gaps shipped in 0.3.0 and 0.3.1 -- AsModifiable missing
+  # entirely, a delegated ToString() that did not compile, JSON field names that did not match
+  # Java's, schemas that could not describe their own polymorphic documents, and immutable
+  # properties that never reached a schema at all. Every one was reachable from ordinary use.
+  # None was caught by the suite above, because the suite is a 1:1 port of Java's and Java tests
+  # none of them either -- only its tutorials exercise that ground (see issue #2).
+  #
+  # The tutorials do exercise it, so running them here turns "we ported Java's tests" into
+  # "we also ran the things Java's tests never covered", at the point a regression is introduced
+  # rather than after a release.
+  #
+  # This deliberately tracks the tutorials' main branch. A change here that breaks them turns
+  # this job red, which is the signal -- fix the library, or land the tutorial change alongside.
+  tutorials:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: vmf
+
+    - uses: actions/checkout@v4
+      with:
+        repository: aheusel/VMF.NET.Tutorials
+        path: tutorials
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          10.0.x
+
+    # A version nobody has published, unique per run, so nothing can silently resolve the
+    # real package from nuget.org or a warm cache instead of what this commit produces.
+    - name: Pack this commit
+      id: pack
+      run: |
+        VERSION="0.0.0-ci.${{ github.run_number }}"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        dotnet pack vmf/VMF.NET.sln -c Release -o "$GITHUB_WORKSPACE/ci-packages" -p:Version="$VERSION"
+        ls -1 "$GITHUB_WORKSPACE/ci-packages"
+
+    - name: Point the tutorials at those packages
+      run: |
+        cat > tutorials/nuget.config <<EOF
+        <?xml version="1.0" encoding="utf-8"?>
+        <configuration>
+          <packageSources>
+            <clear />
+            <add key="ci" value="$GITHUB_WORKSPACE/ci-packages" />
+            <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+          </packageSources>
+        </configuration>
+        EOF
+
+    - name: Build and run every tutorial
+      working-directory: tutorials
+      env:
+        VMF_NET_VERSION: ${{ steps.pack.outputs.version }}
+      run: ./build-and-run-all.sh
