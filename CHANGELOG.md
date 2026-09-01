@@ -5,6 +5,11 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+## 0.3.2 — 2026-09-01
+
+JSON parity with Java's jackson module: field naming, polymorphic schemas, and three
+defects the new tests found.
+
 ### Changed — JSON field naming now matches Java by default (breaking)
 
 **A document VMF.NET writes now has the same field names a Java VMF document does.** Java's field
