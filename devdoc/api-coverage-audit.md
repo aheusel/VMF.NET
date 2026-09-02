@@ -140,6 +140,24 @@ destroying the lesson, and nothing caught it. Now pinned by
 `InheritanceCodegenTests.ASupertypeBuilder_AppliesOnlyTheSupertypesProperties`, with a
 same-type-builder contrast test beside it so the assertion cannot be satisfied vacuously.
 
+## What this audit does not measure — demonstrated, not hypothetical
+
+**Reached is not covered.** The method asks whether a member is exercised. It cannot ask whether
+its *cases* are.
+
+One day after this audit was written, a crash was reported from a real model:
+`VmfTypeUtils.GetSubTypes` threw for any model namespace containing an `[InterfaceOnly]` type,
+breaking schema generation for every model-typed property in it. `GetSubTypes` is on the
+*"exercised indirectly"* list above — every polymorphic schema test runs through it — and that was
+accurate. It was thoroughly exercised, and thoroughly broken, because no test had ever put an
+interface-only type in a namespace under schema generation.
+
+So the honest reading of "51 unreferenced, 19 closed" is: **no member of the public surface is
+now completely unexercised.** That is a floor, not a ceiling. It says nothing about input
+combinations, and a defect needs only one uncovered combination.
+
+Worth keeping in view when this document is cited as evidence.
+
 ## Deliberately out of scope
 
 **`VMF.NET.Core` and `VMF.NET.SourceGenerator`.** A public-member audit would measure the wrong
