@@ -293,4 +293,46 @@ public class ReadOnlyReflectionTests
         Assert.Equal("Rex", animalCopy.Name);
         Assert.IsAssignableFrom<Dog>(animalCopy);
     }
+
+    // ------------------------------------------------------------------
+    // ContentHashCode, found untested by the audit (issue #2). ContentEquals was covered;
+    // its hash partner was not, and the two have to agree or content-keyed dictionaries break.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void ContentHashCode_AgreesWithContentEquals()
+    {
+        var a = Flow.NewInstance();
+        a.Title = "same";
+        var b = Flow.NewInstance();
+        b.Title = "same";
+
+        Assert.True(a.VMF.Content.ContentEquals(b), "precondition: these are content-equal");
+        Assert.Equal(a.VMF.Content.ContentHashCode(), b.VMF.Content.ContentHashCode());
+    }
+
+    [Fact]
+    public void ContentHashCode_IsStableAcrossCalls()
+    {
+        var flow = Flow.NewInstance();
+        flow.Title = "stable";
+        flow.Nodes.Add(Node.NewInstance());
+
+        Assert.Equal(flow.VMF.Content.ContentHashCode(), flow.VMF.Content.ContentHashCode());
+    }
+
+    [Fact]
+    public void ContentHashCode_SurvivesADeepCopy()
+    {
+        var flow = Flow.NewInstance();
+        flow.Title = "copied";
+        var node = Node.NewInstance();
+        node.Name = "n";
+        flow.Nodes.Add(node);
+
+        var copy = flow.VMF.Content.DeepCopy<Flow>();
+
+        Assert.True(flow.VMF.Content.ContentEquals(copy));
+        Assert.Equal(flow.VMF.Content.ContentHashCode(), copy.VMF.Content.ContentHashCode());
+    }
 }

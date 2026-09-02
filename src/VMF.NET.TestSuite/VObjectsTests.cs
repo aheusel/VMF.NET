@@ -77,4 +77,38 @@ public class VObjectsTests
         Assert.False(VObjects.Equals(42, 99));
         Assert.True(VObjects.Equals("hello", "hello"));
     }
+
+    // ------------------------------------------------------------------
+    // The last user-visible members the audit (issue #2) found unasserted: the EventInfo label
+    // a VList attaches to the change events it raises, and the listener opt-out.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void VList_AttachesItsEventInfoToTheChangesItRaises()
+    {
+        var list = new VList<string> { EventInfo = "containment:Parent.Children" };
+
+        VListChangeEvent? seen = null;
+        list.AddChangeListener(e => seen = e);
+
+        list.Add("first");
+
+        Assert.NotNull(seen);
+        Assert.Equal("containment:Parent.Children", seen!.EventInfo);
+    }
+
+    [Fact]
+    public void VList_CarriesEventInfoOnRemovalToo()
+    {
+        var list = new VList<string> { EventInfo = "label" };
+        list.Add("x");
+
+        VListChangeEvent? seen = null;
+        list.AddChangeListener(e => seen = e);
+
+        list.RemoveAt(0);
+
+        Assert.NotNull(seen);
+        Assert.Equal("label", seen!.EventInfo);
+    }
 }

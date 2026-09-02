@@ -309,4 +309,93 @@ public class SchemaGenerationTests
 
         Assert.Equal("from annotation", label["title"]);
     }
+
+    // ------------------------------------------------------------------
+    // Type aliases
+    //
+    // Added by the API-coverage audit (issue #2): WithTypeAlias existed on both the converter
+    // factory and the schema generator with no test on either. Its correctness had been asserted
+    // from reading the code, which is the habit that issue exists to break.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void ATypeAlias_ShortensTheDiscriminatorTheSerializerWrites()
+    {
+        var model = MyModel.NewInstance();
+        var employee = Employee.NewInstance();
+        employee.Name = "Jane";
+        model.Persons.Add(employee);
+
+        var options = new JsonSerializerOptions
+        {
+            Converters =
+            {
+                new VmfJsonConverterFactory()
+                    .WithTypeAlias("employee", typeof(Employee).FullName!)
+            }
+        };
+
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize<IVObject>(model, options));
+        var written = doc.RootElement.GetProperty("persons")[0].GetProperty("@vmf-type").GetString();
+
+        Assert.Equal("employee", written);
+    }
+
+    [Fact]
+    public void AnAliasedDocument_StillDeserializes()
+    {
+        var model = MyModel.NewInstance();
+        var employee = Employee.NewInstance();
+        employee.Name = "Jane";
+        employee.EmployeeId = "E-1";
+        model.Persons.Add(employee);
+
+        var options = new JsonSerializerOptions
+        {
+            Converters =
+            {
+                new VmfJsonConverterFactory()
+                    .WithTypeAlias("employee", typeof(Employee).FullName!)
+            }
+        };
+
+        var json = JsonSerializer.Serialize<IVObject>(model, options);
+        var back = JsonSerializer.Deserialize<MyModel>(json, options)!;
+
+        var restored = Assert.IsAssignableFrom<Employee>(back.Persons[0]);
+        Assert.Equal("E-1", restored.EmployeeId);
+    }
+
+    [Fact]
+    public void TheSchemaUsesTheSameAlias_SoDocumentsStillMatchIt()
+    {
+        // The whole point of aliasing on both sides: the schema's $ref target and its @vmf-type
+        // enum must be the value the serializer actually writes.
+        var generator = new VmfJsonSchemaGenerator()
+            .WithTypeAlias("person", typeof(Person).FullName!)
+            .WithTypeAlias("employee", typeof(Employee).FullName!);
+
+        var schema = generator.GenerateSchema<MyModel>();
+
+        var items = (Dictionary<string, object>)
+            ((Dictionary<string, object>)Properties(schema)["persons"])["items"];
+
+        var alternatives = ((List<object>)items["oneOf"]).Cast<Dictionary<string, object>>().ToList();
+        var refs = alternatives.Select(a => (string)a["$ref"]).ToList();
+
+        Assert.Contains("#/definitions/person", refs);
+        Assert.Contains("#/definitions/employee", refs);
+
+        // the discriminator enum uses the alias too
+        var enums = alternatives
+            .SelectMany(a => (string[])((Dictionary<string, object>)
+                ((Dictionary<string, object>)a["properties"])["@vmf-type"])["enum"])
+            .ToList();
+        Assert.Contains("employee", enums);
+
+        // and the definitions are keyed by alias, so those $refs resolve
+        var definitions = Definitions(schema);
+        Assert.True(definitions.ContainsKey("employee"), "definitions must be keyed by the alias");
+        Assert.True(definitions.ContainsKey("person"));
+    }
 }

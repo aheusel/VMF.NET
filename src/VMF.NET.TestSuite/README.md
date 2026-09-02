@@ -63,8 +63,9 @@ Two consequences worth carrying:
   each commit's freshly packed packages (`.github/workflows/build.yml`, job `tutorials`) for
   exactly that reason. That gate catches a gap that fails to compile or crashes — two of the five
   above. The remaining three produced plausible-looking wrong output and needed an assertion, which
-  is why [issue #2](https://github.com/aheusel/VMF.NET/issues/2) tracks auditing the API surface
-  for anything no test exercises.
+  is why the API surface was audited by enumeration rather than by waiting for the next failure —
+  see [`../../devdoc/api-coverage-audit.md`](../../devdoc/api-coverage-audit.md), which closed
+  18 untested user-facing members and records what is left and why.
 
 ## Reconciliation with the Java suite
 

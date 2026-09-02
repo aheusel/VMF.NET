@@ -101,4 +101,60 @@ public class UndoTests
         Assert.Empty(root.Children);
         Assert.Single(root.VMF.Content.Traverse().OfType<Node>());
     }
+
+    // ------------------------------------------------------------------
+    // Apply and IsUndoable, which the audit (issue #2) found untested. Apply replays a recorded
+    // change onto a DIFFERENT object -- the building block Java's ModelDiff.apply is built from,
+    // and the piece VMF.NET would need if ModelDiff is ever ported.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Apply_ReplaysAScalarChangeOntoAnotherObject()
+    {
+        var source = Node.NewInstance();
+        source.VMF.Changes.Start();
+        source.Name = "recorded";
+
+        var target = Node.NewInstance();
+        target.Name = "untouched";
+
+        var change = source.VMF.Changes.All().Single(c => c.PropertyChange is not null);
+        change.Apply(target);
+
+        Assert.Equal("recorded", target.Name);
+        Assert.Equal("recorded", source.Name);   // the source is not disturbed
+    }
+
+    [Fact]
+    public void Apply_ReplaysAListChangeOntoAnotherObject()
+    {
+        var source = Node.NewInstance();
+        source.VMF.Changes.Start();
+        var child = Node.NewInstance();
+        child.Name = "c";
+        source.Children.Add(child);
+
+        var target = Node.NewInstance();
+
+        var change = source.VMF.Changes.All().Single(c => c.ListChange is not null);
+        change.Apply(target);
+
+        Assert.Single(target.Children);
+    }
+
+    [Fact]
+    public void RecordedChanges_ReportWhetherTheyCanBeUndone()
+    {
+        var node = Node.NewInstance();
+        node.VMF.Changes.Start();
+        node.Name = "x";
+        node.Children.Add(Node.NewInstance());
+
+        var changes = node.VMF.Changes.All();
+        Assert.NotEmpty(changes);
+
+        // Undo() is exercised throughout this file, so every recorded change must say so.
+        Assert.All(changes, c => Assert.True(c.IsUndoable,
+            "a recorded change that Undo() handles must report IsUndoable"));
+    }
 }
