@@ -5,6 +5,11 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+## 0.3.3 — 2026-09-02
+
+A regression fix. 0.3.2 is broken for any model declaring an `[InterfaceOnly]` type; upgrade past
+it.
+
 ### Fixed
 
 - **An `[InterfaceOnly]` type broke JSON schema generation for the whole namespace.** Generating a
