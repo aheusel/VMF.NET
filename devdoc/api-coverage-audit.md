@@ -1,7 +1,7 @@
 # API coverage audit
 
-*Run 2026-09-01, against `VMF.NET.Runtime` and `VMF.NET.Json`. Tracked by
-[issue #2](https://github.com/aheusel/VMF.NET/issues/2).*
+*Run 2026-09-01, in two passes: the runtime assemblies (`VMF.NET.Runtime`, `VMF.NET.Json`), then
+the generated API. Tracked by [issue #2](https://github.com/aheusel/VMF.NET/issues/2).*
 
 ## Why
 
@@ -94,18 +94,69 @@ These are judgement calls, not oversights. Each is reachable only through someth
 asserted, so a direct test would restate an existing one. The two worth revisiting if the surface
 grows are `WithTypeAliases` and `IgnoreNullObjects`, which are genuinely unexercised but trivial.
 
-## Not covered by this audit
+## The generated API
 
-- **The generated API** — `NewInstance`, `NewBuilder`, `GetModelType`, `AsReadOnly`,
-  `AsModifiable`, `Clone`, the builder's `With*`/`ApplyFrom`/`ApplyTo`. These are emitted by the
-  templates, not present in the runtime assembly, so reflection over it does not see them. They
-  are heavily used across the suite, but a systematic pass over the *templates'* emitted surface
-  is a separate exercise.
-- **`VMF.NET.Core` and `VMF.NET.SourceGenerator`** — generator internals, covered by
-  `VMF.NET.Tests` against model source text rather than by public-surface reflection.
+*Second pass, same day. The first pass covered the runtime assemblies and explicitly did not
+claim this.*
+
+The generated API — `NewInstance`, `NewBuilder`, and the rest — is emitted into the **consumer's**
+assembly, so reflecting over `VMF.NET.Runtime` cannot see it. Recovered instead from a built
+consumer, `VMF.NET.TestSuite.dll`, which contains 660 generated model types.
+
+Separating generator-emitted members from model-declared properties needs no hand-maintained
+list: count how many distinct model types declare each name. Infrastructure appears on nearly all
+of them; a model's own property appears on a handful. The split is unambiguous:
+
+| member | on N model types | |
+|---|---|---|
+| `Clone` | 522 | mutable **and** read-only interfaces |
+| `AsReadOnly`, `Builder`, `GetModelType`, `NewBuilder`, `NewInstance` | 273 | every instantiable model type |
+| `AsModifiable` | 249 | read-only interfaces only |
+| `Builder.Build`, `Builder.ApplyFrom`, `Builder.ApplyTo` | 273 | |
+| `Builder.With<Property>` | per property | |
+| — | — | — |
+| `Name` | 95 | *a model property, not infrastructure* |
+| `Parent` | 62 | *ditto* |
+
+The gap between 249 and 95 is the whole answer — there is no conditionally-emitted infrastructure
+hiding among the model properties. `VMF` does not appear because it is declared on `IVObject` and
+inherited, so it belongs to the first pass.
+
+**Every one of those members is exercised by the suite.** `Builder` reads as unused only because
+the nested type is never named — it is obtained from `NewBuilder()`.
+
+### The gap it found
+
+Presence is not coverage, so the thin ones were read rather than counted. `GetModelType` (a
+dedicated `StaticReflectionTest`), `Clone`, and `AsReadOnly` are properly asserted. One was not:
+
+**A supertype's builder applies only that supertype's state.** `ApplyFrom`/`ApplyTo` were covered,
+but *every* call site used the builder of the same type — where "copies the properties" and
+"copies only this type's properties" cannot be told apart. The selective behaviour had no test.
+
+That is exactly the semantics VMF-Tutorial-05 exists to teach, and its absence has already cost
+something: the pre-0.3.0 port of that tutorial had been flattened into a single interface,
+destroying the lesson, and nothing caught it. Now pinned by
+`InheritanceCodegenTests.ASupertypeBuilder_AppliesOnlyTheSupertypesProperties`, with a
+same-type-builder contrast test beside it so the assertion cannot be satisfied vacuously.
+
+## Deliberately out of scope
+
+**`VMF.NET.Core` and `VMF.NET.SourceGenerator`.** A public-member audit would measure the wrong
+thing here. These are compile-time internals whose contract is *model source text in, diagnostics
+and generated files out*, and that is how `VMF.NET.Tests` tests them — 98 tests driving a
+`GeneratorDriver` over model source. Counting which of `ModelAnalyzer`'s public methods a test
+names would say nothing about whether the generator behaves correctly.
+
+## Result, both passes
+
+**19 untested user-facing members found and closed** — 18 in the runtime surface, one behaviour in
+the generated surface. No defect turned up: everything already worked. The value is that the
+question is now answered by enumeration, and that these stay working.
 
 ## Re-running it
 
-The dumper is ~30 lines of reflection and was written as a throwaway. Rebuild it from the method
+The dumper is ~60 lines of reflection and was written as a throwaway. Rebuild it from the method
 above rather than hunting for it; the value is in the hand pass over the candidate list, which no
-script produces.
+script produces. The one gap in the second pass was found by *reading* the thin call sites, not by
+the counting — presence is not coverage, and only the hand pass sees the difference.

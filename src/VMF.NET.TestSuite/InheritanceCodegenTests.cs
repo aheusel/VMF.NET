@@ -93,4 +93,53 @@ public class InheritanceCodegenTests
         Assert.Equal(d1.GetHashCode(), d2.GetHashCode());
         Assert.NotEqual(d1, d3);
     }
+
+    // ------------------------------------------------------------------
+    // A SUPERTYPE's builder applies only that supertype's state.
+    //
+    // Found by completing the API-coverage audit (issue #2): ApplyFrom/ApplyTo were covered, but
+    // only ever through the builder of the same type, where "copies the properties" and "copies
+    // the supertype's properties" are indistinguishable. The selective behaviour is what
+    // Tutorial 05 teaches, and it had no test -- which is how the tutorial's port came to be
+    // flattened into a single interface, destroying the lesson, without anything noticing.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void ASupertypeBuilder_AppliesOnlyTheSupertypesProperties()
+    {
+        var source = Dog.NewInstance();
+        source.Name = "Rex";
+        source.Age = 3;
+        source.Breed = "Husky";
+
+        var target = Dog.NewInstance();
+        target.Name = "Fido";
+        target.Age = 9;
+        target.Breed = "Poodle";
+
+        // Animal declares Name and Age; Breed belongs to Dog alone.
+        Animal.NewBuilder().ApplyFrom(source).ApplyTo(target);
+
+        Assert.Equal("Rex", target.Name);
+        Assert.Equal(3, target.Age);
+        Assert.Equal("Poodle", target.Breed);   // untouched -- not part of Animal
+    }
+
+    [Fact]
+    public void TheConcreteBuilder_AppliesEverything()
+    {
+        // The contrast that gives the test above its meaning.
+        var source = Dog.NewInstance();
+        source.Name = "Rex";
+        source.Breed = "Husky";
+
+        var target = Dog.NewInstance();
+        target.Name = "Fido";
+        target.Breed = "Poodle";
+
+        Dog.NewBuilder().ApplyFrom(source).ApplyTo(target);
+
+        Assert.Equal("Rex", target.Name);
+        Assert.Equal("Husky", target.Breed);
+    }
 }
