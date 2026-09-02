@@ -11,6 +11,10 @@ of Java's `core/src/test` plus `VMFGeneratorTest`.
 > **101 of Java's 103 facts have a running counterpart, and nothing is skipped.** Reconciled
 > 2026-08-25 by path across all three Java roots — see the table below.
 >
+> This counts **Java's tests**, not Java's behaviour. Read
+> [*What 101/103 does and does not tell you*](#what-101103-does-and-does-not-tell-you) before
+> treating it as a parity guarantee — five defects shipped while it read 101/103.
+>
 > **The gap is `vmftest/diff/ModelDiffTest` (2 facts).** Java's `ModelDiff` — graph diff, apply
 > and merge — is not implemented in VMF.NET at all, so there is nothing to port against. This is a
 > missing *feature*, not a missing test; see
@@ -25,6 +29,42 @@ of Java's `core/src/test` plus `VMFGeneratorTest`.
 > `VmfTest/CompletePropertyOrderTest/`. That matches Java, where both live under the models-only
 > `vmftests` root and are exercised through `VMFGenerateRuns` rather than by a test class of their
 > own. See [`../../devdoc/java-parity-roadmap.md`](../../devdoc/java-parity-roadmap.md).
+
+## What 101/103 does and does not tell you
+
+That number measures **how faithfully Java's tests were ported**. It does not measure how
+faithfully VMF.NET matches Java's *behaviour*, and the difference is not academic.
+
+Java's own suite does not cover everything Java VMF does. Where a feature is exercised only by
+Java's tutorials or documentation, this suite inherits the blind spot by construction: there is no
+Java test to port, so nothing here tests it either, and the count stays at 101/103 regardless.
+
+Five such defects shipped while this number read 101/103. Every one was reachable from ordinary
+use:
+
+| defect | fixed in |
+|---|---|
+| `AsModifiable()` absent entirely — a read-only view could not produce a modifiable copy at all | 0.3.1 |
+| delegating `ToString()` generated code that did not compile (CS0111) | 0.3.1 |
+| JSON field names did not match Java's | 0.3.2 |
+| generated schemas could not describe the polymorphic documents the serializer writes | 0.3.2 |
+| an immutable-typed property never appeared in **any** generated schema | 0.3.2 |
+
+None was found by this suite. All five were found by writing the tutorials, because the tutorials
+use API that Java tests only in *its* tutorials — `asModifiable()` and a delegated `toString()`
+appear nowhere in Java's test-suite.
+
+Two consequences worth carrying:
+
+- **A green suite is not evidence of parity for anything Java's suite does not itself test.** When
+  a parity question comes up, check whether Java has a test for it before treating this count as
+  an answer.
+- The tutorials are therefore a **parity surface**, not only documentation. They run in CI against
+  each commit's freshly packed packages (`.github/workflows/build.yml`, job `tutorials`) for
+  exactly that reason. That gate catches a gap that fails to compile or crashes — two of the five
+  above. The remaining three produced plausible-looking wrong output and needed an assertion, which
+  is why [issue #2](https://github.com/aheusel/VMF.NET/issues/2) tracks auditing the API surface
+  for anything no test exercises.
 
 ## Reconciliation with the Java suite
 
