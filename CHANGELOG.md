@@ -5,6 +5,29 @@ Notable changes per release. Earlier releases are listed on the
 
 ## Unreleased
 
+### Fixed
+
+- **An `[InterfaceOnly]` type broke JSON schema generation for the whole namespace.** Generating a
+  schema threw
+
+  ```
+  InvalidOperationException: Cannot reflect on type '…' without an instance:
+  it has no prototype factory. Interface-only and non-model types cannot be instantiated.
+  ```
+
+  as soon as any interface-only type was declared in the model's namespace. The subtype search
+  added in 0.3.2 asked *every* type in the namespace for its `SuperTypes()`, and an interface-only
+  type cannot answer that — it has no prototype, being non-instantiable. The type did not have to
+  be related to the property being described, or referenced by anything: declaring one was enough
+  to break every model-typed property.
+
+  Interface-only types are now skipped before they are asked, which loses nothing — such a type
+  can never be a `oneOf` alternative anyway, and was already dropped from the choices a few lines
+  later, as Java drops it.
+
+  Regression introduced in 0.3.2 and reported from a real model.
+
+
 ## 0.3.2 — 2026-09-01
 
 JSON parity with Java's jackson module: field naming, polymorphic schemas, and three

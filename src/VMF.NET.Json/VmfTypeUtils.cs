@@ -109,6 +109,16 @@ public static class VmfTypeUtils
             : VmfTypeRegistry.All();
 
         return candidates
+            // Interface-only types are skipped BEFORE asking anything of them. SuperTypes()
+            // needs a prototype and an interface-only type has none, so asking throws --
+            // which meant one declared anywhere in the namespace broke schema generation for
+            // every model-typed property, related to it or not.
+            //
+            // Nothing is lost by skipping them: an interface-only type can never be a oneOf
+            // alternative, because it cannot be instantiated. Java drops them from the choices
+            // too (`typesToChooseFrom.removeIf(Type::isInterfaceOnly)`), and PolymorphicOneOf
+            // does the same a few lines later.
+            .Where(t => !t.IsInterfaceOnly)
             .Where(t => t.SuperTypes().Any(
                 s => string.Equals(s.Name, type.Name, System.StringComparison.Ordinal)))
             .ToList();
