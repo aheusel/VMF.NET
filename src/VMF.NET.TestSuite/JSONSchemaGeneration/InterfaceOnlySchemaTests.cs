@@ -32,4 +32,22 @@ public class InterfaceOnlySchemaTests
 
         Assert.DoesNotContain("ConfigElement", System.Text.Json.JsonSerializer.Serialize(items));
     }
+
+    [Fact]
+    public void ARedeclaredProperty_UsesTheDerivedInterfacesAnnotations()
+    {
+        // Java lets a derived interface redeclare an inherited property to give it its own
+        // annotations. C# needs `new` to say the hiding is intended; this pins that the DERIVED
+        // declaration's annotations are the ones that reach the schema.
+        var schema = new VmfJsonSchemaGenerator().GenerateSchema<ConfigHolder>();
+        var definitions = (Dictionary<string, object>)schema["definitions"];
+
+        var piezo = (Dictionary<string, object>)
+            definitions["VMF.NET.TestSuite.JSONSchemaGeneration.InterfaceOnlyCase.PiezoChannelConfig"];
+        var props = (Dictionary<string, object>)piezo["properties"];
+        var channelId = (Dictionary<string, object>)props["channelId"];
+
+        Assert.Equal("Channel ID", ((System.Text.Json.JsonElement)channelId["title"]).GetString());
+        Assert.Equal(0, ((System.Text.Json.JsonElement)channelId["propertyOrder"]).GetInt32());
+    }
 }

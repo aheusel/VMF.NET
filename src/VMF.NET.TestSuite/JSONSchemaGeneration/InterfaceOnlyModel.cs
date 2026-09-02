@@ -6,6 +6,7 @@
 // failure therefore has nothing to do with the property being described: merely declaring an
 // interface-only type in the same namespace was enough to break any model-typed property.
 
+using VMF.NET.Json;
 using VMF.NET.Runtime.Attributes;
 
 namespace VMF.NET.TestSuite.JSONSchemaGeneration.InterfaceOnlyCase.VmfModel;
@@ -27,4 +28,26 @@ interface ConfigHolder
 {
     [Contains("AppConfig.Holder")]
     AppConfig[] Apps { get; }
+
+    [Contains("PiezoChannelConfig.Holder")]
+    PiezoChannelConfig[] Channels { get; }
+}
+
+// Re-declaring an inherited property in a derived interface, to give it its own annotations.
+// Java allows the redeclaration outright; C# warns CS0108 unless the intent is stated with
+// `new`. The question this pins is whether the DERIVED declaration's annotations are the ones
+// that reach the schema.
+[InterfaceOnly]
+interface WithChannelId
+{
+    int ChannelId { get; set; }
+}
+
+interface PiezoChannelConfig : WithChannelId, ConfigElement
+{
+    [VmfAnnotation("\"title\": \"Channel ID\", \"propertyOrder\": 0", Key = VmfSchemaKeys.Inject)]
+    new int ChannelId { get; set; }
+
+    [Container("ConfigHolder.Channels")]
+    ConfigHolder? Holder { get; }
 }
